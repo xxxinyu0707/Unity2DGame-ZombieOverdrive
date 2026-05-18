@@ -1,0 +1,11 @@
+{
+  "files.exclude": {
+    "**/Library": true,
+    "**/Temp": true,
+    "**/Obj": true,
+    "**/Build": true,
+    "**/Builds": true,
+    "**/Logs": true
+  },
+  "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true
+}

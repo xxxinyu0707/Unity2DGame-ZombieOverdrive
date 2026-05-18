@@ -1,0 +1,54 @@
+# Unity generated folders
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+
+# Unity generated files
+*.pidb
+*.booproj
+*.svd
+*.user
+*.userprefs
+*.csproj
+*.sln
+*.suo
+*.tmp
+*.pidb.meta
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Unity crash/debug output
+sysinfo.txt
+*.stackdump
+
+# Unity asset store tools
+[Aa]ssets/AssetStoreTools*
+
+# Builds and exported packages
+*.apk
+*.aab
+*.unitypackage
+*.app
+*.exe
+
+# Visual Studio / Rider / VS Code
+.vs/
+.idea/
+.vscode/.ropeproject
+.vscode/.ionide
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Keep assignment docs and scripts tracked.
+!docs/
+!scripts/
