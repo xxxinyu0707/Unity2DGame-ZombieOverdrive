@@ -2,9 +2,9 @@
 
 ## Target
 
-Use Unity 6.3 LTS for this assignment. Install the latest `6000.3.x` patch available in Unity Hub; at setup time on 2026-05-18, Unity's latest Editor page lists `6000.3.15f1`.
+Use Tuanjie Engine for this assignment. It is the China-localized Unity engine route and avoids the Unity Hub CDN failures seen on this machine.
 
-LTS is a good fit for a course project because the version is stable and can stay locked for the whole development cycle.
+Fallback: use Unity 6.3 LTS only if Unity Hub downloads work reliably.
 
 ## Installed Tooling Detected
 
@@ -12,42 +12,62 @@ LTS is a good fit for a course project because the version is stable and can sta
 - Git LFS: available
 - .NET SDK: available
 - VS Code: available
-- Unity Hub: installed at `C:\Program Files\Unity Hub\Unity Hub.exe`
-- Unity Editor: install Unity 6.3 LTS, latest `6000.3.x` patch, in Unity Hub
+- Tuanjie Hub: installed at `D:\Tuanjie\Hub\App\Tuanjie Hub.exe`
+- Unity Hub: uninstalled to save C drive space
+- Tuanjie/Unity Editor: install through Tuanjie Hub
+- Tuanjie temp/cache/user-data route: `D:\Tuanjie\AppData` and `D:\Temp`
 
 ## Install Steps
 
-### 1. Unity Hub
+### 1. Tuanjie Hub
 
-Unity Hub is installed. Open it with:
-
-```powershell
-.\scripts\open-unity-hub.ps1
-```
-
-If you need to reinstall it later, use Unity's official download page. `winget` may temporarily fail if its stored installer hash lags behind Unity's current CDN package.
-
-If `winget` works on this machine:
+Tuanjie Hub is installed. Open it with:
 
 ```powershell
-winget install --id Unity.UnityHub -e --accept-source-agreements --accept-package-agreements
+.\scripts\open-tuanjie-hub.ps1
 ```
 
-### 2. Unity Editor
+Use this script instead of double-clicking the Hub executable. It starts Tuanjie Hub with D-drive `APPDATA`, `LOCALAPPDATA`, `TEMP`, and `TMP`, so bulky Hub data avoids C drive.
 
-Open Unity Hub and install Unity 6.3 LTS. Prefer the newest `6000.3.x` patch shown in the Hub.
+If you need to reinstall it later:
+
+```powershell
+winget install --id Unity.TuanjieHub -e --location "D:\Tuanjie\Hub\App" --accept-source-agreements --accept-package-agreements
+```
+
+Official release page:
+
+```text
+https://unity.cn/tuanjie/releases
+```
+
+### 2. Tuanjie Engine
+
+Open Tuanjie Hub and install the recommended stable Tuanjie Engine version.
+
+Recommended installation path:
+
+```powershell
+D:\Tuanjie\Hub\Editor
+```
+
+Recommended download/cache path:
+
+```powershell
+D:\Tuanjie\Hub\Downloads
+```
 
 Recommended modules:
 
-- Windows Build Support (IL2CPP), for exporting a Windows build
-- Microsoft Visual Studio Community or VS Code integration
+- Windows Build Support, for exporting a Windows build
+- VS Code or Visual Studio integration
 - Documentation, optional
 
-Avoid alpha/beta versions for this assignment unless the teacher specifically asks for them.
+Avoid unnecessary mobile platform modules unless the assignment requires them.
 
 ### 3. Create Project
 
-Create the Unity project in:
+Create the project in:
 
 ```text
 D:\学术垃圾\大三下\Unity大作业\Game
@@ -58,9 +78,9 @@ Recommended template:
 - 2D, for platformer, top-down, puzzle, tower defense, card, or casual games
 - 3D only if the concept really needs 3D movement/camera/physics
 
-### 4. Unity Project Settings
+### 4. Project Settings
 
-In Unity:
+In the editor:
 
 - `Edit > Project Settings > Editor > Version Control Mode`: `Visible Meta Files`
 - `Edit > Project Settings > Editor > Asset Serialization Mode`: `Force Text`
@@ -87,4 +107,4 @@ Run:
 .\scripts\check-env.ps1
 ```
 
-The script checks Git, Git LFS, .NET, VS Code, Unity Hub, Unity Editor, and whether the expected Unity project folders exist.
+The script checks Git, Git LFS, .NET, VS Code, Tuanjie Hub, editor installation, and whether the expected project folders exist.

@@ -1,15 +1,23 @@
-# First Unity Project Steps
+# First Tuanjie/Unity Project Steps
 
-Follow this after Unity 6.3 LTS is installed in Unity Hub.
+Follow this after Tuanjie Engine is installed in Tuanjie Hub.
 
 ## Create The Project
 
-1. Open Unity Hub.
-2. Choose `New project`.
-3. Template: `2D`.
-4. Project name: `Game`.
-5. Location: `D:\学术垃圾\大三下\Unity大作业`.
-6. Confirm the final path is:
+1. Open Tuanjie Hub from PowerShell, so its cache and temp paths stay on D drive:
+
+```powershell
+.\scripts\open-tuanjie-hub.ps1
+```
+
+2. In Hub settings, make sure these paths are on D drive:
+   - Editor path: `D:\Tuanjie\Hub\Editor`
+   - Download/cache path: `D:\Tuanjie\Hub\Downloads`
+3. Choose `New project`.
+4. Template: `2D`.
+5. Project name: `Game`.
+6. Location: `D:\学术垃圾\大三下\Unity大作业`.
+7. Confirm the final path is:
 
 ```text
 D:\学术垃圾\大三下\Unity大作业\Game

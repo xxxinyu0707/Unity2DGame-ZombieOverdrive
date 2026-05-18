@@ -6,9 +6,9 @@
 - [x] Add Unity `.gitignore`
 - [x] Add Git LFS attributes for large assets
 - [x] Add environment check script
-- [ ] Install Unity Hub
-- [ ] Install Unity 6.3 LTS, latest `6000.3.x` patch
-- [ ] Create Unity project in `Game/`
+- [x] Install Tuanjie Hub
+- [ ] Install Tuanjie Engine
+- [ ] Create Tuanjie/Unity project in `Game/`
 - [ ] Configure Visible Meta Files and Force Text
 
 ## Phase 1: Prototype

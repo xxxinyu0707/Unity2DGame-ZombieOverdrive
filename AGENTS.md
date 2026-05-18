@@ -1,10 +1,10 @@
 # AI Collaboration Notes
 
-This repository is a Unity single-player game assignment.
+This repository is a Tuanjie/Unity single-player game assignment.
 
 ## Project Rules
 
-- Unity project root should be `Game/`.
+- Project root should be `Game/`.
 - Keep repository docs and helper scripts at the repo root.
 - Do not commit Unity-generated cache folders such as `Library/`, `Temp/`, `Obj/`, `Logs/`, or build output.
 - Keep Unity `.meta` files tracked.
