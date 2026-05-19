@@ -15,6 +15,11 @@ namespace ZombieOverdrive.Combat
         public int Level { get; private set; }
         public bool IsUnlocked => Level > 0;
         public bool IsEvolved { get; private set; }
+        protected bool CanAttack => IsUnlocked
+            && Stats != null
+            && Movement != null
+            && GameManager.Instance != null
+            && GameManager.Instance.State == GameState.Playing;
 
         public void Initialize(PlayerStats playerStats, PlayerMovement playerMovement)
         {

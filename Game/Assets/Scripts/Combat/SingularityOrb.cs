@@ -1,5 +1,6 @@
 using UnityEngine;
 using ZombieOverdrive.Enemies;
+using ZombieOverdrive.World;
 
 namespace ZombieOverdrive.Combat
 {
@@ -84,6 +85,12 @@ namespace ZombieOverdrive.Combat
             for (int i = 0; i < count; i++)
             {
                 EnemyHealth enemy = Hits[i].GetComponent<EnemyHealth>();
+                DestructibleCrate crate = Hits[i].GetComponent<DestructibleCrate>();
+                if (crate != null)
+                {
+                    crate.TakeDamage(damage);
+                }
+
                 if (enemy == null || !enemy.IsAlive)
                 {
                     continue;

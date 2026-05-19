@@ -9,6 +9,7 @@ namespace ZombieOverdrive.UI
         [SerializeField] private Text healthText;
         [SerializeField] private Text levelText;
         [SerializeField] private Text killText;
+        [SerializeField] private Text goldText;
         [SerializeField] private Text messageText;
         [SerializeField] private Slider healthSlider;
         [SerializeField] private Slider xpSlider;
@@ -40,6 +41,14 @@ namespace ZombieOverdrive.UI
         public void SetKills(int kills)
         {
             killText.text = $"击杀 {kills}";
+        }
+
+        public void SetGold(int gold)
+        {
+            if (goldText != null)
+            {
+                goldText.text = $"金币 {gold}";
+            }
         }
 
         public void SetMessage(string message)

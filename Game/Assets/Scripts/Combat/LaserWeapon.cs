@@ -1,5 +1,6 @@
 using UnityEngine;
 using ZombieOverdrive.Enemies;
+using ZombieOverdrive.World;
 
 namespace ZombieOverdrive.Combat
 {
@@ -19,13 +20,19 @@ namespace ZombieOverdrive.Combat
 
         private void Update()
         {
-            if (!IsUnlocked || Stats == null || Movement == null)
+            if (!CanAttack)
             {
                 if (beam != null)
                 {
                     beam.enabled = false;
                 }
 
+                if (coreBeam != null)
+                {
+                    coreBeam.enabled = false;
+                }
+
+                SetPulsesEnabled(false);
                 return;
             }
 
@@ -83,6 +90,12 @@ namespace ZombieOverdrive.Combat
             for (int i = 0; i < count; i++)
             {
                 EnemyHealth enemy = hits[i].collider.GetComponent<EnemyHealth>();
+                DestructibleCrate crate = hits[i].collider.GetComponent<DestructibleCrate>();
+                if (crate != null)
+                {
+                    crate.TakeDamage(damage);
+                }
+
                 if (enemy == null || !enemy.IsAlive)
                 {
                     continue;

@@ -14,6 +14,8 @@ namespace ZombieOverdrive.Enemies
         [SerializeField] private GameObjectPool mutantBossPool;
         [SerializeField] private GameObjectPool finalBossPool;
         [SerializeField] private GameObjectPool experiencePool;
+        [SerializeField] private GameObjectPool resourcePickupPool;
+        [SerializeField] private LayerMask enemyMask;
 
         [Header("Spawn")]
         [SerializeField] private float spawnDistance = 9.5f;
@@ -161,7 +163,7 @@ namespace ZombieOverdrive.Enemies
 
             enemy.Initialize(manager.Player, type, speed * speedScale, damage);
             bool boss = type == EnemyType.MutantBoss || type == EnemyType.FinalBoss;
-            enemy.GetComponent<EnemyHealth>().Initialize(hp * hpScale, xp, experiencePool, boss);
+            enemy.GetComponent<EnemyHealth>().Initialize(hp * hpScale, xp, experiencePool, boss, resourcePickupPool, enemyMask);
             aliveEnemies++;
             return true;
         }
@@ -215,7 +217,8 @@ namespace ZombieOverdrive.Enemies
                 && tankerPool != null
                 && mutantBossPool != null
                 && finalBossPool != null
-                && experiencePool != null;
+                && experiencePool != null
+                && resourcePickupPool != null;
         }
 
         private GameObjectPool GetPool(EnemyType type)

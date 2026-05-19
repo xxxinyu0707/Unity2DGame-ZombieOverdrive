@@ -16,7 +16,7 @@ namespace ZombieOverdrive.Combat
 
         private void Update()
         {
-            if (!IsUnlocked || Stats == null || Movement == null || orbPrefab == null)
+            if (!CanAttack || orbPrefab == null)
             {
                 return;
             }

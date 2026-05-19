@@ -1,6 +1,7 @@
 using UnityEngine;
 using ZombieOverdrive.Enemies;
 using ZombieOverdrive.Utility;
+using ZombieOverdrive.World;
 
 namespace ZombieOverdrive.Combat
 {
@@ -61,13 +62,22 @@ namespace ZombieOverdrive.Combat
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            EnemyHealth enemy = other.GetComponent<EnemyHealth>();
-            if (enemy == null)
+            bool armed = Vector2.Distance(startPosition, transform.position) >= armDistance;
+            if (!armed)
             {
                 return;
             }
 
-            if (Vector2.Distance(startPosition, transform.position) < armDistance)
+            DestructibleCrate crate = other.GetComponent<DestructibleCrate>();
+            if (crate != null)
+            {
+                crate.TakeDamage(Damage);
+                ConsumePierce();
+                return;
+            }
+
+            EnemyHealth enemy = other.GetComponent<EnemyHealth>();
+            if (enemy == null)
             {
                 return;
             }
@@ -82,6 +92,11 @@ namespace ZombieOverdrive.Combat
                 }
             }
 
+            ConsumePierce();
+        }
+
+        private void ConsumePierce()
+        {
             if (piercingThroughAll)
             {
                 return;

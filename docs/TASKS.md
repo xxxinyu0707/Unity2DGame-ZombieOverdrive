@@ -35,11 +35,12 @@
 - [x] Add Chinese UI pass and aim guide
 - [x] Add stronger weapon visual feedback
 - [x] Add enemy wounded/critical visual states
-- [ ] Add UI polish
+- [x] Add main menu and meta progression talents
+- [x] Add UI polish
 - [ ] Add sound effects
-- [ ] Add destructible crates and temporary recovery items
+- [x] Add destructible crates and temporary recovery items
 - [x] Add restart and pause flow
-- [ ] Add animated pixel sprites and weapon icons
+- [x] Add animated weapon visuals and weapon icons
 
 ## Phase 3: Submission
 

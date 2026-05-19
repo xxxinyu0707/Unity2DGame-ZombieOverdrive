@@ -74,7 +74,8 @@ namespace ZombieOverdrive.Core
             }
 
             stats.reviveCharges--;
-            currentHealth = MaxHealth * 0.45f;
+            float revivePercent = stats != null ? Mathf.Clamp(stats.reviveHealthPercent, 0.1f, 0.9f) : 0.45f;
+            currentHealth = MaxHealth * revivePercent;
             invincibleTimer = 2.5f;
             HealthChanged?.Invoke(currentHealth, MaxHealth);
             return true;

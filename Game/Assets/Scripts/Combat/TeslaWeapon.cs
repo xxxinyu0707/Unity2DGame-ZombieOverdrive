@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using ZombieOverdrive.Enemies;
+using ZombieOverdrive.World;
 
 namespace ZombieOverdrive.Combat
 {
@@ -12,6 +13,7 @@ namespace ZombieOverdrive.Combat
         [SerializeField] private LayerMask enemyMask;
 
         private readonly Collider2D[] hits = new Collider2D[32];
+        private readonly Collider2D[] crateHits = new Collider2D[32];
         private readonly HashSet<EnemyHealth> struck = new HashSet<EnemyHealth>();
         private float cooldownTimer;
 
@@ -19,7 +21,7 @@ namespace ZombieOverdrive.Combat
 
         private void Update()
         {
-            if (!IsUnlocked || Stats == null || Movement == null)
+            if (!CanAttack)
             {
                 return;
             }
@@ -67,6 +69,21 @@ namespace ZombieOverdrive.Combat
                 struck.Add(current);
                 origin = current.transform.position;
                 current = FindNearestEnemy(origin, chainRadius * AreaMultiplier, struck, false);
+            }
+
+            ShockNearbyCrates(transform.position, chainRadius * AreaMultiplier);
+        }
+
+        private void ShockNearbyCrates(Vector2 origin, float radius)
+        {
+            int count = Physics2D.OverlapCircleNonAlloc(origin, radius, crateHits, enemyMask);
+            for (int i = 0; i < count; i++)
+            {
+                DestructibleCrate crate = crateHits[i].GetComponent<DestructibleCrate>();
+                if (crate != null)
+                {
+                    crate.TakeDamage(baseDamage * 0.9f);
+                }
             }
         }
 

@@ -3,6 +3,7 @@ using UnityEngine.SceneManagement;
 using ZombieOverdrive.Combat;
 using ZombieOverdrive.Enemies;
 using ZombieOverdrive.UI;
+using ZombieOverdrive.World;
 
 namespace ZombieOverdrive.Core
 {
@@ -20,18 +21,22 @@ namespace ZombieOverdrive.Core
         [SerializeField] private PistolWeapon pistolWeapon;
         [SerializeField] private WeaponBase[] weapons;
         [SerializeField] private WaveSpawner waveSpawner;
+        [SerializeField] private CrateSpawner crateSpawner;
         [SerializeField] private GameHud hud;
+        [SerializeField] private MainMenuPanel mainMenu;
         [SerializeField] private UpgradePanel upgradePanel;
         [SerializeField] private PauseMenu pauseMenu;
         [SerializeField] private ZombieOverdrive.UI.UpgradeIconLibrary iconLibrary;
 
         private readonly PlayerStats playerStats = new PlayerStats();
         private float elapsedSeconds;
+        private bool runSettled;
 
         public static GameManager Instance { get; private set; }
-        public GameState State { get; private set; } = GameState.Playing;
+        public GameState State { get; private set; } = GameState.MainMenu;
         public Transform Player => playerMovement != null ? playerMovement.transform : null;
         public int KillCount { get; private set; }
+        public int RunGold { get; private set; }
         public float ElapsedSeconds => elapsedSeconds;
 
         private void Awake()
@@ -42,6 +47,7 @@ namespace ZombieOverdrive.Core
 
         private void Start()
         {
+            MetaProgression.ApplyTo(playerStats);
             playerMovement.Initialize(playerStats);
             playerHealth.Initialize(playerStats);
             levelSystem.Initialize(playerStats);
@@ -61,9 +67,18 @@ namespace ZombieOverdrive.Core
 
             upgradeSystem.Initialize(playerStats, weapons, playerHealth);
             waveSpawner.Initialize(this);
+            if (crateSpawner != null)
+            {
+                crateSpawner.Initialize(this);
+            }
             if (pauseMenu != null)
             {
                 pauseMenu.Initialize(ResumeFromPauseMenu, RestartRun, QuitGame);
+            }
+            if (mainMenu != null)
+            {
+                mainMenu.Initialize(StartRun, QuitGame);
+                mainMenu.Show();
             }
 
             playerHealth.HealthChanged += OnHealthChanged;
@@ -78,7 +93,9 @@ namespace ZombieOverdrive.Core
             hud.SetHealth(playerHealth.CurrentHealth, playerHealth.MaxHealth);
             hud.SetExperience(0, LevelSystem.CalculateRequiredXp(levelSystem.Level));
             hud.SetTimer(elapsedSeconds, runDurationSeconds);
-            hud.SetMessage("");
+            hud.SetGold(RunGold);
+            hud.SetMessage("点击开始进入战斗");
+            Time.timeScale = 0f;
         }
 
         private void OnDestroy()
@@ -101,6 +118,11 @@ namespace ZombieOverdrive.Core
 
         private void Update()
         {
+            if (State == GameState.MainMenu)
+            {
+                return;
+            }
+
             if (State != GameState.Playing)
             {
                 if (State == GameState.Paused && Input.GetKeyDown(KeyCode.Escape))
@@ -167,12 +189,22 @@ namespace ZombieOverdrive.Core
 
         public void RestartRun()
         {
+            if (State == GameState.Playing || State == GameState.Paused || State == GameState.LevelUp)
+            {
+                SettleRun(false);
+            }
+
             Time.timeScale = 1f;
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
 
         public void QuitGame()
         {
+            if (State == GameState.Playing || State == GameState.Paused || State == GameState.LevelUp)
+            {
+                SettleRun(false);
+            }
+
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
 #else
@@ -187,6 +219,35 @@ namespace ZombieOverdrive.Core
             State = GameState.Playing;
             Time.timeScale = 1f;
             hud.SetMessage("");
+        }
+
+        public void StartRun()
+        {
+            if (State != GameState.MainMenu)
+            {
+                return;
+            }
+
+            State = GameState.Playing;
+            Time.timeScale = 1f;
+            runSettled = false;
+            if (mainMenu != null)
+            {
+                mainMenu.Hide();
+            }
+
+            hud.SetMessage("");
+        }
+
+        public void AddRunGold(int amount)
+        {
+            if (amount <= 0)
+            {
+                return;
+            }
+
+            RunGold += amount;
+            hud.SetGold(RunGold);
         }
 
         private void OnLevelUpAvailable()
@@ -229,14 +290,34 @@ namespace ZombieOverdrive.Core
 
             State = GameState.GameOver;
             Time.timeScale = 0f;
-            hud.SetMessage("游戏结束 - 按 R 重新开始");
+            int banked = SettleRun(false);
+            hud.SetMessage("游戏结束 - 结算金币 " + banked + " - 按 R 重新开始");
         }
 
         private void WinRun()
         {
             State = GameState.Victory;
             Time.timeScale = 0f;
-            hud.SetMessage("胜利 - 按 R 重新开始");
+            int banked = SettleRun(true);
+            hud.SetMessage("胜利 - 结算金币 " + banked + " - 按 R 重新开始");
+        }
+
+        private int SettleRun(bool victory)
+        {
+            if (runSettled)
+            {
+                return 0;
+            }
+
+            runSettled = true;
+            int reward = RunGold + Mathf.FloorToInt(KillCount * 0.35f);
+            if (victory)
+            {
+                reward += 1000;
+            }
+
+            MetaProgression.AddGold(reward);
+            return reward;
         }
 
         private void UpdatePauseSlots()

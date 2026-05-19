@@ -190,6 +190,7 @@ namespace ZombieOverdrive.Core
                 case UpgradeType.GreedChip:
                     AddPassiveLevel(option.Type);
                     stats.AddXpGain(0.08f);
+                    stats.AddGoldGain(0.15f);
                     break;
                 case UpgradeType.Radar:
                     AddPassiveLevel(option.Type);
@@ -730,7 +731,7 @@ namespace ZombieOverdrive.Core
                 case UpgradeType.HazmatSuit:
                     return "生命上限 +18，每秒回复 +0.35。";
                 case UpgradeType.GreedChip:
-                    return "经验获取 +8%。";
+                    return "经验获取 +8%，金币收益 +15%。";
                 case UpgradeType.Radar:
                     return "暴击率 +4%，暴击伤害 +10%。";
                 case UpgradeType.Defibrillator:

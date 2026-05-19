@@ -11,6 +11,7 @@ using ZombieOverdrive.Enemies;
 using ZombieOverdrive.Pickups;
 using ZombieOverdrive.UI;
 using ZombieOverdrive.Utility;
+using ZombieOverdrive.World;
 
 public static class ZombieOverdriveSceneBuilder
 {
@@ -54,6 +55,7 @@ public static class ZombieOverdriveSceneBuilder
         int enemyLayer = EnsureLayer("Enemy");
         int pickupLayer = EnsureLayer("Pickup");
         int projectileLayer = EnsureLayer("Projectile");
+        int destructibleLayer = EnsureLayer("Destructible");
 
         Sprite playerSprite = CreateSprite("player", new Color(0.25f, 0.75f, 1f, 1f), SpriteShape.Circle);
         Sprite walkerSprite = CreateSprite("walker", new Color(0.25f, 0.85f, 0.35f, 1f), SpriteShape.Circle);
@@ -66,6 +68,11 @@ public static class ZombieOverdriveSceneBuilder
         Sprite acidSprite = CreateSprite("acid", new Color(0.65f, 1f, 0.2f, 1f), SpriteShape.Diamond);
         Sprite orbSprite = CreateSprite("singularity_orb", new Color(0.45f, 0.2f, 1f, 1f), SpriteShape.Circle);
         Sprite xpSprite = CreateSprite("xp_crystal", new Color(0.25f, 0.55f, 1f, 1f), SpriteShape.Diamond);
+        Sprite goldSprite = CreateSprite("gold_coin", new Color(1f, 0.82f, 0.18f, 1f), SpriteShape.Circle);
+        Sprite chickenSprite = CreateSprite("roast_chicken", new Color(1f, 0.36f, 0.24f, 1f), SpriteShape.Circle);
+        Sprite magnetSprite = CreateSprite("field_magnet", new Color(0.35f, 0.95f, 1f, 1f), SpriteShape.Square);
+        Sprite bombSprite = CreateSprite("clear_bomb", new Color(0.12f, 0.12f, 0.14f, 1f), SpriteShape.Circle);
+        Sprite crateSprite = CreateSprite("supply_crate", new Color(0.62f, 0.38f, 0.18f, 1f), SpriteShape.Square);
         Sprite tileSprite = CreateSprite("ground_tile", new Color(0.12f, 0.14f, 0.16f, 1f), SpriteShape.Square);
         Sprite swordSprite = CreateSprite("lightblade_sword", new Color(0.75f, 1f, 1f, 1f), SpriteShape.Diamond);
         Sprite crosshairSprite = CreateSprite("crosshair", new Color(0.9f, 1f, 1f, 1f), SpriteShape.Circle);
@@ -93,13 +100,16 @@ public static class ZombieOverdriveSceneBuilder
         GameObject mutantBossPrefab = CreateEnemyPrefab("MutantBoss", bossSprite, bossWoundedSprite, bossCriticalSprite, enemyLayer, 2.1f, null);
         GameObject finalBossPrefab = CreateEnemyPrefab("FinalBoss", finalBossSprite, finalBossWoundedSprite, finalBossCriticalSprite, enemyLayer, 2.7f, acidPrefab);
         GameObject xpPrefab = CreateExperiencePrefab(xpSprite, pickupLayer);
+        GameObject resourcePickupPrefab = CreateResourcePickupPrefab(goldSprite, chickenSprite, magnetSprite, bombSprite, pickupLayer, enemyLayer);
+        GameObject cratePrefab = CreateCratePrefab(crateSprite, destructibleLayer);
 
         Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         scene.name = "Main";
 
         InfiniteGround2D ground = CreateGround(tileSprite);
 
-        GameObject player = CreatePlayer(playerSprite, playerLayer, pickupLayer, bulletPrefab, orbPrefab, enemyLayer, swordSprite);
+        int weaponTargetMask = (1 << enemyLayer) | (1 << destructibleLayer);
+        GameObject player = CreatePlayer(playerSprite, playerLayer, pickupLayer, bulletPrefab, orbPrefab, weaponTargetMask, swordSprite);
         CameraFollow2D cameraFollow = CreateCamera(player.transform);
         ground.SetTarget(player.transform);
         CreateAimGuide(player.GetComponent<PlayerMovement>(), player.transform, crosshairSprite);
@@ -114,6 +124,8 @@ public static class ZombieOverdriveSceneBuilder
         GameObjectPool mutantBossPool = CreatePool("Mutant Boss Pool", mutantBossPrefab, 1, poolsRoot.transform);
         GameObjectPool finalBossPool = CreatePool("Final Boss Pool", finalBossPrefab, 1, poolsRoot.transform);
         GameObjectPool xpPool = CreatePool("Experience Pool", xpPrefab, 220, poolsRoot.transform);
+        GameObjectPool resourcePickupPool = CreatePool("Resource Pickup Pool", resourcePickupPrefab, 80, poolsRoot.transform);
+        GameObjectPool cratePool = CreatePool("Crate Pool", cratePrefab, 24, poolsRoot.transform);
 
         PistolWeapon pistol = player.GetComponent<PistolWeapon>();
         SetObjectField(pistol, "bulletPool", bulletPool);
@@ -127,6 +139,7 @@ public static class ZombieOverdriveSceneBuilder
         PlayerCollector playerCollector = player.GetComponent<PlayerCollector>();
         UpgradeSystem upgradeSystem = managers.AddComponent<UpgradeSystem>();
         WaveSpawner waveSpawner = managers.AddComponent<WaveSpawner>();
+        CrateSpawner crateSpawner = managers.AddComponent<CrateSpawner>();
         GameManager gameManager = managers.AddComponent<GameManager>();
 
         SetObjectField(waveSpawner, "walkerPool", walkerPool);
@@ -136,13 +149,19 @@ public static class ZombieOverdriveSceneBuilder
         SetObjectField(waveSpawner, "mutantBossPool", mutantBossPool);
         SetObjectField(waveSpawner, "finalBossPool", finalBossPool);
         SetObjectField(waveSpawner, "experiencePool", xpPool);
+        SetObjectField(waveSpawner, "resourcePickupPool", resourcePickupPool);
+        SetLayerMask(waveSpawner, "enemyMask", 1 << enemyLayer);
         SetFloatField(waveSpawner, "spawnDistance", 9.5f);
         SetIntField(waveSpawner, "openingBurstCount", 6);
         SetFloatField(waveSpawner, "openingBurstDistance", 7.2f);
+        SetObjectField(crateSpawner, "cratePool", cratePool);
+        SetObjectField(crateSpawner, "resourcePickupPool", resourcePickupPool);
+        SetLayerMask(crateSpawner, "enemyMask", 1 << enemyLayer);
 
         Canvas canvas = CreateCanvas();
         UpgradeIconLibrary iconLibrary = CreateIconLibrary(upgradeIcons);
         GameHud hud = CreateHud(canvas.transform);
+        MainMenuPanel mainMenu = CreateMainMenu(canvas.transform);
         UpgradePanel upgradePanel = CreateUpgradePanel(canvas.transform, iconLibrary);
         PauseMenu pauseMenu = CreatePauseMenu(canvas.transform);
 
@@ -154,7 +173,9 @@ public static class ZombieOverdriveSceneBuilder
         SetObjectField(gameManager, "pistolWeapon", pistol);
         SetArrayField(gameManager, "weapons", player.GetComponents<WeaponBase>());
         SetObjectField(gameManager, "waveSpawner", waveSpawner);
+        SetObjectField(gameManager, "crateSpawner", crateSpawner);
         SetObjectField(gameManager, "hud", hud);
+        SetObjectField(gameManager, "mainMenu", mainMenu);
         SetObjectField(gameManager, "upgradePanel", upgradePanel);
         SetObjectField(gameManager, "pauseMenu", pauseMenu);
         SetObjectField(gameManager, "iconLibrary", iconLibrary);
@@ -253,7 +274,10 @@ public static class ZombieOverdriveSceneBuilder
         RequireObject<LaserWeapon>("LaserWeapon");
         RequireObject<WaveSpawner>("WaveSpawner");
         RequireWaveSpawnerReferences();
+        RequireObject<CrateSpawner>("CrateSpawner");
+        RequireCrateSpawnerReferences();
         RequireObject<GameHud>("GameHud");
+        RequireObject<MainMenuPanel>("MainMenuPanel");
         RequireObject<UpgradePanel>("UpgradePanel");
         RequireObject<PauseMenu>("PauseMenu");
         RequireObject<UpgradeIconLibrary>("UpgradeIconLibrary");
@@ -270,6 +294,8 @@ public static class ZombieOverdriveSceneBuilder
         RequireAsset<GameObject>("Assets/Prefabs/MutantBoss.prefab");
         RequireAsset<GameObject>("Assets/Prefabs/FinalBoss.prefab");
         RequireAsset<GameObject>("Assets/Prefabs/ExperienceCrystal.prefab");
+        RequireAsset<GameObject>("Assets/Prefabs/ResourcePickup.prefab");
+        RequireAsset<GameObject>("Assets/Prefabs/SupplyCrate.prefab");
         for (int i = 0; i < IconIds.Length; i++)
         {
             RequireAsset<Sprite>(ArtRoot + "/icon_" + IconIds[i] + ".png");
@@ -308,6 +334,19 @@ public static class ZombieOverdriveSceneBuilder
         RequireSerializedReference(spawner, "mutantBossPool");
         RequireSerializedReference(spawner, "finalBossPool");
         RequireSerializedReference(spawner, "experiencePool");
+        RequireSerializedReference(spawner, "resourcePickupPool");
+    }
+
+    private static void RequireCrateSpawnerReferences()
+    {
+        CrateSpawner spawner = Object.FindObjectOfType<CrateSpawner>(true);
+        if (spawner == null)
+        {
+            throw new System.InvalidOperationException("Missing scene object: CrateSpawner");
+        }
+
+        RequireSerializedReference(spawner, "cratePool");
+        RequireSerializedReference(spawner, "resourcePickupPool");
     }
 
     private static void RequireSerializedReference(Object target, string fieldName)
@@ -547,9 +586,24 @@ public static class ZombieOverdriveSceneBuilder
             case "lightblade_sword":
                 DrawSwordSprite(texture);
                 return true;
-            case "crosshair":
-                DrawCrosshairSprite(texture);
-                return true;
+                case "crosshair":
+                    DrawCrosshairSprite(texture);
+                    return true;
+                case "gold_coin":
+                    DrawGoldCoinSprite(texture);
+                    return true;
+                case "roast_chicken":
+                    DrawRoastChickenSprite(texture);
+                    return true;
+                case "field_magnet":
+                    DrawFieldMagnetSprite(texture);
+                    return true;
+                case "clear_bomb":
+                    DrawClearBombSprite(texture);
+                    return true;
+                case "supply_crate":
+                    DrawSupplyCrateSprite(texture);
+                    return true;
             default:
                 if (name.StartsWith("icon_", System.StringComparison.Ordinal))
                 {
@@ -817,6 +871,117 @@ public static class ZombieOverdriveSceneBuilder
         DrawLine(texture, 18, 32, 46, 32, 2, Hex("#1456c4"));
         DrawRect(texture, 26, 41, 10, 5, light);
         DrawRect(texture, 38, 35, 4, 4, light);
+    }
+
+    private static void DrawGoldCoinSprite(Texture2D texture)
+    {
+        Color shadow = WithAlpha(Hex("#05070a"), 0.38f);
+        Color outline = Hex("#7a4a07");
+        Color gold = Hex("#f5bd2d");
+        Color light = Hex("#fff18a");
+        Color dark = Hex("#c57916");
+
+        DrawOval(texture, 16, 11, 34, 8, shadow);
+        DrawCircle(texture, 32, 34, 21, outline);
+        DrawCircle(texture, 32, 34, 17, gold);
+        DrawRing(texture, 32, 34, 12, 14, dark);
+        DrawRect(texture, 30, 21, 5, 26, outline);
+        DrawRect(texture, 27, 26, 11, 4, outline);
+        DrawRect(texture, 27, 38, 11, 4, outline);
+        DrawRect(texture, 31, 22, 3, 24, light);
+        DrawRect(texture, 21, 42, 9, 5, Hex("#ffd762"));
+        DrawRect(texture, 40, 27, 4, 4, light);
+    }
+
+    private static void DrawRoastChickenSprite(Texture2D texture)
+    {
+        Color shadow = WithAlpha(Hex("#05070a"), 0.36f);
+        Color outline = Hex("#4b2314");
+        Color meat = Hex("#d86a2d");
+        Color meatLight = Hex("#ffb45e");
+        Color bone = Hex("#f7e6bf");
+
+        DrawOval(texture, 13, 10, 38, 9, shadow);
+        DrawCircle(texture, 31, 34, 19, outline);
+        DrawCircle(texture, 31, 34, 15, meat);
+        DrawCircle(texture, 23, 39, 6, meatLight);
+        DrawRect(texture, 41, 28, 16, 8, outline);
+        DrawRect(texture, 43, 30, 12, 4, bone);
+        DrawCircle(texture, 56, 31, 5, outline);
+        DrawCircle(texture, 56, 31, 3, bone);
+        DrawCircle(texture, 56, 38, 5, outline);
+        DrawCircle(texture, 56, 38, 3, bone);
+        DrawRect(texture, 28, 47, 11, 3, Hex("#8f351d"));
+        DrawRect(texture, 20, 30, 5, 4, Hex("#ffc171"));
+    }
+
+    private static void DrawFieldMagnetSprite(Texture2D texture)
+    {
+        Color outline = Hex("#173443");
+        Color body = Hex("#dc334e");
+        Color bodyDark = Hex("#8a1f38");
+        Color tip = Hex("#d9f9ff");
+        Color spark = Hex("#63e7ff");
+
+        DrawRect(texture, 15, 15, 12, 30, outline);
+        DrawRect(texture, 37, 15, 12, 30, outline);
+        DrawRect(texture, 15, 37, 34, 12, outline);
+        DrawRect(texture, 18, 18, 7, 22, body);
+        DrawRect(texture, 39, 18, 7, 22, body);
+        DrawRect(texture, 18, 39, 28, 7, bodyDark);
+        DrawRect(texture, 17, 14, 10, 6, tip);
+        DrawRect(texture, 37, 14, 10, 6, tip);
+        DrawLine(texture, 10, 29, 3, 29, 2, spark);
+        DrawLine(texture, 54, 29, 61, 29, 2, spark);
+        DrawLine(texture, 32, 53, 32, 61, 2, spark);
+    }
+
+    private static void DrawClearBombSprite(Texture2D texture)
+    {
+        Color shadow = WithAlpha(Hex("#05070a"), 0.42f);
+        Color outline = Hex("#090b0f");
+        Color body = Hex("#222733");
+        Color shine = Hex("#697386");
+        Color fuse = Hex("#f6d56b");
+        Color spark = Hex("#ff5a32");
+
+        DrawOval(texture, 13, 8, 38, 9, shadow);
+        DrawCircle(texture, 31, 31, 20, outline);
+        DrawCircle(texture, 31, 31, 16, body);
+        DrawRect(texture, 38, 45, 10, 7, outline);
+        DrawRect(texture, 40, 47, 7, 4, shine);
+        DrawLine(texture, 47, 50, 54, 58, 3, outline);
+        DrawLine(texture, 48, 51, 54, 58, 1, fuse);
+        DrawRect(texture, 55, 58, 6, 3, spark);
+        DrawRect(texture, 57, 54, 3, 6, spark);
+        DrawRect(texture, 22, 39, 7, 4, shine);
+        DrawRect(texture, 19, 31, 4, 5, Hex("#3a4250"));
+    }
+
+    private static void DrawSupplyCrateSprite(Texture2D texture)
+    {
+        Color shadow = WithAlpha(Hex("#05070a"), 0.4f);
+        Color outline = Hex("#3f2412");
+        Color wood = Hex("#9c612c");
+        Color woodDark = Hex("#6f3f1e");
+        Color woodLight = Hex("#c8843e");
+        Color metal = Hex("#d6b36a");
+
+        DrawOval(texture, 11, 8, 42, 10, shadow);
+        DrawRect(texture, 13, 16, 38, 38, outline);
+        DrawRect(texture, 16, 19, 32, 32, wood);
+        DrawRect(texture, 16, 19, 32, 6, woodLight);
+        DrawRect(texture, 16, 44, 32, 7, woodDark);
+        DrawLine(texture, 18, 21, 47, 50, 5, outline);
+        DrawLine(texture, 47, 21, 18, 50, 5, outline);
+        DrawLine(texture, 19, 22, 46, 49, 2, woodLight);
+        DrawLine(texture, 46, 22, 19, 49, 2, woodLight);
+        DrawRect(texture, 12, 31, 40, 7, outline);
+        DrawRect(texture, 15, 33, 34, 3, metal);
+        DrawRect(texture, 29, 29, 8, 11, outline);
+        DrawRect(texture, 31, 31, 4, 7, Hex("#f1ce79"));
+        DrawRect(texture, 20, 24, 5, 3, Hex("#d6974a"));
+        DrawRect(texture, 39, 42, 5, 3, Hex("#4d2c16"));
     }
 
     private static void DrawGroundTileSprite(Texture2D texture)
@@ -1387,6 +1552,46 @@ public static class ZombieOverdriveSceneBuilder
         return SavePrefab(pickup, "ExperienceCrystal.prefab");
     }
 
+    private static GameObject CreateResourcePickupPrefab(Sprite goldSprite, Sprite chickenSprite, Sprite magnetSprite, Sprite bombSprite, int pickupLayer, int enemyLayer)
+    {
+        GameObject pickup = new GameObject("Resource Pickup");
+        pickup.layer = pickupLayer;
+        pickup.transform.localScale = Vector3.one * 0.38f;
+        SpriteRenderer renderer = pickup.AddComponent<SpriteRenderer>();
+        renderer.sprite = goldSprite;
+        renderer.sortingOrder = 4;
+        CircleCollider2D collider = pickup.AddComponent<CircleCollider2D>();
+        collider.isTrigger = true;
+        collider.radius = 0.62f;
+        ResourcePickup resourcePickup = pickup.AddComponent<ResourcePickup>();
+        SetLayerMask(resourcePickup, "enemyMask", 1 << enemyLayer);
+        SetObjectField(resourcePickup, "goldSprite", goldSprite);
+        SetObjectField(resourcePickup, "chickenSprite", chickenSprite);
+        SetObjectField(resourcePickup, "magnetSprite", magnetSprite);
+        SetObjectField(resourcePickup, "bombSprite", bombSprite);
+        pickup.AddComponent<Poolable>();
+        return SavePrefab(pickup, "ResourcePickup.prefab");
+    }
+
+    private static GameObject CreateCratePrefab(Sprite sprite, int layer)
+    {
+        GameObject crate = new GameObject("Supply Crate");
+        crate.layer = layer;
+        crate.transform.localScale = Vector3.one * 0.78f;
+        SpriteRenderer renderer = crate.AddComponent<SpriteRenderer>();
+        renderer.sprite = sprite;
+        renderer.sortingOrder = 3;
+        BoxCollider2D collider = crate.AddComponent<BoxCollider2D>();
+        collider.isTrigger = true;
+        collider.size = new Vector2(0.95f, 0.95f);
+        Rigidbody2D body = crate.AddComponent<Rigidbody2D>();
+        body.bodyType = RigidbodyType2D.Kinematic;
+        body.gravityScale = 0f;
+        crate.AddComponent<DestructibleCrate>();
+        crate.AddComponent<Poolable>();
+        return SavePrefab(crate, "SupplyCrate.prefab");
+    }
+
     private static GameObject SavePrefab(GameObject instance, string fileName)
     {
         string path = $"{PrefabRoot}/{fileName}";
@@ -1395,7 +1600,7 @@ public static class ZombieOverdriveSceneBuilder
         return prefab;
     }
 
-    private static GameObject CreatePlayer(Sprite sprite, int playerLayer, int pickupLayer, GameObject bulletPrefab, GameObject orbPrefab, int enemyLayer, Sprite swordSprite)
+    private static GameObject CreatePlayer(Sprite sprite, int playerLayer, int pickupLayer, GameObject bulletPrefab, GameObject orbPrefab, int weaponTargetMask, Sprite swordSprite)
     {
         GameObject player = new GameObject("Player");
         player.layer = playerLayer;
@@ -1426,15 +1631,15 @@ public static class ZombieOverdriveSceneBuilder
         ShotgunWeapon shotgun = player.AddComponent<ShotgunWeapon>();
         SetObjectField(shotgun, "muzzle", muzzle.transform);
         TeslaWeapon tesla = player.AddComponent<TeslaWeapon>();
-        SetLayerMask(tesla, "enemyMask", 1 << enemyLayer);
+        SetLayerMask(tesla, "enemyMask", weaponTargetMask);
         SingularityWeapon singularity = player.AddComponent<SingularityWeapon>();
         SetObjectField(singularity, "orbPrefab", orbPrefab);
-        SetLayerMask(singularity, "enemyMask", 1 << enemyLayer);
+        SetLayerMask(singularity, "enemyMask", weaponTargetMask);
         LightbladeWeapon lightblade = player.AddComponent<LightbladeWeapon>();
-        SetLayerMask(lightblade, "enemyMask", 1 << enemyLayer);
+        SetLayerMask(lightblade, "enemyMask", weaponTargetMask);
         SetObjectField(lightblade, "swordSprite", swordSprite);
         LaserWeapon laser = player.AddComponent<LaserWeapon>();
-        SetLayerMask(laser, "enemyMask", 1 << enemyLayer);
+        SetLayerMask(laser, "enemyMask", weaponTargetMask);
 
         return player;
     }
@@ -1537,6 +1742,7 @@ public static class ZombieOverdriveSceneBuilder
         Text timer = CreateText(hudObject.transform, "Timer", "10:00", 42, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -20f), new Vector2(220f, 60f));
         Text health = CreateText(hudObject.transform, "Health Text", "生命", 23, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(34f, -24f), new Vector2(280f, 38f));
         Text level = CreateText(hudObject.transform, "Level Text", "等级 1", 23, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(34f, -92f), new Vector2(160f, 36f));
+        Text gold = CreateText(hudObject.transform, "Gold Text", "金币 0", 23, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(160f, -92f), new Vector2(145f, 36f));
         Text kills = CreateText(hudObject.transform, "Kills Text", "击杀 0", 23, TextAnchor.UpperRight, new Vector2(1f, 1f), new Vector2(-32f, -28f), new Vector2(190f, 40f));
         Text message = CreateText(hudObject.transform, "Message", "", 48, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(900f, 120f));
 
@@ -1547,10 +1753,88 @@ public static class ZombieOverdriveSceneBuilder
         SetObjectField(hud, "healthText", health);
         SetObjectField(hud, "levelText", level);
         SetObjectField(hud, "killText", kills);
+        SetObjectField(hud, "goldText", gold);
         SetObjectField(hud, "messageText", message);
         SetObjectField(hud, "healthSlider", hpSlider);
         SetObjectField(hud, "xpSlider", xpSlider);
         return hud;
+    }
+
+    private static MainMenuPanel CreateMainMenu(Transform parent)
+    {
+        GameObject panel = new GameObject("Main Menu Panel");
+        panel.transform.SetParent(parent, false);
+        Image background = panel.AddComponent<Image>();
+        background.color = new Color(0.018f, 0.022f, 0.032f, 0.97f);
+        RectTransform rect = panel.GetComponent<RectTransform>();
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+
+        Image topBand = CreateImage(panel.transform, "Top Band", new Vector2(0.5f, 1f), new Vector2(0f, 0f), new Vector2(1920f, 150f));
+        topBand.color = new Color(0.06f, 0.075f, 0.105f, 0.95f);
+        CreateText(panel.transform, "Title", "基因重组舱", 58, TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(86f, -72f), new Vector2(520f, 80f));
+        Text gold = CreateText(panel.transform, "Gold", "局外金币 0", 30, TextAnchor.MiddleRight, new Vector2(1f, 1f), new Vector2(-86f, -72f), new Vector2(420f, 60f));
+        gold.color = new Color(1f, 0.86f, 0.44f, 1f);
+
+        CreateText(panel.transform, "Talent Title", "永久强化", 34, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-565f, -178f), new Vector2(360f, 58f));
+        CreateText(panel.transform, "Talent Hint", "战斗中获得的金币会留在局外，用来强化下一局开局属性。", 22, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-565f, -226f), new Vector2(720f, 48f));
+
+        Button[] talentButtons = new Button[6];
+        Text[] talentTexts = new Text[6];
+        string[] labels = { "强化体质", "机动训练", "武器校准", "磁场背包", "收益芯片", "备用生命" };
+        Color[] accents =
+        {
+            new Color(0.83f, 0.18f, 0.23f, 1f),
+            new Color(0.12f, 0.65f, 0.8f, 1f),
+            new Color(0.96f, 0.64f, 0.16f, 1f),
+            new Color(0.55f, 0.42f, 0.96f, 1f),
+            new Color(0.23f, 0.74f, 0.42f, 1f),
+            new Color(0.88f, 0.42f, 0.82f, 1f)
+        };
+
+        for (int i = 0; i < talentButtons.Length; i++)
+        {
+            int row = i / 2;
+            int column = i % 2;
+            GameObject buttonObject = new GameObject("Talent " + labels[i]);
+            buttonObject.transform.SetParent(panel.transform, false);
+            Image image = buttonObject.AddComponent<Image>();
+            image.color = new Color(0.085f, 0.1f, 0.13f, 0.98f);
+            Button button = buttonObject.AddComponent<Button>();
+            ColorBlock colors = button.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(0.14f, 0.17f, 0.23f, 1f);
+            colors.pressedColor = new Color(0.055f, 0.065f, 0.09f, 1f);
+            colors.disabledColor = new Color(0.45f, 0.45f, 0.45f, 0.55f);
+            button.colors = colors;
+            RectTransform buttonRect = buttonObject.GetComponent<RectTransform>();
+            buttonRect.anchorMin = new Vector2(0.5f, 1f);
+            buttonRect.anchorMax = new Vector2(0.5f, 1f);
+            buttonRect.pivot = new Vector2(0.5f, 1f);
+            buttonRect.anchoredPosition = new Vector2(-300f + column * 600f, -300f - row * 142f);
+            buttonRect.sizeDelta = new Vector2(540f, 112f);
+
+            Image accent = CreateImage(buttonObject.transform, "Accent", new Vector2(0f, 0.5f), new Vector2(0f, 0f), new Vector2(10f, 112f));
+            accent.color = accents[i];
+            Image icon = CreateImage(buttonObject.transform, "Icon", new Vector2(0f, 0.5f), new Vector2(36f, 0f), new Vector2(52f, 52f));
+            icon.color = accents[i];
+            talentTexts[i] = CreateText(buttonObject.transform, "Text", labels[i], 20, TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(106f, 0f), new Vector2(400f, 92f));
+            talentTexts[i].color = new Color(0.93f, 0.96f, 1f, 1f);
+            talentButtons[i] = button;
+        }
+
+        Button start = CreateMenuButton(panel.transform, "Start Button", "开始战斗", new Vector2(-120f, -422f));
+        Button quit = CreateMenuButton(panel.transform, "Quit Button", "退出游戏", new Vector2(120f, -422f));
+
+        MainMenuPanel mainMenu = panel.AddComponent<MainMenuPanel>();
+        SetObjectField(mainMenu, "goldText", gold);
+        SetObjectField(mainMenu, "startButton", start);
+        SetObjectField(mainMenu, "quitButton", quit);
+        SetArrayField(mainMenu, "talentButtons", talentButtons);
+        SetArrayField(mainMenu, "talentTexts", talentTexts);
+        return mainMenu;
     }
 
     private static UpgradePanel CreateUpgradePanel(Transform parent, UpgradeIconLibrary iconLibrary)

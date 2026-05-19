@@ -13,6 +13,8 @@ namespace ZombieOverdrive.Enemies
 
         private Poolable poolable;
         private GameObjectPool xpPool;
+        private GameObjectPool resourcePool;
+        private LayerMask enemyMask;
         private float currentHealth;
         private float maxHealth;
 
@@ -20,6 +22,7 @@ namespace ZombieOverdrive.Enemies
         public event Action<float, float> HealthChanged;
 
         public bool IsAlive => gameObject.activeInHierarchy && currentHealth > 0f;
+        public bool IsBoss => isBoss;
         public float CurrentHealth => currentHealth;
         public float MaxHealth => maxHealth;
 
@@ -35,10 +38,17 @@ namespace ZombieOverdrive.Enemies
 
         public void Initialize(float health, int droppedXp, GameObjectPool experiencePool, bool boss)
         {
+            Initialize(health, droppedXp, experiencePool, boss, null, default);
+        }
+
+        public void Initialize(float health, int droppedXp, GameObjectPool experiencePool, bool boss, GameObjectPool resourcePickupPool, LayerMask enemyLayerMask)
+        {
             maxHealth = health;
             currentHealth = maxHealth;
             xpValue = droppedXp;
             xpPool = experiencePool;
+            resourcePool = resourcePickupPool;
+            enemyMask = enemyLayerMask;
             isBoss = boss;
             HealthChanged?.Invoke(currentHealth, maxHealth);
         }
@@ -61,6 +71,7 @@ namespace ZombieOverdrive.Enemies
         private void Die()
         {
             DropExperience();
+            DropGold();
             EnemyKilled?.Invoke(this);
 
             if (poolable != null)
@@ -90,6 +101,27 @@ namespace ZombieOverdrive.Enemies
                 {
                     pickup.SetValue(valuePerDrop);
                 }
+            }
+        }
+
+        private void DropGold()
+        {
+            if (resourcePool == null)
+            {
+                return;
+            }
+
+            float chance = isBoss ? 1f : UnityEngine.Random.value;
+            if (!isBoss && chance > 0.12f)
+            {
+                return;
+            }
+
+            int value = isBoss ? UnityEngine.Random.Range(180, 260) : UnityEngine.Random.Range(3, 9);
+            ResourcePickup pickup = resourcePool.Get<ResourcePickup>(transform.position, Quaternion.identity);
+            if (pickup != null)
+            {
+                pickup.Configure(ResourcePickupType.Gold, value, enemyMask);
             }
         }
     }

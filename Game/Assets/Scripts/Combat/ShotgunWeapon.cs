@@ -17,7 +17,7 @@ namespace ZombieOverdrive.Combat
 
         private void Update()
         {
-            if (!IsUnlocked || Stats == null || Movement == null || bulletPool == null)
+            if (!CanAttack || bulletPool == null)
             {
                 return;
             }
