@@ -36,7 +36,7 @@ namespace ZombieOverdrive.Combat
             int shots = Level >= 4 ? 2 : 1;
             int pierces = Stats.bulletPierceBonus + (Level >= 5 ? 2 : 0);
             float damage = RollDamage(baseDamage * (1f + (Level - 1) * 0.16f));
-            Vector3 origin = muzzle != null ? muzzle.position : transform.position;
+            Vector3 origin = transform.position + (Vector3)(direction * 0.6f);
             Vector2 side = new Vector2(-direction.y, direction.x);
 
             for (int i = 0; i < shots; i++)

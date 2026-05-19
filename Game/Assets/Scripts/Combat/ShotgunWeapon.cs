@@ -7,9 +7,9 @@ namespace ZombieOverdrive.Combat
     {
         [SerializeField] private GameObjectPool bulletPool;
         [SerializeField] private Transform muzzle;
-        [SerializeField] private float baseDamage = 24f;
-        [SerializeField] private float baseCooldown = 1.25f;
-        [SerializeField] private float spreadAngle = 42f;
+        [SerializeField] private float baseDamage = 11f;
+        [SerializeField] private float baseCooldown = 1.55f;
+        [SerializeField] private float spreadAngle = 52f;
 
         private float cooldownTimer;
 
@@ -32,25 +32,24 @@ namespace ZombieOverdrive.Combat
 
         private void Fire()
         {
-            int pelletCount = Level >= 2 ? 7 : 5;
+            int pelletCount = Level >= 2 ? 6 : 5;
             if (Level >= 5)
             {
-                pelletCount += 2;
+                pelletCount += 1;
             }
 
             int pierces = Level >= 5 ? 1 + Stats.bulletPierceBonus : Stats.bulletPierceBonus;
-            float angleStep = pelletCount <= 1 ? 0f : spreadAngle / (pelletCount - 1);
-            float startAngle = -spreadAngle * 0.5f;
-            Vector3 origin = muzzle != null ? muzzle.position : transform.position;
+            Vector3 origin = transform.position + (Vector3)(AimDirection * 0.65f);
 
             for (int i = 0; i < pelletCount; i++)
             {
-                Vector2 direction = Rotate(AimDirection, startAngle + angleStep * i);
+                float randomAngle = Random.Range(-spreadAngle * 0.5f, spreadAngle * 0.5f);
+                Vector2 direction = Rotate(AimDirection, randomAngle);
                 Bullet bullet = bulletPool.Get<Bullet>(origin, Quaternion.identity);
                 if (bullet != null)
                 {
-                    float damage = RollDamage(baseDamage * (1f + (Level - 1) * 0.12f));
-                    bullet.Launch(direction, damage, pierces, 0.7f, Stats.projectileSpeedMultiplier * 0.85f, false);
+                    float damage = RollDamage(baseDamage * (1f + (Level - 1) * 0.1f));
+                    bullet.Launch(direction, damage, pierces, 0.45f, Stats.projectileSpeedMultiplier * 0.8f, false);
                 }
             }
         }

@@ -9,8 +9,10 @@ namespace ZombieOverdrive.Combat
     {
         [SerializeField] private float speed = 14f;
         [SerializeField] private float lifetime = 2.5f;
+        [SerializeField] private float armDistance = 0.22f;
 
         private Poolable poolable;
+        private Vector3 startPosition;
         private Vector2 direction;
         private float timer;
         private int remainingPierces;
@@ -32,6 +34,7 @@ namespace ZombieOverdrive.Combat
         public void Launch(Vector2 launchDirection, float damage, int pierces, float knockbackForce, float speedMultiplier, bool infinitePierce)
         {
             direction = launchDirection.sqrMagnitude > 0.001f ? launchDirection.normalized : Vector2.right;
+            startPosition = transform.position;
             Damage = damage;
             remainingPierces = pierces;
             knockback = knockbackForce;
@@ -60,6 +63,11 @@ namespace ZombieOverdrive.Combat
         {
             EnemyHealth enemy = other.GetComponent<EnemyHealth>();
             if (enemy == null)
+            {
+                return;
+            }
+
+            if (Vector2.Distance(startPosition, transform.position) < armDistance)
             {
                 return;
             }

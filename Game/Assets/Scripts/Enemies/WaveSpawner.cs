@@ -192,37 +192,37 @@ namespace ZombieOverdrive.Enemies
                 case EnemyType.Runner:
                     hp = 36f;
                     speed = 3.05f;
-                    damage = 5f;
+                    damage = 8f;
                     xp = 5;
                     break;
                 case EnemyType.Spitter:
                     hp = 72f;
                     speed = 1.35f;
-                    damage = 7f;
+                    damage = 10f;
                     xp = 5;
                     break;
                 case EnemyType.Tanker:
                     hp = 420f;
                     speed = 0.95f;
-                    damage = 14f;
+                    damage = 20f;
                     xp = 20;
                     break;
                 case EnemyType.MutantBoss:
                     hp = 2600f;
                     speed = 1.35f;
-                    damage = 18f;
+                    damage = 26f;
                     xp = 120;
                     break;
                 case EnemyType.FinalBoss:
                     hp = 10000f;
                     speed = 1.05f;
-                    damage = 24f;
+                    damage = 34f;
                     xp = 400;
                     break;
                 default:
                     hp = 44f;
                     speed = 1.35f;
-                    damage = 4f;
+                    damage = 7f;
                     xp = 1;
                     break;
             }

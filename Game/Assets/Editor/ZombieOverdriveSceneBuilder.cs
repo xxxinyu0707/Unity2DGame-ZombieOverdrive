@@ -53,10 +53,11 @@ public static class ZombieOverdriveSceneBuilder
         Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         scene.name = "Main";
 
-        CreateGround(tileSprite);
+        InfiniteGround2D ground = CreateGround(tileSprite);
 
         GameObject player = CreatePlayer(playerSprite, playerLayer, pickupLayer, bulletPrefab, orbPrefab, enemyLayer);
         CameraFollow2D cameraFollow = CreateCamera(player.transform);
+        ground.SetTarget(player.transform);
         CreateEventSystem();
 
         GameObject poolsRoot = new GameObject("Pools");
@@ -94,6 +95,7 @@ public static class ZombieOverdriveSceneBuilder
         Canvas canvas = CreateCanvas();
         GameHud hud = CreateHud(canvas.transform);
         UpgradePanel upgradePanel = CreateUpgradePanel(canvas.transform);
+        PauseMenu pauseMenu = CreatePauseMenu(canvas.transform);
 
         SetObjectField(gameManager, "playerMovement", playerMovement);
         SetObjectField(gameManager, "playerHealth", playerHealth);
@@ -105,6 +107,7 @@ public static class ZombieOverdriveSceneBuilder
         SetObjectField(gameManager, "waveSpawner", waveSpawner);
         SetObjectField(gameManager, "hud", hud);
         SetObjectField(gameManager, "upgradePanel", upgradePanel);
+        SetObjectField(gameManager, "pauseMenu", pauseMenu);
 
         cameraFollow.SetTarget(player.transform);
 
@@ -163,6 +166,8 @@ public static class ZombieOverdriveSceneBuilder
         RequireObject<WaveSpawner>("WaveSpawner");
         RequireObject<GameHud>("GameHud");
         RequireObject<UpgradePanel>("UpgradePanel");
+        RequireObject<PauseMenu>("PauseMenu");
+        RequireObject<InfiniteGround2D>("InfiniteGround2D");
 
         RequireAsset<GameObject>("Assets/Prefabs/Bullet.prefab");
         RequireAsset<GameObject>("Assets/Prefabs/AcidProjectile.prefab");
@@ -440,10 +445,11 @@ public static class ZombieOverdriveSceneBuilder
         return player;
     }
 
-    private static void CreateGround(Sprite sprite)
+    private static InfiniteGround2D CreateGround(Sprite sprite)
     {
         GameObject root = new GameObject("Infinite Ground Placeholder");
-        const float tileSize = 30f;
+        InfiniteGround2D infiniteGround = root.AddComponent<InfiniteGround2D>();
+        const float tileSize = 36f;
         for (int y = -1; y <= 1; y++)
         {
             for (int x = -1; x <= 1; x++)
@@ -458,6 +464,8 @@ public static class ZombieOverdriveSceneBuilder
                 renderer.color = ((x + y) & 1) == 0 ? Color.white : new Color(0.85f, 0.9f, 1f, 1f);
             }
         }
+
+        return infiniteGround;
     }
 
     private static CameraFollow2D CreateCamera(Transform player)
@@ -539,7 +547,7 @@ public static class ZombieOverdriveSceneBuilder
         rect.anchoredPosition = Vector2.zero;
         rect.sizeDelta = new Vector2(980f, 520f);
 
-        CreateText(panel.transform, "Title", "选择一项超载强化", 42, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -28f), new Vector2(600f, 70f));
+        CreateText(panel.transform, "Title", "Choose an Upgrade", 42, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -28f), new Vector2(600f, 70f));
 
         UpgradePanel upgradePanel = panel.AddComponent<UpgradePanel>();
         Button[] buttons = new Button[3];
@@ -574,6 +582,54 @@ public static class ZombieOverdriveSceneBuilder
         SetArrayField(upgradePanel, "descriptionTexts", descriptions);
         panel.SetActive(false);
         return upgradePanel;
+    }
+
+    private static PauseMenu CreatePauseMenu(Transform parent)
+    {
+        GameObject panel = new GameObject("Pause Menu");
+        panel.transform.SetParent(parent, false);
+        Image background = panel.AddComponent<Image>();
+        background.color = new Color(0.02f, 0.025f, 0.035f, 0.94f);
+        RectTransform rect = panel.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0.5f, 0.5f);
+        rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = Vector2.zero;
+        rect.sizeDelta = new Vector2(760f, 620f);
+
+        CreateText(panel.transform, "Title", "Paused", 44, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -24f), new Vector2(500f, 70f));
+        Text status = CreateText(panel.transform, "Status", "", 22, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-330f, -100f), new Vector2(660f, 330f));
+        Button resume = CreateMenuButton(panel.transform, "Resume Button", "Resume", new Vector2(-220f, -245f));
+        Button restart = CreateMenuButton(panel.transform, "Restart Button", "Restart", new Vector2(0f, -245f));
+        Button quit = CreateMenuButton(panel.transform, "Quit Button", "Quit", new Vector2(220f, -245f));
+
+        PauseMenu pauseMenu = panel.AddComponent<PauseMenu>();
+        SetObjectField(pauseMenu, "statusText", status);
+        SetObjectField(pauseMenu, "resumeButton", resume);
+        SetObjectField(pauseMenu, "restartButton", restart);
+        SetObjectField(pauseMenu, "quitButton", quit);
+        panel.SetActive(false);
+        return pauseMenu;
+    }
+
+    private static Button CreateMenuButton(Transform parent, string name, string label, Vector2 position)
+    {
+        GameObject buttonObject = new GameObject(name);
+        buttonObject.transform.SetParent(parent, false);
+        Image image = buttonObject.AddComponent<Image>();
+        image.color = new Color(0.12f, 0.14f, 0.18f, 1f);
+        Button button = buttonObject.AddComponent<Button>();
+        ColorBlock colors = button.colors;
+        colors.highlightedColor = new Color(0.2f, 0.25f, 0.35f, 1f);
+        colors.pressedColor = new Color(0.08f, 0.1f, 0.14f, 1f);
+        button.colors = colors;
+
+        RectTransform rect = buttonObject.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0.5f, 0.5f);
+        rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = position;
+        rect.sizeDelta = new Vector2(180f, 70f);
+        CreateText(buttonObject.transform, "Label", label, 26, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(160f, 50f));
+        return button;
     }
 
     private static Text CreateText(Transform parent, string name, string text, int fontSize, TextAnchor alignment, Vector2 anchor, Vector2 anchoredPosition, Vector2 size)

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using ZombieOverdrive.Combat;
 using ZombieOverdrive.Enemies;
 using ZombieOverdrive.UI;
@@ -21,6 +22,7 @@ namespace ZombieOverdrive.Core
         [SerializeField] private WaveSpawner waveSpawner;
         [SerializeField] private GameHud hud;
         [SerializeField] private UpgradePanel upgradePanel;
+        [SerializeField] private PauseMenu pauseMenu;
 
         private readonly PlayerStats playerStats = new PlayerStats();
         private float elapsedSeconds;
@@ -58,6 +60,10 @@ namespace ZombieOverdrive.Core
 
             upgradeSystem.Initialize(playerStats, weapons, playerHealth);
             waveSpawner.Initialize(this);
+            if (pauseMenu != null)
+            {
+                pauseMenu.Initialize(ResumeFromPauseMenu, RestartRun, QuitGame);
+            }
 
             playerHealth.HealthChanged += OnHealthChanged;
             playerHealth.Died += OnPlayerDied;
@@ -98,13 +104,12 @@ namespace ZombieOverdrive.Core
             {
                 if (State == GameState.Paused && Input.GetKeyDown(KeyCode.Escape))
                 {
-                    TogglePause();
+                    ResumeFromPauseMenu();
                 }
 
                 if ((State == GameState.GameOver || State == GameState.Victory) && Input.GetKeyDown(KeyCode.R))
                 {
-                    UnityEngine.SceneManagement.SceneManager.LoadScene(
-                        UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
+                    RestartRun();
                 }
 
                 return;
@@ -130,14 +135,47 @@ namespace ZombieOverdrive.Core
             {
                 State = GameState.Paused;
                 Time.timeScale = 0f;
-                hud.SetMessage("Paused - Press ESC to resume");
+                hud.SetMessage("");
+                if (pauseMenu != null)
+                {
+                    pauseMenu.Show(upgradeSystem.BuildStatusText(levelSystem.Level, KillCount, elapsedSeconds));
+                }
             }
             else if (State == GameState.Paused)
             {
-                State = GameState.Playing;
-                Time.timeScale = 1f;
-                hud.SetMessage("");
+                ResumeFromPauseMenu();
             }
+        }
+
+        public void ResumeFromPauseMenu()
+        {
+            if (State != GameState.Paused)
+            {
+                return;
+            }
+
+            State = GameState.Playing;
+            Time.timeScale = 1f;
+            hud.SetMessage("");
+            if (pauseMenu != null)
+            {
+                pauseMenu.Hide();
+            }
+        }
+
+        public void RestartRun()
+        {
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+
+        public void QuitGame()
+        {
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
         }
 
         public void ResumeFromUpgrade(UpgradeOption option)

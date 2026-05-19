@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using ZombieOverdrive.Combat;
 
@@ -18,7 +19,8 @@ namespace ZombieOverdrive.Core
         GreedChip,
         Radar,
         Defibrillator,
-        Radio
+        Radio,
+        Repair
     }
 
     public struct UpgradeOption
@@ -32,6 +34,8 @@ namespace ZombieOverdrive.Core
     public class UpgradeSystem : MonoBehaviour
     {
         [SerializeField] private int optionsPerLevel = 3;
+        [SerializeField] private int maxActiveWeapons = 3;
+        [SerializeField] private int maxPassiveSkills = 3;
 
         private readonly List<UpgradeType> passivePool = new List<UpgradeType>
         {
@@ -51,6 +55,9 @@ namespace ZombieOverdrive.Core
 
         private readonly Dictionary<UpgradeType, int> passiveLevels = new Dictionary<UpgradeType, int>();
         private readonly Dictionary<WeaponId, WeaponBase> weapons = new Dictionary<WeaponId, WeaponBase>();
+        private readonly List<WeaponId> activeSlots = new List<WeaponId>();
+        private readonly List<UpgradeType> passiveSlots = new List<UpgradeType>();
+
         private PlayerStats stats;
         private PlayerHealth health;
 
@@ -58,8 +65,11 @@ namespace ZombieOverdrive.Core
         {
             stats = playerStats;
             health = playerHealth;
-
             weapons.Clear();
+            activeSlots.Clear();
+            passiveSlots.Clear();
+            passiveLevels.Clear();
+
             foreach (WeaponBase weapon in weaponComponents)
             {
                 if (weapon == null)
@@ -70,10 +80,7 @@ namespace ZombieOverdrive.Core
                 weapons[weapon.Id] = weapon;
             }
 
-            if (weapons.TryGetValue(WeaponId.Pistol, out WeaponBase pistol) && !pistol.IsUnlocked)
-            {
-                pistol.UnlockOrLevel();
-            }
+            UnlockInitialWeapon(WeaponId.Pistol);
         }
 
         public List<UpgradeOption> RollOptions()
@@ -84,32 +91,33 @@ namespace ZombieOverdrive.Core
 
             for (int i = 0; i < optionsPerLevel; i++)
             {
-                bool preferWeapon = weaponCandidates.Count > 0 && (i == 0 || Random.value < 0.48f);
-                if (preferWeapon)
+                bool chooseWeapon = weaponCandidates.Count > 0 && (i == 0 || Random.value < 0.45f);
+                if (chooseWeapon)
                 {
-                    int index = Random.Range(0, weaponCandidates.Count);
-                    WeaponBase weapon = weaponCandidates[index];
-                    weaponCandidates.RemoveAt(index);
-                    options.Add(CreateWeaponOption(weapon));
+                    options.Add(TakeWeaponOption(weaponCandidates));
                     continue;
                 }
 
                 if (passiveCandidates.Count > 0)
                 {
-                    int index = Random.Range(0, passiveCandidates.Count);
-                    UpgradeType type = passiveCandidates[index];
-                    passiveCandidates.RemoveAt(index);
-                    options.Add(CreatePassiveOption(type));
+                    options.Add(TakePassiveOption(passiveCandidates));
                     continue;
                 }
 
                 if (weaponCandidates.Count > 0)
                 {
-                    int index = Random.Range(0, weaponCandidates.Count);
-                    WeaponBase weapon = weaponCandidates[index];
-                    weaponCandidates.RemoveAt(index);
-                    options.Add(CreateWeaponOption(weapon));
+                    options.Add(TakeWeaponOption(weaponCandidates));
                 }
+            }
+
+            if (options.Count == 0)
+            {
+                options.Add(new UpgradeOption
+                {
+                    Type = UpgradeType.Repair,
+                    Title = "Emergency Repair",
+                    Description = "All chosen slots are maxed. Recover 35% health."
+                });
             }
 
             return options;
@@ -120,54 +128,51 @@ namespace ZombieOverdrive.Core
             switch (option.Type)
             {
                 case UpgradeType.Weapon:
-                    if (weapons.TryGetValue(option.WeaponId, out WeaponBase weapon))
-                    {
-                        weapon.UnlockOrLevel();
-                    }
+                    ApplyWeapon(option.WeaponId);
                     break;
                 case UpgradeType.AmmoBox:
                     AddPassiveLevel(option.Type);
-                    stats.AddDamage(0.1f);
+                    stats.AddDamage(0.08f);
                     stats.AddArea(0.05f);
                     break;
                 case UpgradeType.Overclock:
                     AddPassiveLevel(option.Type);
-                    stats.AddFireRate(0.1f);
+                    stats.AddFireRate(0.09f);
                     break;
                 case UpgradeType.Adrenaline:
                     AddPassiveLevel(option.Type);
-                    stats.AddMoveSpeed(0.08f);
+                    stats.AddMoveSpeed(0.07f);
                     break;
                 case UpgradeType.NanoArmor:
                     AddPassiveLevel(option.Type);
-                    stats.AddDamageReduction(0.08f);
+                    stats.AddDamageReduction(0.06f);
                     break;
                 case UpgradeType.Propellent:
                     AddPassiveLevel(option.Type);
-                    stats.AddProjectileSpeed(0.15f);
+                    stats.AddProjectileSpeed(0.12f);
                     stats.bulletPierceBonus++;
                     break;
                 case UpgradeType.GravityCore:
                     AddPassiveLevel(option.Type);
-                    stats.AddDuration(0.15f);
+                    stats.AddDuration(0.12f);
                     break;
                 case UpgradeType.Magnet:
                     AddPassiveLevel(option.Type);
-                    stats.AddMagnetRange(1.5f);
+                    stats.AddMagnetRange(1.25f);
                     break;
                 case UpgradeType.HazmatSuit:
                     AddPassiveLevel(option.Type);
-                    stats.AddMaxHealth(24f);
-                    stats.AddHealthRegen(0.5f);
-                    if (health != null) health.Heal(30f);
+                    stats.AddMaxHealth(18f);
+                    stats.AddHealthRegen(0.35f);
+                    if (health != null) health.Heal(health.MaxHealth * 0.18f);
                     break;
                 case UpgradeType.GreedChip:
                     AddPassiveLevel(option.Type);
-                    stats.AddXpGain(0.1f);
+                    stats.AddXpGain(0.08f);
                     break;
                 case UpgradeType.Radar:
                     AddPassiveLevel(option.Type);
-                    stats.AddCritical(0.05f, 0.12f);
+                    stats.AddCritical(0.04f, 0.1f);
                     break;
                 case UpgradeType.Defibrillator:
                     AddPassiveLevel(option.Type);
@@ -175,18 +180,110 @@ namespace ZombieOverdrive.Core
                     {
                         stats.reviveCharges++;
                     }
-                    stats.levelUpHealPercent += 0.02f;
+
+                    stats.levelUpHealPercent += 0.015f;
                     break;
                 case UpgradeType.Radio:
                     AddPassiveLevel(option.Type);
-                    stats.AddPickupLuck(0.12f);
+                    stats.AddPickupLuck(0.1f);
+                    break;
+                case UpgradeType.Repair:
+                    if (health != null) health.Heal(health.MaxHealth * 0.35f);
                     break;
             }
+        }
 
-            if (option.Type == UpgradeType.HazmatSuit && health != null)
+        public string BuildStatusText(int level, int kills, float elapsedSeconds)
+        {
+            StringBuilder builder = new StringBuilder(512);
+            builder.AppendLine("RUN STATUS");
+            builder.AppendLine("Time " + FormatTime(elapsedSeconds) + "   Level " + level + "   Kills " + kills);
+            builder.AppendLine();
+            builder.AppendLine("Active Weapons " + activeSlots.Count + "/" + maxActiveWeapons);
+            for (int i = 0; i < maxActiveWeapons; i++)
             {
-                health.Heal(health.MaxHealth * 0.1f);
+                if (i < activeSlots.Count && weapons.TryGetValue(activeSlots[i], out WeaponBase weapon))
+                {
+                    builder.AppendLine("- " + GetWeaponName(activeSlots[i]) + " Lv " + weapon.Level);
+                }
+                else
+                {
+                    builder.AppendLine("- [Empty]");
+                }
             }
+
+            builder.AppendLine();
+            builder.AppendLine("Passive Skills " + passiveSlots.Count + "/" + maxPassiveSkills);
+            for (int i = 0; i < maxPassiveSkills; i++)
+            {
+                if (i < passiveSlots.Count)
+                {
+                    UpgradeType passive = passiveSlots[i];
+                    builder.AppendLine("- " + GetPassiveName(passive) + " Lv " + GetPassiveLevel(passive));
+                }
+                else
+                {
+                    builder.AppendLine("- [Empty]");
+                }
+            }
+
+            builder.AppendLine();
+            builder.AppendLine("ESC/Resume to continue. Restart starts a new run.");
+            return builder.ToString();
+        }
+
+        private void UnlockInitialWeapon(WeaponId id)
+        {
+            if (!weapons.TryGetValue(id, out WeaponBase weapon))
+            {
+                return;
+            }
+
+            if (!activeSlots.Contains(id))
+            {
+                activeSlots.Add(id);
+            }
+
+            if (!weapon.IsUnlocked)
+            {
+                weapon.UnlockOrLevel();
+            }
+        }
+
+        private void ApplyWeapon(WeaponId id)
+        {
+            if (!weapons.TryGetValue(id, out WeaponBase weapon))
+            {
+                return;
+            }
+
+            if (!weapon.IsUnlocked)
+            {
+                if (activeSlots.Count >= maxActiveWeapons)
+                {
+                    return;
+                }
+
+                activeSlots.Add(id);
+            }
+
+            weapon.UnlockOrLevel();
+        }
+
+        private UpgradeOption TakeWeaponOption(List<WeaponBase> candidates)
+        {
+            int index = Random.Range(0, candidates.Count);
+            WeaponBase weapon = candidates[index];
+            candidates.RemoveAt(index);
+            return CreateWeaponOption(weapon);
+        }
+
+        private UpgradeOption TakePassiveOption(List<UpgradeType> candidates)
+        {
+            int index = Random.Range(0, candidates.Count);
+            UpgradeType type = candidates[index];
+            candidates.RemoveAt(index);
+            return CreatePassiveOption(type);
         }
 
         private List<WeaponBase> GetWeaponCandidates()
@@ -194,7 +291,13 @@ namespace ZombieOverdrive.Core
             List<WeaponBase> candidates = new List<WeaponBase>();
             foreach (WeaponBase weapon in weapons.Values)
             {
-                if (weapon != null && weapon.CanLevel)
+                if (weapon == null || !weapon.CanLevel)
+                {
+                    continue;
+                }
+
+                bool canUnlock = weapon.IsUnlocked || activeSlots.Count < maxActiveWeapons;
+                if (canUnlock)
                 {
                     candidates.Add(weapon);
                 }
@@ -208,7 +311,9 @@ namespace ZombieOverdrive.Core
             List<UpgradeType> candidates = new List<UpgradeType>();
             foreach (UpgradeType type in passivePool)
             {
-                if (GetPassiveLevel(type) < 5)
+                bool alreadySlotted = passiveSlots.Contains(type);
+                bool canSlotNew = passiveSlots.Count < maxPassiveSkills;
+                if ((alreadySlotted || canSlotNew) && GetPassiveLevel(type) < 5)
                 {
                     candidates.Add(type);
                 }
@@ -219,6 +324,16 @@ namespace ZombieOverdrive.Core
 
         private void AddPassiveLevel(UpgradeType type)
         {
+            if (!passiveSlots.Contains(type))
+            {
+                if (passiveSlots.Count >= maxPassiveSkills)
+                {
+                    return;
+                }
+
+                passiveSlots.Add(type);
+            }
+
             passiveLevels[type] = GetPassiveLevel(type) + 1;
         }
 
@@ -230,90 +345,135 @@ namespace ZombieOverdrive.Core
         private UpgradeOption CreateWeaponOption(WeaponBase weapon)
         {
             int nextLevel = weapon.Level + 1;
-            string verb = weapon.IsUnlocked ? "升级" : "解锁";
+            string verb = weapon.IsUnlocked ? "Upgrade" : "Unlock";
             return new UpgradeOption
             {
                 Type = UpgradeType.Weapon,
                 WeaponId = weapon.Id,
-                Title = verb + "：" + GetWeaponName(weapon.Id),
-                Description = GetWeaponDescription(weapon.Id, nextLevel)
+                Title = verb + ": " + GetWeaponName(weapon.Id),
+                Description = "Lv " + nextLevel + ". " + GetWeaponDescription(weapon.Id)
             };
         }
 
         private UpgradeOption CreatePassiveOption(UpgradeType type)
         {
             int nextLevel = GetPassiveLevel(type) + 1;
+            return new UpgradeOption
+            {
+                Type = type,
+                Title = GetPassiveName(type) + " Lv " + nextLevel,
+                Description = GetPassiveDescription(type)
+            };
+        }
+
+        private static string FormatTime(float elapsedSeconds)
+        {
+            int minutes = Mathf.FloorToInt(elapsedSeconds / 60f);
+            int seconds = Mathf.FloorToInt(elapsedSeconds % 60f);
+            return minutes.ToString("00") + ":" + seconds.ToString("00");
+        }
+
+        public static string GetWeaponName(WeaponId id)
+        {
+            switch (id)
+            {
+                case WeaponId.Shotgun:
+                    return "Shotgun";
+                case WeaponId.Tesla:
+                    return "Tesla Glove";
+                case WeaponId.Singularity:
+                    return "Singularity Gun";
+                case WeaponId.Lightblade:
+                    return "Lightblade";
+                case WeaponId.Laser:
+                    return "Fission Laser";
+                default:
+                    return "Pistol";
+            }
+        }
+
+        public static string GetPassiveName(UpgradeType type)
+        {
             switch (type)
             {
                 case UpgradeType.AmmoBox:
-                    return Passive(type, "弹药集束箱 Lv " + nextLevel, "所有武器伤害 +10%，范围 +5%。");
+                    return "Ammo Box";
                 case UpgradeType.Overclock:
-                    return Passive(type, "超频处理器 Lv " + nextLevel, "所有武器攻击频率 +10%。");
+                    return "Overclock";
                 case UpgradeType.Adrenaline:
-                    return Passive(type, "肾上腺素 Lv " + nextLevel, "移动速度 +8%。");
+                    return "Adrenaline";
                 case UpgradeType.NanoArmor:
-                    return Passive(type, "重型纳米甲 Lv " + nextLevel, "受到的伤害降低 8%。");
+                    return "Nano Armor";
                 case UpgradeType.Propellent:
-                    return Passive(type, "高能燃料罐 Lv " + nextLevel, "子弹速度 +15%，远程穿透 +1。");
+                    return "Propellent";
                 case UpgradeType.GravityCore:
-                    return Passive(type, "重力稳定器 Lv " + nextLevel, "黑洞等持续类效果时间 +15%。");
+                    return "Gravity Core";
                 case UpgradeType.Magnet:
-                    return Passive(type, "超导电磁链 Lv " + nextLevel, "经验水晶吸取范围 +1.5。");
+                    return "Magnet";
                 case UpgradeType.HazmatSuit:
-                    return Passive(type, "生物防护服 Lv " + nextLevel, "最大生命 +24，生命恢复 +0.5/秒。");
+                    return "Hazmat Suit";
                 case UpgradeType.GreedChip:
-                    return Passive(type, "贪婪芯片 Lv " + nextLevel, "经验获取 +10%，更快进入成型节奏。");
+                    return "Greed Chip";
                 case UpgradeType.Radar:
-                    return Passive(type, "高频雷达 Lv " + nextLevel, "暴击率 +5%，暴击伤害提高。");
+                    return "Radar";
                 case UpgradeType.Defibrillator:
-                    return Passive(type, "紧急除颤器 Lv " + nextLevel, "首次获得 1 次复活，后续提高升级回血。");
+                    return "Defibrillator";
                 case UpgradeType.Radio:
-                    return Passive(type, "战术无线电 Lv " + nextLevel, "补给掉落运气 +12%。");
+                    return "Radio";
                 default:
-                    return Passive(type, "补给", "获得一项强化。");
+                    return "Repair";
             }
         }
 
-        private static UpgradeOption Passive(UpgradeType type, string title, string description)
-        {
-            return new UpgradeOption { Type = type, Title = title, Description = description };
-        }
-
-        private static string GetWeaponName(WeaponId id)
+        private static string GetWeaponDescription(WeaponId id)
         {
             switch (id)
             {
                 case WeaponId.Shotgun:
-                    return "爆裂霰弹枪";
+                    return "Short-range cone burst with knockback.";
                 case WeaponId.Tesla:
-                    return "电磁手套";
+                    return "Chains lightning between nearby enemies in your aim direction.";
                 case WeaponId.Singularity:
-                    return "重力黑洞炮";
+                    return "Fires a slow gravity orb that pulls and damages crowds.";
                 case WeaponId.Lightblade:
-                    return "光刃·影切";
+                    return "Front arc melee slash aimed by the mouse.";
                 case WeaponId.Laser:
-                    return "裂变激光枪";
+                    return "Continuous piercing beam in the aim direction.";
                 default:
-                    return "哨兵手枪";
+                    return "Reliable aimed bullet weapon.";
             }
         }
 
-        private static string GetWeaponDescription(WeaponId id, int level)
+        private static string GetPassiveDescription(UpgradeType type)
         {
-            switch (id)
+            switch (type)
             {
-                case WeaponId.Shotgun:
-                    return "Lv " + level + "：扇形发射多颗弹丸，近距离爆发和击退强。";
-                case WeaponId.Tesla:
-                    return "Lv " + level + "：自动连锁附近敌人，并附带减速。";
-                case WeaponId.Singularity:
-                    return "Lv " + level + "：发射缓慢黑洞，牵引并持续伤害尸群。";
-                case WeaponId.Lightblade:
-                    return "Lv " + level + "：朝鼠标方向进行扇形近战斩击。";
-                case WeaponId.Laser:
-                    return "Lv " + level + "：持续贯穿激光，适合处理排成线的尸潮。";
+                case UpgradeType.AmmoBox:
+                    return "Weapon damage +8%, area +5%.";
+                case UpgradeType.Overclock:
+                    return "Attack speed +9%.";
+                case UpgradeType.Adrenaline:
+                    return "Move speed +7%.";
+                case UpgradeType.NanoArmor:
+                    return "Incoming damage -6%.";
+                case UpgradeType.Propellent:
+                    return "Projectile speed +12%, bullet pierce +1.";
+                case UpgradeType.GravityCore:
+                    return "Duration effects last +12%.";
+                case UpgradeType.Magnet:
+                    return "Pickup range +1.25.";
+                case UpgradeType.HazmatSuit:
+                    return "Max health +18, regen +0.35/sec.";
+                case UpgradeType.GreedChip:
+                    return "XP gain +8%.";
+                case UpgradeType.Radar:
+                    return "Crit chance +4%, crit damage +10%.";
+                case UpgradeType.Defibrillator:
+                    return "First pick grants 1 revive; later picks improve level-up healing.";
+                case UpgradeType.Radio:
+                    return "Supply drop luck +10%.";
                 default:
-                    return "Lv " + level + "：提升手枪射速、伤害和弹幕密度。";
+                    return "Recover 35% health.";
             }
         }
     }

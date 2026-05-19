@@ -181,7 +181,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyType: 0
   contactDamage: 10
-  attackInterval: 0.7
+  attackInterval: 0.55
   separationRadius: 0.45
   enemyMask:
     serializedVersion: 2

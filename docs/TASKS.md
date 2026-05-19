@@ -29,6 +29,9 @@
 - [x] Tune early damage, enemy damage, XP curve, and level-up healing
 - [x] Add six first-pass weapons
 - [x] Add Spitter and simplified boss enemies
+- [x] Enforce 3 active weapon and 3 passive skill slots
+- [x] Add pause/status menu with resume, restart, and quit
+- [x] Add looping visual ground
 - [ ] Add UI polish
 - [ ] Add sound effects
 - [ ] Add destructible crates and temporary recovery items

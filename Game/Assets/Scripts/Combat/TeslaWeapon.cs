@@ -36,7 +36,7 @@ namespace ZombieOverdrive.Combat
         {
             struck.Clear();
             Vector2 origin = transform.position;
-            EnemyHealth current = FindNearestEnemy(origin, 7f * AreaMultiplier, null);
+            EnemyHealth current = FindNearestEnemy(origin, 7f * AreaMultiplier, null, true);
             int maxTargets = Level >= 2 ? 5 : 3;
             if (Level >= 4)
             {
@@ -53,13 +53,23 @@ namespace ZombieOverdrive.Combat
                     controller.ApplySlow(Level >= 3 ? 0.5f : 0.25f, 0.75f);
                 }
 
+                DrawArc(origin, current.transform.position);
                 struck.Add(current);
                 origin = current.transform.position;
-                current = FindNearestEnemy(origin, chainRadius * AreaMultiplier, struck);
+                current = FindNearestEnemy(origin, chainRadius * AreaMultiplier, struck, false);
             }
         }
 
-        private EnemyHealth FindNearestEnemy(Vector2 origin, float radius, HashSet<EnemyHealth> ignored)
+        private static void DrawArc(Vector3 start, Vector3 end)
+        {
+            GameObject lineObject = new GameObject("Tesla Arc");
+            LineRenderer line = lineObject.AddComponent<LineRenderer>();
+            line.material = new Material(Shader.Find("Sprites/Default"));
+            TransientLine transient = lineObject.AddComponent<TransientLine>();
+            transient.Show(start, end, new Color(0.25f, 0.95f, 1f, 1f), 0.07f, 0.08f);
+        }
+
+        private EnemyHealth FindNearestEnemy(Vector2 origin, float radius, HashSet<EnemyHealth> ignored, bool requireAimCone)
         {
             int count = Physics2D.OverlapCircleNonAlloc(origin, radius, hits, enemyMask);
             EnemyHealth nearest = null;
@@ -73,7 +83,13 @@ namespace ZombieOverdrive.Combat
                     continue;
                 }
 
-                float distance = ((Vector2)enemy.transform.position - origin).sqrMagnitude;
+                Vector2 toEnemy = (Vector2)enemy.transform.position - origin;
+                if (requireAimCone && Vector2.Angle(AimDirection, toEnemy) > 80f)
+                {
+                    continue;
+                }
+
+                float distance = toEnemy.sqrMagnitude;
                 if (distance < nearestDistance)
                 {
                     nearestDistance = distance;

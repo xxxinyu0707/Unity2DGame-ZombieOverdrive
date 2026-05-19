@@ -36,6 +36,7 @@ namespace ZombieOverdrive.Combat
             float radius = baseRadius * AreaMultiplier * (Level >= 2 ? 1.25f : 1f);
             float arc = Level >= 5 ? 240f : arcDegrees;
             int count = Physics2D.OverlapCircleNonAlloc(transform.position, radius, hits, enemyMask);
+            DrawSlash(radius, arc);
 
             for (int i = 0; i < count; i++)
             {
@@ -58,6 +59,30 @@ namespace ZombieOverdrive.Combat
                     controller.ApplyKnockback(toEnemy.normalized * 0.75f);
                 }
             }
+        }
+
+        private void DrawSlash(float radius, float arc)
+        {
+            int segments = 16;
+            GameObject lineObject = new GameObject("Lightblade Slash");
+            LineRenderer line = lineObject.AddComponent<LineRenderer>();
+            line.material = new Material(Shader.Find("Sprites/Default"));
+            line.positionCount = segments + 1;
+            line.startColor = new Color(0.75f, 1f, 1f, 0.9f);
+            line.endColor = new Color(0.75f, 1f, 1f, 0.25f);
+            line.startWidth = 0.08f;
+            line.endWidth = 0.08f;
+            line.sortingOrder = 9;
+
+            float baseAngle = Mathf.Atan2(AimDirection.y, AimDirection.x) * Mathf.Rad2Deg - arc * 0.5f;
+            for (int i = 0; i <= segments; i++)
+            {
+                float angle = (baseAngle + arc * i / segments) * Mathf.Deg2Rad;
+                Vector3 point = transform.position + new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0f) * radius;
+                line.SetPosition(i, point);
+            }
+
+            Destroy(lineObject, 0.12f);
         }
     }
 }

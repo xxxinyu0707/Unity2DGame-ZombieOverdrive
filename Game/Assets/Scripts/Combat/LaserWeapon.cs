@@ -11,6 +11,7 @@ namespace ZombieOverdrive.Combat
         [SerializeField] private LayerMask enemyMask;
 
         private readonly RaycastHit2D[] hits = new RaycastHit2D[64];
+        private LineRenderer beam;
 
         public override WeaponId Id => WeaponId.Laser;
 
@@ -18,10 +19,28 @@ namespace ZombieOverdrive.Combat
         {
             if (!IsUnlocked || Stats == null || Movement == null)
             {
+                if (beam != null)
+                {
+                    beam.enabled = false;
+                }
+
                 return;
             }
 
             FireBeam();
+        }
+
+        protected override void OnInitialized()
+        {
+            beam = gameObject.AddComponent<LineRenderer>();
+            beam.material = new Material(Shader.Find("Sprites/Default"));
+            beam.positionCount = 2;
+            beam.startColor = new Color(1f, 0.2f, 0.12f, 0.9f);
+            beam.endColor = new Color(1f, 0.2f, 0.12f, 0.15f);
+            beam.startWidth = 0.11f;
+            beam.endWidth = 0.04f;
+            beam.enabled = false;
+            beam.sortingOrder = 9;
         }
 
         private void FireBeam()
@@ -29,6 +48,12 @@ namespace ZombieOverdrive.Combat
             float width = beamWidth * AreaMultiplier * (Level >= 2 ? 1.35f : 1f);
             int count = Physics2D.CircleCastNonAlloc(transform.position, width, AimDirection, hits, range, enemyMask);
             float damage = RollDamage(baseDamagePerSecond * (1f + (Level - 1) * 0.18f)) * Time.deltaTime;
+            if (beam != null)
+            {
+                beam.enabled = true;
+                beam.SetPosition(0, transform.position);
+                beam.SetPosition(1, transform.position + (Vector3)(AimDirection * range));
+            }
 
             for (int i = 0; i < count; i++)
             {

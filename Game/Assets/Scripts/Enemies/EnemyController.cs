@@ -9,7 +9,7 @@ namespace ZombieOverdrive.Enemies
     {
         [SerializeField] private EnemyType enemyType = EnemyType.Walker;
         [SerializeField] private float contactDamage = 10f;
-        [SerializeField] private float attackInterval = 0.7f;
+        [SerializeField] private float attackInterval = 0.55f;
         [SerializeField] private float separationRadius = 0.45f;
         [SerializeField] private LayerMask enemyMask;
         [SerializeField] private GameObject acidProjectilePrefab;
@@ -38,6 +38,7 @@ namespace ZombieOverdrive.Enemies
             enemyType = type;
             moveSpeed = speed;
             contactDamage = damage;
+            attackInterval = type == EnemyType.Tanker || type == EnemyType.MutantBoss || type == EnemyType.FinalBoss ? 0.8f : 0.55f;
             attackTimer = Random.Range(0f, attackInterval);
             rangedTimer = Random.Range(0.5f, 2.2f);
             slowMultiplier = 1f;
