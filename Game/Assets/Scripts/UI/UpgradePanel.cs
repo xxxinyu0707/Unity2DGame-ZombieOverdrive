@@ -9,8 +9,12 @@ namespace ZombieOverdrive.UI
     public class UpgradePanel : MonoBehaviour
     {
         [SerializeField] private Button[] optionButtons;
+        [SerializeField] private Image[] iconImages;
+        [SerializeField] private Image[] accentImages;
         [SerializeField] private Text[] titleTexts;
         [SerializeField] private Text[] descriptionTexts;
+        [SerializeField] private Text[] hintTexts;
+        [SerializeField] private UpgradeIconLibrary iconLibrary;
 
         private Action<UpgradeOption> onSelected;
         private List<UpgradeOption> currentOptions;
@@ -35,6 +39,25 @@ namespace ZombieOverdrive.UI
 
                 titleTexts[i].text = currentOptions[i].Title;
                 descriptionTexts[i].text = currentOptions[i].Description;
+                if (hintTexts != null && i < hintTexts.Length && hintTexts[i] != null)
+                {
+                    hintTexts[i].text = currentOptions[i].Hint;
+                    hintTexts[i].gameObject.SetActive(!string.IsNullOrWhiteSpace(currentOptions[i].Hint));
+                }
+
+                if (iconImages != null && i < iconImages.Length && iconImages[i] != null)
+                {
+                    iconImages[i].sprite = iconLibrary != null ? iconLibrary.Get(currentOptions[i].IconId) : null;
+                    iconImages[i].enabled = iconImages[i].sprite != null;
+                }
+
+                if (accentImages != null && i < accentImages.Length && accentImages[i] != null)
+                {
+                    accentImages[i].color = currentOptions[i].Highlight
+                        ? new Color(1f, 0.78f, 0.22f, 1f)
+                        : new Color(0.28f, 0.56f, 0.78f, 1f);
+                }
+
                 optionButtons[i].onClick.AddListener(() => Select(index));
             }
         }

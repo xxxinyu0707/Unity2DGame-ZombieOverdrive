@@ -37,7 +37,7 @@ namespace ZombieOverdrive.Combat
             struck.Clear();
             Vector2 origin = transform.position;
             EnemyHealth current = FindNearestEnemy(origin, 7f * AreaMultiplier, null, true);
-            int maxTargets = Level >= 2 ? 5 : 3;
+            int maxTargets = IsEvolved ? 10 : Level >= 2 ? 5 : 3;
             if (Level >= 4)
             {
                 maxTargets += 2;
@@ -45,7 +45,7 @@ namespace ZombieOverdrive.Combat
 
             for (int i = 0; i < maxTargets && current != null; i++)
             {
-                float damage = RollDamage(baseDamage * (i == 0 && Level >= 2 ? 1.35f : 1f));
+                float damage = RollDamage(baseDamage * (i == 0 && Level >= 2 ? 1.35f : 1f) * (IsEvolved ? 1.18f : 1f));
                 current.TakeDamage(damage);
                 EnemyController controller = current.GetComponent<EnemyController>();
                 if (controller != null)
@@ -54,6 +54,16 @@ namespace ZombieOverdrive.Combat
                 }
 
                 DrawArc(origin, current.transform.position);
+                if (IsEvolved && i > 0 && Random.value < 0.45f)
+                {
+                    EnemyHealth fork = FindNearestEnemy(current.transform.position, chainRadius * AreaMultiplier * 0.9f, struck, false);
+                    if (fork != null)
+                    {
+                        fork.TakeDamage(damage * 0.55f);
+                        DrawArc(current.transform.position, fork.transform.position);
+                    }
+                }
+
                 struck.Add(current);
                 origin = current.transform.position;
                 current = FindNearestEnemy(origin, chainRadius * AreaMultiplier, struck, false);

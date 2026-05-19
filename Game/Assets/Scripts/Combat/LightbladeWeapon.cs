@@ -53,7 +53,7 @@ namespace ZombieOverdrive.Combat
         private void Slash()
         {
             float radius = baseRadius * AreaMultiplier * (Level >= 2 ? 1.25f : 1f);
-            float arc = Level >= 5 ? 240f : arcDegrees;
+            float arc = IsEvolved ? 360f : Level >= 5 ? 240f : arcDegrees;
             int count = Physics2D.OverlapCircleNonAlloc(transform.position, radius, hits, enemyMask);
             DrawSlash(radius, arc);
             ShowSwordSlash(radius, arc);
@@ -72,7 +72,7 @@ namespace ZombieOverdrive.Combat
                     continue;
                 }
 
-                enemy.TakeDamage(RollDamage(baseDamage * (1f + (Level - 1) * 0.16f)));
+                enemy.TakeDamage(RollDamage(baseDamage * (1f + (Level - 1) * 0.16f) * (IsEvolved ? 1.45f : 1f)));
                 EnemyController controller = enemy.GetComponent<EnemyController>();
                 if (controller != null)
                 {
@@ -88,13 +88,13 @@ namespace ZombieOverdrive.Combat
                 return;
             }
 
-            slashVisualDuration = 0.16f;
+            slashVisualDuration = IsEvolved ? 0.22f : 0.16f;
             slashVisualTimer = slashVisualDuration;
             slashArc = arc;
             slashRadius = radius;
             slashStartAngle = Mathf.Atan2(AimDirection.y, AimDirection.x) * Mathf.Rad2Deg - arc * 0.5f;
             swordRenderer.enabled = true;
-            swordRenderer.color = new Color(0.9f, 1f, 1f, 0.95f);
+            swordRenderer.color = IsEvolved ? new Color(1f, 0.45f, 0.55f, 0.95f) : new Color(0.9f, 1f, 1f, 0.95f);
         }
 
         private void UpdateSwordVisual()
@@ -117,8 +117,10 @@ namespace ZombieOverdrive.Combat
             Vector2 direction = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad));
             swordRenderer.transform.position = transform.position + (Vector3)(direction * (slashRadius * 0.55f));
             swordRenderer.transform.rotation = Quaternion.Euler(0f, 0f, angle - 35f);
-            swordRenderer.transform.localScale = Vector3.one * (0.85f + slashRadius * 0.18f);
-            swordRenderer.color = new Color(0.9f, 1f, 1f, Mathf.Lerp(0.15f, 0.95f, slashVisualTimer / slashVisualDuration));
+            swordRenderer.transform.localScale = Vector3.one * ((IsEvolved ? 1.2f : 0.85f) + slashRadius * 0.18f);
+            Color color = IsEvolved ? new Color(1f, 0.45f, 0.55f, 1f) : new Color(0.9f, 1f, 1f, 1f);
+            color.a = Mathf.Lerp(0.15f, 0.95f, slashVisualTimer / slashVisualDuration);
+            swordRenderer.color = color;
         }
 
         private void DrawSlash(float radius, float arc)

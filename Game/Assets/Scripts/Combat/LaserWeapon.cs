@@ -12,6 +12,8 @@ namespace ZombieOverdrive.Combat
 
         private readonly RaycastHit2D[] hits = new RaycastHit2D[64];
         private LineRenderer beam;
+        private LineRenderer coreBeam;
+        private LineRenderer[] pulseLines;
 
         public override WeaponId Id => WeaponId.Laser;
 
@@ -34,13 +36,21 @@ namespace ZombieOverdrive.Combat
         {
             beam = gameObject.AddComponent<LineRenderer>();
             beam.material = new Material(Shader.Find("Sprites/Default"));
-            beam.positionCount = 2;
-            beam.startColor = new Color(1f, 0.26f, 0.12f, 0.95f);
-            beam.endColor = new Color(1f, 0.95f, 0.3f, 0.3f);
-            beam.startWidth = 0.18f;
-            beam.endWidth = 0.08f;
+            ConfigureBeam(beam, new Color(1f, 0.24f, 0.1f, 0.45f), new Color(1f, 0.95f, 0.25f, 0.08f), 0.34f, 0.2f, 12);
+            coreBeam = gameObject.AddComponent<LineRenderer>();
+            coreBeam.material = new Material(Shader.Find("Sprites/Default"));
+            ConfigureBeam(coreBeam, new Color(1f, 0.95f, 0.55f, 0.95f), new Color(1f, 0.25f, 0.08f, 0.35f), 0.08f, 0.04f, 13);
+            pulseLines = new LineRenderer[3];
+            for (int i = 0; i < pulseLines.Length; i++)
+            {
+                pulseLines[i] = gameObject.AddComponent<LineRenderer>();
+                pulseLines[i].material = new Material(Shader.Find("Sprites/Default"));
+                ConfigureBeam(pulseLines[i], new Color(1f, 0.8f, 0.28f, 0.55f), new Color(1f, 0.2f, 0.05f, 0.02f), 0.035f, 0.015f, 14);
+            }
+
             beam.enabled = false;
-            beam.sortingOrder = 13;
+            coreBeam.enabled = false;
+            SetPulsesEnabled(false);
         }
 
         private void FireBeam()
@@ -51,11 +61,17 @@ namespace ZombieOverdrive.Combat
             if (beam != null)
             {
                 beam.enabled = true;
+                coreBeam.enabled = true;
                 Vector3 start = transform.position + (Vector3)(AimDirection * 0.55f);
                 Vector3 end = transform.position + (Vector3)(AimDirection * range);
-                beam.startWidth = (0.14f + Mathf.PingPong(Time.time * 0.12f, 0.07f)) * (Level >= 2 ? 1.25f : 1f);
-                beam.SetPosition(0, start);
-                beam.SetPosition(1, end);
+                float levelScale = (Level >= 2 ? 1.25f : 1f) * (IsEvolved ? 1.45f : 1f);
+                SetAnimatedBeam(beam, start, end, 9, Time.time * 18f, 0.08f * levelScale);
+                SetAnimatedBeam(coreBeam, start, end, 8, Time.time * 26f + 1.5f, 0.025f);
+                beam.startWidth = (0.24f + Mathf.PingPong(Time.time * 1.8f, 0.18f)) * levelScale;
+                beam.endWidth = 0.08f * levelScale;
+                coreBeam.startWidth = (0.05f + Mathf.PingPong(Time.time * 4f, 0.05f)) * levelScale;
+                coreBeam.endWidth = 0.025f * levelScale;
+                UpdatePulseLines(start, end, levelScale);
             }
 
             for (int i = 0; i < count; i++)
@@ -67,6 +83,81 @@ namespace ZombieOverdrive.Combat
                 }
 
                 enemy.TakeDamage(damage);
+            }
+        }
+
+        private void LateUpdate()
+        {
+            if (!IsUnlocked && beam != null)
+            {
+                beam.enabled = false;
+                if (coreBeam != null)
+                {
+                    coreBeam.enabled = false;
+                }
+
+                SetPulsesEnabled(false);
+            }
+        }
+
+        private void UpdatePulseLines(Vector3 start, Vector3 end, float levelScale)
+        {
+            SetPulsesEnabled(true);
+            Vector3 direction = (end - start).normalized;
+            Vector3 normal = new Vector3(-direction.y, direction.x, 0f);
+            float length = Vector3.Distance(start, end);
+            for (int i = 0; i < pulseLines.Length; i++)
+            {
+                float travel = Mathf.Repeat(Time.time * (4.2f + i * 0.55f) + i * 0.28f, 1f);
+                float segmentStart = Mathf.Clamp01(travel - 0.11f);
+                float segmentEnd = Mathf.Clamp01(travel + 0.06f);
+                Vector3 offset = normal * Mathf.Sin((Time.time * 9f + i) * 1.7f) * 0.05f * levelScale;
+                pulseLines[i].SetPosition(0, start + direction * (length * segmentStart) + offset);
+                pulseLines[i].SetPosition(1, start + direction * (length * segmentEnd) - offset);
+                pulseLines[i].startWidth = 0.035f * levelScale;
+                pulseLines[i].endWidth = 0.01f * levelScale;
+            }
+        }
+
+        private void SetPulsesEnabled(bool enabled)
+        {
+            if (pulseLines == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < pulseLines.Length; i++)
+            {
+                if (pulseLines[i] != null)
+                {
+                    pulseLines[i].enabled = enabled;
+                }
+            }
+        }
+
+        private static void ConfigureBeam(LineRenderer line, Color startColor, Color endColor, float startWidth, float endWidth, int sortingOrder)
+        {
+            line.useWorldSpace = true;
+            line.positionCount = 2;
+            line.startColor = startColor;
+            line.endColor = endColor;
+            line.startWidth = startWidth;
+            line.endWidth = endWidth;
+            line.sortingOrder = sortingOrder;
+            line.enabled = false;
+        }
+
+        private static void SetAnimatedBeam(LineRenderer line, Vector3 start, Vector3 end, int points, float phase, float wobble)
+        {
+            line.positionCount = points;
+            Vector3 direction = (end - start).normalized;
+            Vector3 normal = new Vector3(-direction.y, direction.x, 0f);
+            for (int i = 0; i < points; i++)
+            {
+                float t = i / (float)(points - 1);
+                float edgeFade = Mathf.Sin(t * Mathf.PI);
+                float wave = Mathf.Sin(phase + t * Mathf.PI * 6f) * wobble * edgeFade;
+                line.SetPosition(i, Vector3.Lerp(start, end, t) + normal * wave);
             }
         }
     }

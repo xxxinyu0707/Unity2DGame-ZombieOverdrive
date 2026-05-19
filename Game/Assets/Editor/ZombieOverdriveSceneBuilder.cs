@@ -17,6 +17,34 @@ public static class ZombieOverdriveSceneBuilder
     private const string ScenePath = "Assets/Scenes/Main.unity";
     private const string PrefabRoot = "Assets/Prefabs";
     private const string ArtRoot = "Assets/Art/Generated";
+    private static readonly string[] IconIds =
+    {
+        "weapon_pistol",
+        "weapon_shotgun",
+        "weapon_tesla",
+        "weapon_singularity",
+        "weapon_lightblade",
+        "weapon_laser",
+        "evolution_pistol",
+        "evolution_shotgun",
+        "evolution_tesla",
+        "evolution_singularity",
+        "evolution_lightblade",
+        "evolution_laser",
+        "passive_ammobox",
+        "passive_overclock",
+        "passive_adrenaline",
+        "passive_nanoarmor",
+        "passive_propellent",
+        "passive_gravitycore",
+        "passive_magnet",
+        "passive_hazmatsuit",
+        "passive_greedchip",
+        "passive_radar",
+        "passive_defibrillator",
+        "passive_radio",
+        "passive_repair"
+    };
 
     [MenuItem("Zombie Overdrive/Build Prototype Scene")]
     public static void BuildPrototypeScene()
@@ -41,6 +69,7 @@ public static class ZombieOverdriveSceneBuilder
         Sprite tileSprite = CreateSprite("ground_tile", new Color(0.12f, 0.14f, 0.16f, 1f), SpriteShape.Square);
         Sprite swordSprite = CreateSprite("lightblade_sword", new Color(0.75f, 1f, 1f, 1f), SpriteShape.Diamond);
         Sprite crosshairSprite = CreateSprite("crosshair", new Color(0.9f, 1f, 1f, 1f), SpriteShape.Circle);
+        UpgradeIconEntry[] upgradeIcons = CreateUpgradeIcons();
         Sprite walkerWoundedSprite = CreateSprite("walker_wounded", new Color(0.25f, 0.85f, 0.35f, 1f), SpriteShape.Circle);
         Sprite walkerCriticalSprite = CreateSprite("walker_critical", new Color(0.25f, 0.85f, 0.35f, 1f), SpriteShape.Circle);
         Sprite runnerWoundedSprite = CreateSprite("runner_wounded", new Color(1f, 0.45f, 0.25f, 1f), SpriteShape.Circle);
@@ -109,8 +138,9 @@ public static class ZombieOverdriveSceneBuilder
         SetObjectField(waveSpawner, "experiencePool", xpPool);
 
         Canvas canvas = CreateCanvas();
+        UpgradeIconLibrary iconLibrary = CreateIconLibrary(upgradeIcons);
         GameHud hud = CreateHud(canvas.transform);
-        UpgradePanel upgradePanel = CreateUpgradePanel(canvas.transform);
+        UpgradePanel upgradePanel = CreateUpgradePanel(canvas.transform, iconLibrary);
         PauseMenu pauseMenu = CreatePauseMenu(canvas.transform);
 
         SetObjectField(gameManager, "playerMovement", playerMovement);
@@ -124,6 +154,7 @@ public static class ZombieOverdriveSceneBuilder
         SetObjectField(gameManager, "hud", hud);
         SetObjectField(gameManager, "upgradePanel", upgradePanel);
         SetObjectField(gameManager, "pauseMenu", pauseMenu);
+        SetObjectField(gameManager, "iconLibrary", iconLibrary);
 
         cameraFollow.SetTarget(player.transform);
 
@@ -183,6 +214,7 @@ public static class ZombieOverdriveSceneBuilder
         RequireObject<GameHud>("GameHud");
         RequireObject<UpgradePanel>("UpgradePanel");
         RequireObject<PauseMenu>("PauseMenu");
+        RequireObject<UpgradeIconLibrary>("UpgradeIconLibrary");
         RequireObject<InfiniteGround2D>("InfiniteGround2D");
         RequireObject<AimGuide>("AimGuide");
 
@@ -196,6 +228,10 @@ public static class ZombieOverdriveSceneBuilder
         RequireAsset<GameObject>("Assets/Prefabs/MutantBoss.prefab");
         RequireAsset<GameObject>("Assets/Prefabs/FinalBoss.prefab");
         RequireAsset<GameObject>("Assets/Prefabs/ExperienceCrystal.prefab");
+        for (int i = 0; i < IconIds.Length; i++)
+        {
+            RequireAsset<Sprite>(ArtRoot + "/icon_" + IconIds[i] + ".png");
+        }
 
         bool sceneInBuild = false;
         foreach (EditorBuildSettingsScene buildScene in EditorBuildSettings.scenes)
@@ -312,6 +348,45 @@ public static class ZombieOverdriveSceneBuilder
         return AssetDatabase.LoadAssetAtPath<Sprite>(path);
     }
 
+    private static UpgradeIconEntry[] CreateUpgradeIcons()
+    {
+        UpgradeIconEntry[] icons = new UpgradeIconEntry[IconIds.Length];
+        for (int i = 0; i < IconIds.Length; i++)
+        {
+            icons[i] = new UpgradeIconEntry
+            {
+                Id = IconIds[i],
+                Sprite = CreateSprite("icon_" + IconIds[i], Color.white, SpriteShape.Square)
+            };
+        }
+
+        return icons;
+    }
+
+    private static UpgradeIconLibrary CreateIconLibrary(UpgradeIconEntry[] entries)
+    {
+        GameObject libraryObject = new GameObject("Upgrade Icon Library");
+        UpgradeIconLibrary library = libraryObject.AddComponent<UpgradeIconLibrary>();
+        SetIconEntries(library, entries);
+        return library;
+    }
+
+    private static void SetIconEntries(UpgradeIconLibrary library, UpgradeIconEntry[] entries)
+    {
+        SerializedObject serializedObject = new SerializedObject(library);
+        SerializedProperty property = serializedObject.FindProperty("icons");
+        property.arraySize = entries.Length;
+        for (int i = 0; i < entries.Length; i++)
+        {
+            SerializedProperty item = property.GetArrayElementAtIndex(i);
+            item.FindPropertyRelative("Id").stringValue = entries[i].Id;
+            item.FindPropertyRelative("Sprite").objectReferenceValue = entries[i].Sprite;
+        }
+
+        serializedObject.ApplyModifiedPropertiesWithoutUndo();
+        EditorUtility.SetDirty(library);
+    }
+
     private static bool DrawNamedPixelSprite(Texture2D texture, string name)
     {
         switch (name)
@@ -407,6 +482,12 @@ public static class ZombieOverdriveSceneBuilder
                 DrawCrosshairSprite(texture);
                 return true;
             default:
+                if (name.StartsWith("icon_", System.StringComparison.Ordinal))
+                {
+                    DrawUpgradeIcon(texture, name.Substring(5));
+                    return true;
+                }
+
                 return false;
         }
     }
@@ -750,6 +831,165 @@ public static class ZombieOverdriveSceneBuilder
         DrawRect(texture, 16, 35, 3, 3, blood);
     }
 
+    private static void DrawUpgradeIcon(Texture2D texture, string id)
+    {
+        Color background = IconBackground(id);
+        Color dark = Darken(background, 0.55f);
+        Color light = Lighten(background, 0.55f);
+        Color white = Hex("#f7fbff");
+        Color red = Hex("#d92d3a");
+        Color black = Hex("#151820");
+
+        Fill(texture, new Color(0f, 0f, 0f, 0f));
+        DrawRect(texture, 9, 9, 46, 46, Hex("#10141d"));
+        DrawRect(texture, 11, 11, 42, 42, background);
+        DrawRect(texture, 11, 11, 42, 7, light);
+        DrawRect(texture, 11, 47, 42, 6, dark);
+        DrawLine(texture, 13, 51, 51, 13, 3, WithAlpha(white, 0.16f));
+
+        if (id.StartsWith("evolution_", System.StringComparison.Ordinal))
+        {
+            DrawDiamond(texture, 32, 32, 26, Hex("#3b1022"));
+            DrawDiamond(texture, 32, 32, 22, background);
+            DrawRect(texture, 14, 14, 36, 5, white);
+            DrawRect(texture, 14, 45, 36, 5, dark);
+            id = "weapon_" + id.Substring(10);
+        }
+
+        switch (id)
+        {
+            case "weapon_pistol":
+                DrawLine(texture, 20, 38, 45, 24, 7, black);
+                DrawLine(texture, 22, 37, 45, 25, 4, white);
+                DrawRect(texture, 18, 36, 9, 12, black);
+                DrawRect(texture, 20, 37, 5, 9, dark);
+                DrawRect(texture, 44, 22, 8, 4, Hex("#ffd15d"));
+                break;
+            case "weapon_shotgun":
+                DrawLine(texture, 14, 42, 50, 23, 8, black);
+                DrawLine(texture, 17, 40, 50, 24, 5, white);
+                DrawRect(texture, 16, 39, 11, 8, dark);
+                DrawLine(texture, 40, 25, 54, 17, 3, Hex("#ffca55"));
+                break;
+            case "weapon_tesla":
+                DrawLine(texture, 19, 47, 27, 20, 6, black);
+                DrawLine(texture, 22, 46, 29, 22, 3, white);
+                DrawLine(texture, 30, 20, 24, 34, 4, Hex("#80f7ff"));
+                DrawLine(texture, 24, 34, 38, 30, 4, Hex("#80f7ff"));
+                DrawLine(texture, 38, 30, 30, 48, 4, Hex("#80f7ff"));
+                break;
+            case "weapon_singularity":
+                DrawCircle(texture, 32, 32, 17, black);
+                DrawRing(texture, 32, 32, 19, 21, white);
+                DrawCircle(texture, 32, 32, 8, Hex("#000000"));
+                DrawLine(texture, 16, 36, 47, 25, 3, Hex("#b895ff"));
+                break;
+            case "weapon_lightblade":
+                DrawLine(texture, 17, 45, 45, 18, 8, black);
+                DrawLine(texture, 20, 43, 45, 19, 5, white);
+                DrawLine(texture, 17, 45, 28, 53, 5, Hex("#ffd86b"));
+                DrawRing(texture, 32, 32, 22, 24, WithAlpha(white, 0.45f));
+                break;
+            case "weapon_laser":
+                DrawLine(texture, 14, 43, 45, 22, 8, black);
+                DrawLine(texture, 18, 41, 46, 23, 4, white);
+                DrawLine(texture, 31, 32, 55, 16, 4, Hex("#fff16b"));
+                DrawLine(texture, 31, 32, 55, 16, 2, red);
+                break;
+            case "passive_ammobox":
+                DrawRect(texture, 17, 24, 31, 23, black);
+                DrawRect(texture, 20, 27, 25, 17, Hex("#f2c45d"));
+                DrawRect(texture, 24, 18, 16, 8, black);
+                DrawRect(texture, 26, 20, 12, 5, light);
+                DrawRect(texture, 28, 31, 9, 8, red);
+                break;
+            case "passive_overclock":
+                DrawRing(texture, 32, 32, 17, 20, white);
+                DrawLine(texture, 32, 32, 44, 24, 4, black);
+                DrawLine(texture, 32, 32, 28, 19, 3, black);
+                DrawRect(texture, 29, 29, 6, 6, red);
+                break;
+            case "passive_adrenaline":
+                DrawLine(texture, 18, 45, 47, 16, 7, white);
+                DrawLine(texture, 18, 45, 47, 16, 3, red);
+                DrawRect(texture, 42, 12, 8, 8, black);
+                DrawLine(texture, 15, 35, 27, 35, 3, white);
+                DrawLine(texture, 27, 35, 34, 27, 3, white);
+                break;
+            case "passive_nanoarmor":
+                DrawDiamond(texture, 32, 34, 22, black);
+                DrawDiamond(texture, 32, 34, 17, Hex("#c5d1d9"));
+                DrawRect(texture, 25, 24, 14, 20, dark);
+                DrawLine(texture, 20, 34, 44, 34, 3, white);
+                break;
+            case "passive_propellent":
+                DrawRect(texture, 25, 15, 16, 34, black);
+                DrawRect(texture, 28, 18, 10, 26, white);
+                DrawDiamond(texture, 33, 50, 10, Hex("#ff8b2d"));
+                DrawLine(texture, 21, 30, 45, 30, 2, red);
+                break;
+            case "passive_gravitycore":
+                DrawCircle(texture, 32, 32, 16, black);
+                DrawCircle(texture, 32, 32, 9, Hex("#8c5cff"));
+                DrawRing(texture, 32, 32, 21, 23, white);
+                DrawDiamond(texture, 32, 32, 4, white);
+                break;
+            case "passive_magnet":
+                DrawRect(texture, 18, 18, 10, 25, red);
+                DrawRect(texture, 38, 18, 10, 25, red);
+                DrawRect(texture, 18, 18, 30, 8, white);
+                DrawRect(texture, 26, 37, 14, 7, black);
+                break;
+            case "passive_hazmatsuit":
+                DrawCircle(texture, 32, 34, 19, black);
+                DrawCircle(texture, 32, 34, 15, Hex("#e3d86a"));
+                DrawCircle(texture, 27, 37, 4, white);
+                DrawCircle(texture, 37, 37, 4, white);
+                DrawRect(texture, 25, 23, 14, 4, dark);
+                break;
+            case "passive_greedchip":
+                DrawRect(texture, 18, 18, 28, 28, black);
+                DrawRect(texture, 22, 22, 20, 20, Hex("#5cff8b"));
+                DrawRect(texture, 29, 25, 7, 15, dark);
+                DrawLine(texture, 16, 27, 10, 27, 2, white);
+                DrawLine(texture, 48, 37, 55, 37, 2, white);
+                break;
+            case "passive_radar":
+                DrawRing(texture, 32, 32, 6, 8, white);
+                DrawRing(texture, 32, 32, 15, 17, WithAlpha(white, 0.65f));
+                DrawRing(texture, 32, 32, 24, 25, WithAlpha(white, 0.4f));
+                DrawLine(texture, 32, 32, 50, 18, 3, red);
+                break;
+            case "passive_defibrillator":
+                DrawRect(texture, 17, 25, 13, 20, white);
+                DrawRect(texture, 35, 25, 13, 20, white);
+                DrawLine(texture, 24, 25, 32, 17, 3, black);
+                DrawLine(texture, 41, 25, 32, 17, 3, black);
+                DrawLine(texture, 24, 35, 30, 35, 3, red);
+                DrawLine(texture, 27, 32, 27, 38, 3, red);
+                break;
+            case "passive_radio":
+                DrawRect(texture, 20, 24, 26, 22, black);
+                DrawRect(texture, 23, 27, 20, 16, Hex("#dce6ea"));
+                DrawLine(texture, 42, 24, 51, 13, 3, white);
+                DrawCircle(texture, 29, 35, 4, dark);
+                DrawRect(texture, 35, 31, 5, 8, red);
+                break;
+            case "passive_repair":
+                DrawRect(texture, 18, 27, 28, 12, white);
+                DrawRect(texture, 26, 19, 12, 28, white);
+                DrawRect(texture, 22, 31, 20, 4, red);
+                DrawRect(texture, 30, 23, 4, 20, red);
+                break;
+            default:
+                DrawDiamond(texture, 32, 32, 18, white);
+                break;
+        }
+
+        DrawRect(texture, 9, 9, 46, 2, WithAlpha(white, 0.45f));
+        DrawRect(texture, 9, 53, 46, 2, WithAlpha(black, 0.35f));
+    }
+
     private static void DrawFallbackSprite(Texture2D texture, Color color, SpriteShape shape)
     {
         const int size = 64;
@@ -916,6 +1156,71 @@ public static class ZombieOverdriveSceneBuilder
     {
         Color color;
         return ColorUtility.TryParseHtmlString(value, out color) ? color : Color.magenta;
+    }
+
+    private static Color IconBackground(string id)
+    {
+        if (id.StartsWith("evolution_", System.StringComparison.Ordinal))
+        {
+            return Hex("#b91c3d");
+        }
+
+        if (id.StartsWith("weapon_", System.StringComparison.Ordinal))
+        {
+            if (id.Contains("tesla"))
+            {
+                return Hex("#186d8b");
+            }
+
+            if (id.Contains("singularity"))
+            {
+                return Hex("#4c2aa5");
+            }
+
+            if (id.Contains("lightblade"))
+            {
+                return Hex("#1c8a78");
+            }
+
+            if (id.Contains("laser"))
+            {
+                return Hex("#b45309");
+            }
+
+            return Hex("#9f2538");
+        }
+
+        if (id.Contains("armor") || id.Contains("hazmat"))
+        {
+            return Hex("#56616f");
+        }
+
+        if (id.Contains("magnet") || id.Contains("gravity"))
+        {
+            return Hex("#5745a8");
+        }
+
+        if (id.Contains("radio") || id.Contains("radar"))
+        {
+            return Hex("#0f766e");
+        }
+
+        if (id.Contains("repair") || id.Contains("defibrillator"))
+        {
+            return Hex("#047857");
+        }
+
+        return Hex("#9f3522");
+    }
+
+    private static Color Darken(Color color, float amount)
+    {
+        return Color.Lerp(color, Color.black, Mathf.Clamp01(amount));
+    }
+
+    private static Color Lighten(Color color, float amount)
+    {
+        return Color.Lerp(color, Color.white, Mathf.Clamp01(amount));
     }
 
     private static Color WithAlpha(Color color, float alpha)
@@ -1151,13 +1456,22 @@ public static class ZombieOverdriveSceneBuilder
         hudRect.offsetMax = Vector2.zero;
         GameHud hud = hudObject.AddComponent<GameHud>();
 
+        Image statusPanel = CreateImage(hudObject.transform, "Status Panel", new Vector2(0f, 1f), new Vector2(18f, -18f), new Vector2(318f, 122f));
+        statusPanel.color = new Color(0.025f, 0.03f, 0.042f, 0.78f);
+        Image timerPanel = CreateImage(hudObject.transform, "Timer Panel", new Vector2(0.5f, 1f), new Vector2(0f, -14f), new Vector2(250f, 70f));
+        timerPanel.color = new Color(0.025f, 0.03f, 0.042f, 0.82f);
+        Image killPanel = CreateImage(hudObject.transform, "Kill Panel", new Vector2(1f, 1f), new Vector2(-18f, -18f), new Vector2(226f, 58f));
+        killPanel.color = new Color(0.025f, 0.03f, 0.042f, 0.78f);
+        Image xpPanel = CreateImage(hudObject.transform, "XP Panel", new Vector2(0.5f, 0f), new Vector2(0f, 16f), new Vector2(840f, 38f));
+        xpPanel.color = new Color(0.025f, 0.03f, 0.042f, 0.72f);
+
         Text timer = CreateText(hudObject.transform, "Timer", "10:00", 42, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -20f), new Vector2(220f, 60f));
-        Text health = CreateText(hudObject.transform, "Health Text", "生命", 24, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(24f, -22f), new Vector2(300f, 40f));
-        Text level = CreateText(hudObject.transform, "Level Text", "等级 1", 24, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(24f, -92f), new Vector2(160f, 36f));
-        Text kills = CreateText(hudObject.transform, "Kills Text", "击杀 0", 24, TextAnchor.UpperRight, new Vector2(1f, 1f), new Vector2(-24f, -22f), new Vector2(220f, 40f));
+        Text health = CreateText(hudObject.transform, "Health Text", "生命", 23, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(34f, -24f), new Vector2(280f, 38f));
+        Text level = CreateText(hudObject.transform, "Level Text", "等级 1", 23, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(34f, -92f), new Vector2(160f, 36f));
+        Text kills = CreateText(hudObject.transform, "Kills Text", "击杀 0", 23, TextAnchor.UpperRight, new Vector2(1f, 1f), new Vector2(-32f, -28f), new Vector2(190f, 40f));
         Text message = CreateText(hudObject.transform, "Message", "", 48, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(900f, 120f));
 
-        Slider hpSlider = CreateSlider(hudObject.transform, "Health Bar", new Vector2(0f, 1f), new Vector2(24f, -62f), new Vector2(280f, 22f), new Color(0.85f, 0.1f, 0.12f, 1f));
+        Slider hpSlider = CreateSlider(hudObject.transform, "Health Bar", new Vector2(0f, 1f), new Vector2(34f, -62f), new Vector2(270f, 20f), new Color(0.85f, 0.1f, 0.12f, 1f));
         Slider xpSlider = CreateSlider(hudObject.transform, "XP Bar", new Vector2(0.5f, 0f), new Vector2(0f, 22f), new Vector2(800f, 24f), new Color(0.2f, 0.55f, 1f, 1f));
 
         SetObjectField(hud, "timerText", timer);
@@ -1170,51 +1484,71 @@ public static class ZombieOverdriveSceneBuilder
         return hud;
     }
 
-    private static UpgradePanel CreateUpgradePanel(Transform parent)
+    private static UpgradePanel CreateUpgradePanel(Transform parent, UpgradeIconLibrary iconLibrary)
     {
         GameObject panel = new GameObject("Upgrade Panel");
         panel.transform.SetParent(parent, false);
         Image background = panel.AddComponent<Image>();
-        background.color = new Color(0.02f, 0.025f, 0.035f, 0.94f);
+        background.color = new Color(0.025f, 0.03f, 0.042f, 0.96f);
         RectTransform rect = panel.GetComponent<RectTransform>();
         rect.anchorMin = new Vector2(0.5f, 0.5f);
         rect.anchorMax = new Vector2(0.5f, 0.5f);
         rect.anchoredPosition = Vector2.zero;
-        rect.sizeDelta = new Vector2(980f, 520f);
+        rect.sizeDelta = new Vector2(1040f, 560f);
 
-        CreateText(panel.transform, "Title", "选择升级", 42, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -28f), new Vector2(600f, 70f));
+        CreateText(panel.transform, "Title", "选择升级", 42, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -24f), new Vector2(600f, 70f));
 
         UpgradePanel upgradePanel = panel.AddComponent<UpgradePanel>();
         Button[] buttons = new Button[3];
+        Image[] icons = new Image[3];
+        Image[] accents = new Image[3];
         Text[] titles = new Text[3];
         Text[] descriptions = new Text[3];
+        Text[] hints = new Text[3];
 
         for (int i = 0; i < 3; i++)
         {
             GameObject buttonObject = new GameObject("Option " + (i + 1));
             buttonObject.transform.SetParent(panel.transform, false);
             Image image = buttonObject.AddComponent<Image>();
-            image.color = new Color(0.12f, 0.14f, 0.18f, 1f);
+            image.color = new Color(0.1f, 0.12f, 0.16f, 0.98f);
             Button button = buttonObject.AddComponent<Button>();
             ColorBlock colors = button.colors;
-            colors.highlightedColor = new Color(0.2f, 0.25f, 0.35f, 1f);
-            colors.pressedColor = new Color(0.08f, 0.1f, 0.14f, 1f);
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(0.17f, 0.22f, 0.3f, 1f);
+            colors.pressedColor = new Color(0.07f, 0.085f, 0.12f, 1f);
+            colors.selectedColor = new Color(0.17f, 0.22f, 0.3f, 1f);
             button.colors = colors;
 
             RectTransform buttonRect = buttonObject.GetComponent<RectTransform>();
             buttonRect.anchorMin = new Vector2(0.5f, 0.5f);
             buttonRect.anchorMax = new Vector2(0.5f, 0.5f);
-            buttonRect.anchoredPosition = new Vector2((i - 1) * 300f, -40f);
-            buttonRect.sizeDelta = new Vector2(260f, 300f);
+            buttonRect.anchoredPosition = new Vector2((i - 1) * 320f, -42f);
+            buttonRect.sizeDelta = new Vector2(286f, 354f);
 
-            titles[i] = CreateText(buttonObject.transform, "Title", "升级", 26, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -28f), new Vector2(220f, 70f));
-            descriptions[i] = CreateText(buttonObject.transform, "Description", "说明", 21, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.45f), new Vector2(0f, 0f), new Vector2(220f, 170f));
+            Image accent = CreateImage(buttonObject.transform, "Accent", new Vector2(0.5f, 1f), new Vector2(0f, -4f), new Vector2(286f, 8f));
+            accent.color = new Color(0.28f, 0.56f, 0.78f, 1f);
+            accents[i] = accent;
+
+            Image iconBackdrop = CreateImage(buttonObject.transform, "Icon Backdrop", new Vector2(0.5f, 1f), new Vector2(0f, -92f), new Vector2(98f, 98f));
+            iconBackdrop.color = new Color(0.03f, 0.035f, 0.05f, 0.92f);
+            icons[i] = CreateImage(buttonObject.transform, "Icon", new Vector2(0.5f, 1f), new Vector2(0f, -92f), new Vector2(84f, 84f));
+            icons[i].preserveAspect = true;
+
+            titles[i] = CreateText(buttonObject.transform, "Title", "升级", 23, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -22f), new Vector2(250f, 56f));
+            descriptions[i] = CreateText(buttonObject.transform, "Description", "说明", 19, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -176f), new Vector2(242f, 98f));
+            hints[i] = CreateText(buttonObject.transform, "Hint", "", 17, TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0f, 12f), new Vector2(242f, 44f));
+            hints[i].color = new Color(1f, 0.86f, 0.48f, 1f);
             buttons[i] = button;
         }
 
         SetArrayField(upgradePanel, "optionButtons", buttons);
+        SetArrayField(upgradePanel, "iconImages", icons);
+        SetArrayField(upgradePanel, "accentImages", accents);
         SetArrayField(upgradePanel, "titleTexts", titles);
         SetArrayField(upgradePanel, "descriptionTexts", descriptions);
+        SetArrayField(upgradePanel, "hintTexts", hints);
+        SetObjectField(upgradePanel, "iconLibrary", iconLibrary);
         panel.SetActive(false);
         return upgradePanel;
     }
@@ -1224,26 +1558,65 @@ public static class ZombieOverdriveSceneBuilder
         GameObject panel = new GameObject("Pause Menu");
         panel.transform.SetParent(parent, false);
         Image background = panel.AddComponent<Image>();
-        background.color = new Color(0.02f, 0.025f, 0.035f, 0.94f);
+        background.color = new Color(0.025f, 0.03f, 0.042f, 0.96f);
         RectTransform rect = panel.GetComponent<RectTransform>();
         rect.anchorMin = new Vector2(0.5f, 0.5f);
         rect.anchorMax = new Vector2(0.5f, 0.5f);
         rect.anchoredPosition = Vector2.zero;
-        rect.sizeDelta = new Vector2(760f, 620f);
+        rect.sizeDelta = new Vector2(1040f, 660f);
 
         CreateText(panel.transform, "Title", "暂停", 44, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -24f), new Vector2(500f, 70f));
-        Text status = CreateText(panel.transform, "Status", "", 22, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-330f, -100f), new Vector2(660f, 330f));
-        Button resume = CreateMenuButton(panel.transform, "Resume Button", "继续", new Vector2(-220f, -245f));
-        Button restart = CreateMenuButton(panel.transform, "Restart Button", "重开", new Vector2(0f, -245f));
-        Button quit = CreateMenuButton(panel.transform, "Quit Button", "退出", new Vector2(220f, -245f));
+        CreateText(panel.transform, "Active Slots Title", "主动武器", 24, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-455f, -92f), new Vector2(330f, 38f));
+        CreateText(panel.transform, "Passive Slots Title", "被动技能", 24, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-455f, -306f), new Vector2(330f, 38f));
+        Text status = CreateText(panel.transform, "Status", "", 17, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(70f, -92f), new Vector2(500f, 430f));
+        status.color = new Color(0.86f, 0.9f, 0.96f, 1f);
+
+        Image[] activeIcons = new Image[3];
+        Text[] activeTexts = new Text[3];
+        Image[] passiveIcons = new Image[3];
+        Text[] passiveTexts = new Text[3];
+        for (int i = 0; i < 3; i++)
+        {
+            CreateSlotItem(panel.transform, "Active Slot " + (i + 1), new Vector2(-350f, -132f - i * 62f), out activeIcons[i], out activeTexts[i]);
+            CreateSlotItem(panel.transform, "Passive Slot " + (i + 1), new Vector2(-350f, -346f - i * 62f), out passiveIcons[i], out passiveTexts[i]);
+        }
+
+        Button resume = CreateMenuButton(panel.transform, "Resume Button", "继续", new Vector2(-220f, -285f));
+        Button restart = CreateMenuButton(panel.transform, "Restart Button", "重开", new Vector2(0f, -285f));
+        Button quit = CreateMenuButton(panel.transform, "Quit Button", "退出", new Vector2(220f, -285f));
 
         PauseMenu pauseMenu = panel.AddComponent<PauseMenu>();
         SetObjectField(pauseMenu, "statusText", status);
+        SetArrayField(pauseMenu, "activeSlotIcons", activeIcons);
+        SetArrayField(pauseMenu, "activeSlotTexts", activeTexts);
+        SetArrayField(pauseMenu, "passiveSlotIcons", passiveIcons);
+        SetArrayField(pauseMenu, "passiveSlotTexts", passiveTexts);
         SetObjectField(pauseMenu, "resumeButton", resume);
         SetObjectField(pauseMenu, "restartButton", restart);
         SetObjectField(pauseMenu, "quitButton", quit);
         panel.SetActive(false);
         return pauseMenu;
+    }
+
+    private static void CreateSlotItem(Transform parent, string name, Vector2 position, out Image icon, out Text label)
+    {
+        GameObject slotObject = new GameObject(name);
+        slotObject.transform.SetParent(parent, false);
+        Image background = slotObject.AddComponent<Image>();
+        background.color = new Color(0.075f, 0.09f, 0.12f, 0.9f);
+        RectTransform rect = slotObject.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0.5f, 1f);
+        rect.anchorMax = new Vector2(0.5f, 1f);
+        rect.pivot = new Vector2(0.5f, 1f);
+        rect.anchoredPosition = position;
+        rect.sizeDelta = new Vector2(330f, 52f);
+
+        Image iconBackdrop = CreateImage(slotObject.transform, "Icon Backdrop", new Vector2(0f, 0.5f), new Vector2(12f, 0f), new Vector2(40f, 40f));
+        iconBackdrop.color = new Color(0.03f, 0.035f, 0.05f, 1f);
+        icon = CreateImage(slotObject.transform, "Icon", new Vector2(0f, 0.5f), new Vector2(14f, 0f), new Vector2(36f, 36f));
+        icon.preserveAspect = true;
+        label = CreateText(slotObject.transform, "Label", "空槽", 18, TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(62f, 0f), new Vector2(250f, 42f));
+        label.color = new Color(0.9f, 0.93f, 0.98f, 1f);
     }
 
     private static Button CreateMenuButton(Transform parent, string name, string label, Vector2 position)
@@ -1265,6 +1638,20 @@ public static class ZombieOverdriveSceneBuilder
         rect.sizeDelta = new Vector2(180f, 70f);
         CreateText(buttonObject.transform, "Label", label, 26, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(160f, 50f));
         return button;
+    }
+
+    private static Image CreateImage(Transform parent, string name, Vector2 anchor, Vector2 anchoredPosition, Vector2 size)
+    {
+        GameObject imageObject = new GameObject(name);
+        imageObject.transform.SetParent(parent, false);
+        Image image = imageObject.AddComponent<Image>();
+        RectTransform rect = imageObject.GetComponent<RectTransform>();
+        rect.anchorMin = anchor;
+        rect.anchorMax = anchor;
+        rect.pivot = anchor;
+        rect.anchoredPosition = anchoredPosition;
+        rect.sizeDelta = size;
+        return image;
     }
 
     private static Text CreateText(Transform parent, string name, string text, int fontSize, TextAnchor alignment, Vector2 anchor, Vector2 anchoredPosition, Vector2 size)

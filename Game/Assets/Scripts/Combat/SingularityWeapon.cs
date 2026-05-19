@@ -31,7 +31,7 @@ namespace ZombieOverdrive.Combat
 
         private void FireOrb()
         {
-            int count = Level >= 5 ? 2 : 1;
+            int count = IsEvolved ? 2 : Level >= 5 ? 2 : 1;
             for (int i = 0; i < count; i++)
             {
                 Vector2 direction = Rotate(AimDirection, Random.Range(-8f, 8f));
@@ -40,9 +40,9 @@ namespace ZombieOverdrive.Combat
                 SingularityOrb orb = orbObject.GetComponent<SingularityOrb>();
                 if (orb != null)
                 {
-                    float radius = baseRadius * AreaMultiplier * (Level >= 2 ? 1.3f : 1f);
-                    float lifetime = (Level >= 4 ? 4.8f : 3.5f) * (Stats != null ? Stats.durationMultiplier : 1f);
-                    orb.Launch(direction, RollDamage(baseDamage * (1f + (Level - 1) * 0.2f)), radius, 0.45f, lifetime, enemyMask);
+                    float radius = baseRadius * AreaMultiplier * (Level >= 2 ? 1.3f : 1f) * (IsEvolved ? 1.45f : 1f);
+                    float lifetime = (Level >= 4 ? 4.8f : 3.5f) * (Stats != null ? Stats.durationMultiplier : 1f) * (IsEvolved ? 1.25f : 1f);
+                    orb.Launch(direction, RollDamage(baseDamage * (1f + (Level - 1) * 0.2f) * (IsEvolved ? 1.6f : 1f)), radius, IsEvolved ? 0.78f : 0.45f, lifetime, enemyMask);
                 }
             }
         }

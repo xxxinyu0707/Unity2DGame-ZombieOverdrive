@@ -14,6 +14,7 @@ namespace ZombieOverdrive.Combat
         public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? Id.ToString() : displayName;
         public int Level { get; private set; }
         public bool IsUnlocked => Level > 0;
+        public bool IsEvolved { get; private set; }
 
         public void Initialize(PlayerStats playerStats, PlayerMovement playerMovement)
         {
@@ -31,6 +32,17 @@ namespace ZombieOverdrive.Combat
 
         public bool CanLevel => Level < 5;
 
+        public void Evolve()
+        {
+            if (IsEvolved)
+            {
+                return;
+            }
+
+            IsEvolved = true;
+            OnEvolved();
+        }
+
         protected virtual void Awake()
         {
             enabled = false;
@@ -41,6 +53,10 @@ namespace ZombieOverdrive.Combat
         }
 
         protected virtual void OnLevelChanged()
+        {
+        }
+
+        protected virtual void OnEvolved()
         {
         }
 

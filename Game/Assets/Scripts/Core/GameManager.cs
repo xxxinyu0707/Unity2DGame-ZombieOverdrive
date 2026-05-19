@@ -23,6 +23,7 @@ namespace ZombieOverdrive.Core
         [SerializeField] private GameHud hud;
         [SerializeField] private UpgradePanel upgradePanel;
         [SerializeField] private PauseMenu pauseMenu;
+        [SerializeField] private ZombieOverdrive.UI.UpgradeIconLibrary iconLibrary;
 
         private readonly PlayerStats playerStats = new PlayerStats();
         private float elapsedSeconds;
@@ -138,6 +139,7 @@ namespace ZombieOverdrive.Core
                 hud.SetMessage("");
                 if (pauseMenu != null)
                 {
+                    UpdatePauseSlots();
                     pauseMenu.Show(upgradeSystem.BuildStatusText(levelSystem.Level, KillCount, elapsedSeconds));
                 }
             }
@@ -235,6 +237,41 @@ namespace ZombieOverdrive.Core
             State = GameState.Victory;
             Time.timeScale = 0f;
             hud.SetMessage("胜利 - 按 R 重新开始");
+        }
+
+        private void UpdatePauseSlots()
+        {
+            if (pauseMenu == null || upgradeSystem == null || iconLibrary == null)
+            {
+                return;
+            }
+
+            Sprite[] activeIcons = new Sprite[upgradeSystem.MaxActiveWeapons];
+            string[] activeTexts = new string[upgradeSystem.MaxActiveWeapons];
+            for (int i = 0; i < upgradeSystem.MaxActiveWeapons; i++)
+            {
+                if (i < upgradeSystem.ActiveSlots.Count)
+                {
+                    WeaponId weaponId = upgradeSystem.ActiveSlots[i];
+                    bool evolved = upgradeSystem.IsWeaponEvolved(weaponId);
+                    activeIcons[i] = iconLibrary.Get(evolved ? UpgradeSystem.GetEvolutionIconId(weaponId) : UpgradeSystem.GetWeaponIconId(weaponId));
+                    activeTexts[i] = UpgradeSystem.GetWeaponName(weaponId) + " 等级 " + upgradeSystem.GetWeaponLevel(weaponId) + (evolved ? " 超进化" : "");
+                }
+            }
+
+            Sprite[] passiveIcons = new Sprite[upgradeSystem.MaxPassiveSkills];
+            string[] passiveTexts = new string[upgradeSystem.MaxPassiveSkills];
+            for (int i = 0; i < upgradeSystem.MaxPassiveSkills; i++)
+            {
+                if (i < upgradeSystem.PassiveSlots.Count)
+                {
+                    UpgradeType passive = upgradeSystem.PassiveSlots[i];
+                    passiveIcons[i] = iconLibrary.Get(UpgradeSystem.GetPassiveIconId(passive));
+                    passiveTexts[i] = UpgradeSystem.GetPassiveName(passive) + " 等级 " + upgradeSystem.GetPassiveSkillLevel(passive);
+                }
+            }
+
+            pauseMenu.SetSlots(activeIcons, activeTexts, passiveIcons, passiveTexts);
         }
     }
 }

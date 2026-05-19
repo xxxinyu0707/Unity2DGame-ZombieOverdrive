@@ -33,17 +33,18 @@ namespace ZombieOverdrive.Combat
         private void Fire()
         {
             Vector2 direction = AimDirection;
-            int shots = Level >= 4 ? 2 : 1;
-            int pierces = Stats.bulletPierceBonus + (Level >= 5 ? 2 : 0);
-            float damage = RollDamage(baseDamage * (1f + (Level - 1) * 0.16f));
+            int shots = IsEvolved ? 4 : Level >= 4 ? 2 : 1;
+            int pierces = Stats.bulletPierceBonus + (Level >= 5 ? 2 : 0) + (IsEvolved ? 2 : 0);
+            float damage = RollDamage(baseDamage * (1f + (Level - 1) * 0.16f) * (IsEvolved ? 1.35f : 1f));
             Vector3 origin = transform.position + (Vector3)(direction * 0.6f);
             Vector2 side = new Vector2(-direction.y, direction.x);
             CombatVisuals.SpawnMuzzleFlash(origin, direction, new Color(1f, 0.86f, 0.35f, 0.95f), 0.26f);
 
             for (int i = 0; i < shots; i++)
             {
-                float offset = shots == 1 ? 0f : (i == 0 ? -parallelShotOffset : parallelShotOffset);
-                SpawnBullet(origin + (Vector3)(side * offset), direction, damage, pierces);
+                float offset = shots == 1 ? 0f : (i - (shots - 1) * 0.5f) * parallelShotOffset;
+                float angle = IsEvolved ? (i - (shots - 1) * 0.5f) * 4f : 0f;
+                SpawnBullet(origin + (Vector3)(side * offset), Rotate(direction, angle), damage, pierces);
             }
         }
 
@@ -58,6 +59,11 @@ namespace ZombieOverdrive.Combat
 
         private float LevelCooldownFactor()
         {
+            if (IsEvolved)
+            {
+                return 0.58f;
+            }
+
             if (Level >= 4)
             {
                 return 0.8f;
@@ -69,6 +75,14 @@ namespace ZombieOverdrive.Combat
             }
 
             return 1f;
+        }
+
+        private static Vector2 Rotate(Vector2 vector, float degrees)
+        {
+            float radians = degrees * Mathf.Deg2Rad;
+            float sin = Mathf.Sin(radians);
+            float cos = Mathf.Cos(radians);
+            return new Vector2(vector.x * cos - vector.y * sin, vector.x * sin + vector.y * cos).normalized;
         }
     }
 }

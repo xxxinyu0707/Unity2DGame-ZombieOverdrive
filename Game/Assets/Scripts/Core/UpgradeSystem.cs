@@ -8,6 +8,7 @@ namespace ZombieOverdrive.Core
     public enum UpgradeType
     {
         Weapon,
+        Evolution,
         AmmoBox,
         Overclock,
         Adrenaline,
@@ -29,6 +30,9 @@ namespace ZombieOverdrive.Core
         public WeaponId WeaponId;
         public string Title;
         public string Description;
+        public bool Highlight;
+        public string Hint;
+        public string IconId;
     }
 
     public class UpgradeSystem : MonoBehaviour
@@ -57,6 +61,7 @@ namespace ZombieOverdrive.Core
         private readonly Dictionary<WeaponId, WeaponBase> weapons = new Dictionary<WeaponId, WeaponBase>();
         private readonly List<WeaponId> activeSlots = new List<WeaponId>();
         private readonly List<UpgradeType> passiveSlots = new List<UpgradeType>();
+        private readonly HashSet<WeaponId> evolvedWeapons = new HashSet<WeaponId>();
 
         private PlayerStats stats;
         private PlayerHealth health;
@@ -69,6 +74,7 @@ namespace ZombieOverdrive.Core
             activeSlots.Clear();
             passiveSlots.Clear();
             passiveLevels.Clear();
+            evolvedWeapons.Clear();
 
             foreach (WeaponBase weapon in weaponComponents)
             {
@@ -86,11 +92,22 @@ namespace ZombieOverdrive.Core
         public List<UpgradeOption> RollOptions()
         {
             List<UpgradeOption> options = new List<UpgradeOption>();
+            List<WeaponBase> evolutionCandidates = GetEvolutionCandidates();
             List<WeaponBase> weaponCandidates = GetWeaponCandidates();
             List<UpgradeType> passiveCandidates = GetPassiveCandidates();
 
+            while (evolutionCandidates.Count > 0 && options.Count < optionsPerLevel)
+            {
+                options.Add(TakeEvolutionOption(evolutionCandidates));
+            }
+
             for (int i = 0; i < optionsPerLevel; i++)
             {
+                if (options.Count >= optionsPerLevel)
+                {
+                    break;
+                }
+
                 bool chooseWeapon = weaponCandidates.Count > 0 && (i == 0 || Random.value < 0.45f);
                 if (chooseWeapon)
                 {
@@ -116,7 +133,8 @@ namespace ZombieOverdrive.Core
                 {
                     Type = UpgradeType.Repair,
                     Title = "紧急修复",
-                    Description = "已选槽位都达到满级。恢复 35% 生命。"
+                    Description = "已选槽位都达到满级。恢复 35% 生命。",
+                    IconId = "passive_repair"
                 });
             }
 
@@ -129,6 +147,9 @@ namespace ZombieOverdrive.Core
             {
                 case UpgradeType.Weapon:
                     ApplyWeapon(option.WeaponId);
+                    break;
+                case UpgradeType.Evolution:
+                    EvolveWeapon(option.WeaponId);
                     break;
                 case UpgradeType.AmmoBox:
                     AddPassiveLevel(option.Type);
@@ -204,7 +225,9 @@ namespace ZombieOverdrive.Core
             {
                 if (i < activeSlots.Count && weapons.TryGetValue(activeSlots[i], out WeaponBase weapon))
                 {
-                    builder.AppendLine("- " + GetWeaponName(activeSlots[i]) + " 等级 " + weapon.Level);
+                    string evolved = evolvedWeapons.Contains(activeSlots[i]) ? "  已超进化" : "";
+                    builder.AppendLine("- " + GetWeaponName(activeSlots[i]) + " 等级 " + weapon.Level + evolved);
+                    builder.AppendLine("  搭配：" + GetPassiveName(GetEvolutionPassive(activeSlots[i])) + "  " + GetEvolutionReadyText(activeSlots[i]));
                 }
                 else
                 {
@@ -225,6 +248,13 @@ namespace ZombieOverdrive.Core
                 {
                     builder.AppendLine("- [空槽]");
                 }
+            }
+
+            builder.AppendLine();
+            builder.AppendLine("超进化图鉴");
+            foreach (WeaponId id in GetAllWeaponIds())
+            {
+                builder.AppendLine("- " + GetWeaponName(id) + " + " + GetPassiveName(GetEvolutionPassive(id)) + " => " + GetEvolutionName(id));
             }
 
             builder.AppendLine();
@@ -270,6 +300,17 @@ namespace ZombieOverdrive.Core
             weapon.UnlockOrLevel();
         }
 
+        private void EvolveWeapon(WeaponId id)
+        {
+            if (!weapons.TryGetValue(id, out WeaponBase weapon) || !CanEvolve(id, weapon))
+            {
+                return;
+            }
+
+            evolvedWeapons.Add(id);
+            weapon.Evolve();
+        }
+
         private UpgradeOption TakeWeaponOption(List<WeaponBase> candidates)
         {
             int index = Random.Range(0, candidates.Count);
@@ -284,6 +325,30 @@ namespace ZombieOverdrive.Core
             UpgradeType type = candidates[index];
             candidates.RemoveAt(index);
             return CreatePassiveOption(type);
+        }
+
+        private UpgradeOption TakeEvolutionOption(List<WeaponBase> candidates)
+        {
+            int index = Random.Range(0, candidates.Count);
+            WeaponBase weapon = candidates[index];
+            candidates.RemoveAt(index);
+            return CreateEvolutionOption(weapon);
+        }
+
+        private List<WeaponBase> GetEvolutionCandidates()
+        {
+            List<WeaponBase> candidates = new List<WeaponBase>();
+            foreach (WeaponBase weapon in weapons.Values)
+            {
+                if (weapon == null || !CanEvolve(weapon.Id, weapon))
+                {
+                    continue;
+                }
+
+                candidates.Add(weapon);
+            }
+
+            return candidates;
         }
 
         private List<WeaponBase> GetWeaponCandidates()
@@ -342,6 +407,14 @@ namespace ZombieOverdrive.Core
             return passiveLevels.TryGetValue(type, out int level) ? level : 0;
         }
 
+        private bool CanEvolve(WeaponId id, WeaponBase weapon)
+        {
+            return weapon != null
+                && weapon.Level >= 5
+                && GetPassiveLevel(GetEvolutionPassive(id)) > 0
+                && !evolvedWeapons.Contains(id);
+        }
+
         private UpgradeOption CreateWeaponOption(WeaponBase weapon)
         {
             int nextLevel = weapon.Level + 1;
@@ -351,7 +424,24 @@ namespace ZombieOverdrive.Core
                 Type = UpgradeType.Weapon,
                 WeaponId = weapon.Id,
                 Title = verb + "：" + GetWeaponName(weapon.Id),
-                Description = "等级 " + nextLevel + "。" + GetWeaponDescription(weapon.Id)
+                Description = "等级 " + nextLevel + "。" + GetWeaponDescription(weapon.Id),
+                Highlight = HasMatchingEvolutionPassive(weapon.Id),
+                Hint = GetEvolutionHint(weapon.Id),
+                IconId = GetWeaponIconId(weapon.Id)
+            };
+        }
+
+        private UpgradeOption CreateEvolutionOption(WeaponBase weapon)
+        {
+            return new UpgradeOption
+            {
+                Type = UpgradeType.Evolution,
+                WeaponId = weapon.Id,
+                Title = "超进化：" + GetEvolutionName(weapon.Id),
+                Description = GetWeaponName(weapon.Id) + " 已满级，并拥有 " + GetPassiveName(GetEvolutionPassive(weapon.Id)) + "。选择后获得强化形态。",
+                Highlight = true,
+                Hint = "觉醒组合已完成",
+                IconId = GetEvolutionIconId(weapon.Id)
             };
         }
 
@@ -362,8 +452,164 @@ namespace ZombieOverdrive.Core
             {
                 Type = type,
                 Title = GetPassiveName(type) + " 等级 " + nextLevel,
-                Description = GetPassiveDescription(type)
+                Description = GetPassiveDescription(type),
+                Highlight = SupportsOwnedWeapon(type),
+                Hint = GetPassivePairHint(type),
+                IconId = GetPassiveIconId(type)
             };
+        }
+
+        public bool IsWeaponEvolved(WeaponId id)
+        {
+            return evolvedWeapons.Contains(id);
+        }
+
+        public bool IsWeaponUnlocked(WeaponId id)
+        {
+            return activeSlots.Contains(id);
+        }
+
+        public int GetWeaponLevel(WeaponId id)
+        {
+            return weapons.TryGetValue(id, out WeaponBase weapon) ? weapon.Level : 0;
+        }
+
+        public IReadOnlyList<WeaponId> ActiveSlots => activeSlots;
+
+        public IReadOnlyList<UpgradeType> PassiveSlots => passiveSlots;
+
+        public int MaxActiveWeapons => maxActiveWeapons;
+
+        public int MaxPassiveSkills => maxPassiveSkills;
+
+        public int GetPassiveSkillLevel(UpgradeType type)
+        {
+            return GetPassiveLevel(type);
+        }
+
+        public string GetEvolutionReadyText(WeaponId id)
+        {
+            bool weaponReady = GetWeaponLevel(id) >= 5;
+            bool passiveReady = GetPassiveLevel(GetEvolutionPassive(id)) > 0;
+            if (evolvedWeapons.Contains(id))
+            {
+                return "已完成";
+            }
+
+            if (weaponReady && passiveReady)
+            {
+                return "可超进化";
+            }
+
+            return "需要武器 5 级 + 对应被动";
+        }
+
+        private bool HasMatchingEvolutionPassive(WeaponId id)
+        {
+            return GetPassiveLevel(GetEvolutionPassive(id)) > 0 && !evolvedWeapons.Contains(id);
+        }
+
+        private bool SupportsOwnedWeapon(UpgradeType type)
+        {
+            foreach (WeaponId weaponId in activeSlots)
+            {
+                if (GetEvolutionPassive(weaponId) == type && !evolvedWeapons.Contains(weaponId))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private string GetEvolutionHint(WeaponId id)
+        {
+            UpgradeType passive = GetEvolutionPassive(id);
+            string hint = "超进化搭配：" + GetPassiveName(passive);
+            if (GetPassiveLevel(passive) > 0 && GetWeaponLevel(id) < 5)
+            {
+                hint += " 已拥有，武器升到 5 级即可觉醒";
+            }
+            else if (GetPassiveLevel(passive) == 0)
+            {
+                hint += " 未拥有";
+            }
+
+            return hint;
+        }
+
+        private string GetPassivePairHint(UpgradeType type)
+        {
+            WeaponId weaponId = GetEvolutionWeapon(type);
+            if (weaponId == WeaponId.Pistol && type != UpgradeType.Propellent)
+            {
+                return "通用被动";
+            }
+
+            return "可搭配：" + GetWeaponName(weaponId);
+        }
+
+        public static UpgradeType GetEvolutionPassive(WeaponId id)
+        {
+            switch (id)
+            {
+                case WeaponId.Shotgun:
+                    return UpgradeType.AmmoBox;
+                case WeaponId.Tesla:
+                    return UpgradeType.Overclock;
+                case WeaponId.Singularity:
+                    return UpgradeType.GravityCore;
+                case WeaponId.Lightblade:
+                    return UpgradeType.Adrenaline;
+                case WeaponId.Laser:
+                    return UpgradeType.NanoArmor;
+                default:
+                    return UpgradeType.Propellent;
+            }
+        }
+
+        public static WeaponId GetEvolutionWeapon(UpgradeType type)
+        {
+            switch (type)
+            {
+                case UpgradeType.AmmoBox:
+                    return WeaponId.Shotgun;
+                case UpgradeType.Overclock:
+                    return WeaponId.Tesla;
+                case UpgradeType.GravityCore:
+                    return WeaponId.Singularity;
+                case UpgradeType.Adrenaline:
+                    return WeaponId.Lightblade;
+                case UpgradeType.NanoArmor:
+                    return WeaponId.Laser;
+                default:
+                    return WeaponId.Pistol;
+            }
+        }
+
+        public static string GetWeaponIconId(WeaponId id)
+        {
+            return "weapon_" + id.ToString().ToLowerInvariant();
+        }
+
+        public static string GetEvolutionIconId(WeaponId id)
+        {
+            return "evolution_" + id.ToString().ToLowerInvariant();
+        }
+
+        public static string GetPassiveIconId(UpgradeType type)
+        {
+            return "passive_" + type.ToString().ToLowerInvariant();
+        }
+
+        public static IEnumerable<WeaponId> GetAllWeaponIds()
+        {
+            yield return WeaponId.Pistol;
+            yield return WeaponId.Shotgun;
+            yield return WeaponId.Tesla;
+            yield return WeaponId.Singularity;
+            yield return WeaponId.Lightblade;
+            yield return WeaponId.Laser;
         }
 
         private static string FormatTime(float elapsedSeconds)
@@ -389,6 +635,25 @@ namespace ZombieOverdrive.Core
                     return "裂变激光枪";
                 default:
                     return "哨兵手枪";
+            }
+        }
+
+        public static string GetEvolutionName(WeaponId id)
+        {
+            switch (id)
+            {
+                case WeaponId.Shotgun:
+                    return "钢雨撕裂者";
+                case WeaponId.Tesla:
+                    return "雷暴线圈";
+                case WeaponId.Singularity:
+                    return "暗物质坍缩";
+                case WeaponId.Lightblade:
+                    return "修罗剑阵";
+                case WeaponId.Laser:
+                    return "日冕切割束";
+                default:
+                    return "双持穿甲哨兵";
             }
         }
 
