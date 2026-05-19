@@ -33,6 +33,7 @@ public static class ZombieOverdriveSceneBuilder
         Sprite spitterSprite = CreateSprite("spitter", new Color(0.95f, 0.85f, 0.25f, 1f), SpriteShape.Circle);
         Sprite tankerSprite = CreateSprite("tanker", new Color(0.55f, 0.6f, 0.65f, 1f), SpriteShape.Circle);
         Sprite bossSprite = CreateSprite("boss", new Color(0.9f, 0.15f, 0.25f, 1f), SpriteShape.Circle);
+        Sprite finalBossSprite = CreateSprite("final_boss", new Color(0.55f, 0.1f, 0.8f, 1f), SpriteShape.Circle);
         Sprite bulletSprite = CreateSprite("bullet", new Color(1f, 0.9f, 0.25f, 1f), SpriteShape.Diamond);
         Sprite acidSprite = CreateSprite("acid", new Color(0.65f, 1f, 0.2f, 1f), SpriteShape.Diamond);
         Sprite orbSprite = CreateSprite("singularity_orb", new Color(0.45f, 0.2f, 1f, 1f), SpriteShape.Circle);
@@ -47,7 +48,7 @@ public static class ZombieOverdriveSceneBuilder
         GameObject spitterPrefab = CreateEnemyPrefab("Spitter", spitterSprite, enemyLayer, 0.85f, acidPrefab);
         GameObject tankerPrefab = CreateEnemyPrefab("Tanker", tankerSprite, enemyLayer, 1.25f, null);
         GameObject mutantBossPrefab = CreateEnemyPrefab("MutantBoss", bossSprite, enemyLayer, 2.1f, null);
-        GameObject finalBossPrefab = CreateEnemyPrefab("FinalBoss", bossSprite, enemyLayer, 2.7f, acidPrefab);
+        GameObject finalBossPrefab = CreateEnemyPrefab("FinalBoss", finalBossSprite, enemyLayer, 2.7f, acidPrefab);
         GameObject xpPrefab = CreateExperiencePrefab(xpSprite, pickupLayer);
 
         Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -272,6 +273,364 @@ public static class ZombieOverdriveSceneBuilder
         const int size = 64;
         Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
         Color clear = new Color(0f, 0f, 0f, 0f);
+        Fill(texture, clear);
+
+        if (!DrawNamedPixelSprite(texture, name))
+        {
+            DrawFallbackSprite(texture, color, shape);
+        }
+
+        texture.Apply(false);
+        File.WriteAllBytes(path, texture.EncodeToPNG());
+        Object.DestroyImmediate(texture);
+
+        AssetDatabase.ImportAsset(path);
+        TextureImporter importer = (TextureImporter)AssetImporter.GetAtPath(path);
+        importer.textureType = TextureImporterType.Sprite;
+        importer.spritePixelsPerUnit = 32f;
+        importer.filterMode = FilterMode.Point;
+        importer.mipmapEnabled = false;
+        importer.alphaIsTransparency = true;
+        importer.textureCompression = TextureImporterCompression.Uncompressed;
+        importer.SaveAndReimport();
+        return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+    }
+
+    private static bool DrawNamedPixelSprite(Texture2D texture, string name)
+    {
+        switch (name)
+        {
+            case "player":
+                DrawPlayerSprite(texture);
+                return true;
+            case "walker":
+                DrawWalkerSprite(texture);
+                return true;
+            case "runner":
+                DrawRunnerSprite(texture);
+                return true;
+            case "spitter":
+                DrawSpitterSprite(texture);
+                return true;
+            case "tanker":
+                DrawTankerSprite(texture);
+                return true;
+            case "boss":
+                DrawBossSprite(texture);
+                return true;
+            case "final_boss":
+                DrawFinalBossSprite(texture);
+                return true;
+            case "bullet":
+                DrawBulletSprite(texture);
+                return true;
+            case "acid":
+                DrawAcidSprite(texture);
+                return true;
+            case "singularity_orb":
+                DrawSingularitySprite(texture);
+                return true;
+            case "xp_crystal":
+                DrawExperienceSprite(texture);
+                return true;
+            case "ground_tile":
+                DrawGroundTileSprite(texture);
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private static void DrawPlayerSprite(Texture2D texture)
+    {
+        Color outline = Hex("#172031");
+        Color suit = Hex("#2cc9ff");
+        Color suitDark = Hex("#1b6fb1");
+        Color highlight = Hex("#8df1ff");
+        Color skin = Hex("#f0b276");
+        Color visor = Hex("#101d2a");
+        Color metal = Hex("#b6c6d1");
+
+        DrawOval(texture, 14, 9, 42, 12, WithAlpha(Hex("#05070a"), 0.38f));
+        DrawRect(texture, 21, 12, 10, 12, outline);
+        DrawRect(texture, 24, 14, 5, 9, suitDark);
+        DrawRect(texture, 34, 12, 10, 12, outline);
+        DrawRect(texture, 36, 14, 5, 9, suitDark);
+        DrawRect(texture, 18, 22, 28, 24, outline);
+        DrawRect(texture, 22, 25, 20, 19, suit);
+        DrawRect(texture, 25, 38, 12, 4, highlight);
+        DrawRect(texture, 14, 29, 8, 15, outline);
+        DrawRect(texture, 16, 31, 5, 11, suitDark);
+        DrawRect(texture, 43, 28, 8, 15, outline);
+        DrawRect(texture, 45, 30, 5, 11, suitDark);
+        DrawRect(texture, 24, 43, 18, 14, outline);
+        DrawRect(texture, 27, 45, 12, 10, skin);
+        DrawRect(texture, 25, 52, 16, 5, visor);
+        DrawRect(texture, 47, 32, 12, 5, outline);
+        DrawRect(texture, 50, 33, 9, 3, metal);
+        DrawRect(texture, 58, 34, 4, 2, Hex("#ffe66a"));
+        DrawRect(texture, 17, 24, 5, 13, Hex("#0d314f"));
+    }
+
+    private static void DrawWalkerSprite(Texture2D texture)
+    {
+        Color outline = Hex("#172414");
+        Color skin = Hex("#5dbe4d");
+        Color dark = Hex("#2f6b2f");
+        Color cloth = Hex("#354b2e");
+        Color wound = Hex("#b63f4c");
+
+        DrawOval(texture, 15, 9, 38, 11, WithAlpha(Hex("#05070a"), 0.34f));
+        DrawRect(texture, 20, 13, 10, 13, outline);
+        DrawRect(texture, 23, 15, 5, 10, dark);
+        DrawRect(texture, 34, 12, 10, 14, outline);
+        DrawRect(texture, 36, 14, 5, 11, dark);
+        DrawRect(texture, 19, 23, 26, 23, outline);
+        DrawRect(texture, 23, 26, 18, 17, skin);
+        DrawRect(texture, 24, 27, 15, 7, cloth);
+        DrawRect(texture, 12, 31, 10, 7, outline);
+        DrawRect(texture, 13, 33, 8, 3, skin);
+        DrawRect(texture, 42, 30, 12, 7, outline);
+        DrawRect(texture, 43, 32, 9, 3, skin);
+        DrawRect(texture, 24, 43, 17, 14, outline);
+        DrawRect(texture, 27, 45, 11, 10, skin);
+        DrawRect(texture, 29, 51, 2, 2, Hex("#f7d95d"));
+        DrawRect(texture, 35, 51, 2, 2, Hex("#f7d95d"));
+        DrawRect(texture, 31, 44, 6, 2, dark);
+        DrawRect(texture, 38, 35, 4, 5, wound);
+        DrawRect(texture, 21, 39, 4, 3, Hex("#84e073"));
+    }
+
+    private static void DrawRunnerSprite(Texture2D texture)
+    {
+        Color outline = Hex("#2a1710");
+        Color skin = Hex("#ff7542");
+        Color dark = Hex("#a73725");
+        Color cloth = Hex("#53322b");
+
+        DrawOval(texture, 15, 9, 38, 11, WithAlpha(Hex("#05070a"), 0.32f));
+        DrawRect(texture, 18, 13, 14, 8, outline);
+        DrawRect(texture, 20, 15, 10, 4, dark);
+        DrawRect(texture, 36, 13, 7, 16, outline);
+        DrawRect(texture, 38, 15, 3, 12, dark);
+        DrawRect(texture, 22, 23, 23, 22, outline);
+        DrawRect(texture, 25, 26, 16, 16, skin);
+        DrawRect(texture, 27, 28, 12, 5, cloth);
+        DrawLine(texture, 15, 38, 23, 31, 4, outline);
+        DrawLine(texture, 16, 38, 23, 32, 2, skin);
+        DrawLine(texture, 42, 34, 54, 42, 4, outline);
+        DrawLine(texture, 43, 34, 53, 41, 2, skin);
+        DrawRect(texture, 26, 43, 15, 13, outline);
+        DrawRect(texture, 29, 45, 9, 9, skin);
+        DrawRect(texture, 30, 51, 2, 2, Hex("#ffd45c"));
+        DrawRect(texture, 35, 51, 2, 2, Hex("#ffd45c"));
+        DrawRect(texture, 23, 42, 6, 4, dark);
+    }
+
+    private static void DrawSpitterSprite(Texture2D texture)
+    {
+        Color outline = Hex("#26300f");
+        Color skin = Hex("#d6d84c");
+        Color acid = Hex("#a7ff2d");
+        Color dark = Hex("#70851f");
+
+        DrawOval(texture, 14, 9, 40, 12, WithAlpha(Hex("#05070a"), 0.34f));
+        DrawRect(texture, 21, 13, 9, 13, outline);
+        DrawRect(texture, 23, 15, 5, 10, dark);
+        DrawRect(texture, 35, 13, 9, 13, outline);
+        DrawRect(texture, 37, 15, 5, 10, dark);
+        DrawRect(texture, 18, 22, 29, 25, outline);
+        DrawRect(texture, 22, 26, 21, 17, skin);
+        DrawRect(texture, 27, 28, 11, 10, acid);
+        DrawRect(texture, 29, 30, 7, 6, Hex("#e8ff74"));
+        DrawRect(texture, 13, 31, 10, 8, outline);
+        DrawRect(texture, 15, 33, 7, 4, skin);
+        DrawRect(texture, 43, 31, 9, 8, outline);
+        DrawRect(texture, 44, 33, 7, 4, skin);
+        DrawRect(texture, 24, 43, 18, 14, outline);
+        DrawRect(texture, 27, 45, 12, 10, skin);
+        DrawRect(texture, 30, 46, 7, 3, acid);
+        DrawRect(texture, 28, 52, 2, 2, Hex("#fff48a"));
+        DrawRect(texture, 36, 52, 2, 2, Hex("#fff48a"));
+        DrawRect(texture, 39, 40, 4, 4, acid);
+    }
+
+    private static void DrawTankerSprite(Texture2D texture)
+    {
+        Color outline = Hex("#1d2328");
+        Color armor = Hex("#8a99a6");
+        Color armorDark = Hex("#4e5d67");
+        Color skin = Hex("#5dbb5d");
+        Color rust = Hex("#9b6a38");
+
+        DrawOval(texture, 10, 8, 46, 13, WithAlpha(Hex("#05070a"), 0.42f));
+        DrawRect(texture, 17, 11, 11, 15, outline);
+        DrawRect(texture, 20, 14, 6, 11, armorDark);
+        DrawRect(texture, 37, 11, 11, 15, outline);
+        DrawRect(texture, 39, 14, 6, 11, armorDark);
+        DrawRect(texture, 14, 22, 36, 29, outline);
+        DrawRect(texture, 18, 25, 28, 23, armor);
+        DrawRect(texture, 21, 28, 9, 17, armorDark);
+        DrawRect(texture, 34, 28, 9, 17, armorDark);
+        DrawRect(texture, 12, 31, 8, 15, outline);
+        DrawRect(texture, 14, 33, 5, 11, skin);
+        DrawRect(texture, 47, 31, 8, 15, outline);
+        DrawRect(texture, 48, 33, 5, 11, skin);
+        DrawRect(texture, 23, 47, 19, 12, outline);
+        DrawRect(texture, 26, 49, 13, 8, skin);
+        DrawRect(texture, 28, 54, 2, 2, Hex("#f2e56c"));
+        DrawRect(texture, 36, 54, 2, 2, Hex("#f2e56c"));
+        DrawRect(texture, 44, 38, 4, 4, rust);
+        DrawRect(texture, 18, 44, 4, 3, Hex("#c1ccd3"));
+    }
+
+    private static void DrawBossSprite(Texture2D texture)
+    {
+        Color outline = Hex("#2c0e18");
+        Color flesh = Hex("#d9384e");
+        Color fleshDark = Hex("#8a1f38");
+        Color eye = Hex("#ffe36b");
+        Color claw = Hex("#e8d4b4");
+
+        DrawOval(texture, 7, 7, 51, 14, WithAlpha(Hex("#05070a"), 0.48f));
+        DrawRect(texture, 12, 28, 10, 18, outline);
+        DrawRect(texture, 14, 30, 6, 14, fleshDark);
+        DrawRect(texture, 43, 28, 10, 18, outline);
+        DrawRect(texture, 45, 30, 6, 14, fleshDark);
+        DrawRect(texture, 16, 16, 33, 36, outline);
+        DrawRect(texture, 20, 20, 25, 28, flesh);
+        DrawRect(texture, 24, 24, 17, 12, fleshDark);
+        DrawRect(texture, 21, 49, 22, 10, outline);
+        DrawRect(texture, 24, 51, 16, 6, flesh);
+        DrawRect(texture, 25, 54, 3, 2, eye);
+        DrawRect(texture, 31, 54, 3, 2, eye);
+        DrawRect(texture, 37, 54, 3, 2, eye);
+        DrawRect(texture, 9, 42, 8, 4, claw);
+        DrawRect(texture, 48, 42, 8, 4, claw);
+        DrawRect(texture, 30, 37, 5, 7, Hex("#ff7682"));
+        DrawRect(texture, 41, 26, 4, 5, Hex("#652037"));
+    }
+
+    private static void DrawFinalBossSprite(Texture2D texture)
+    {
+        Color outline = Hex("#130d22");
+        Color shell = Hex("#6f2bbf");
+        Color dark = Hex("#2d1856");
+        Color core = Hex("#ff4c7b");
+        Color eye = Hex("#fff067");
+
+        DrawOval(texture, 5, 6, 54, 16, WithAlpha(Hex("#05070a"), 0.55f));
+        DrawRect(texture, 9, 24, 10, 22, outline);
+        DrawRect(texture, 11, 27, 6, 17, dark);
+        DrawRect(texture, 45, 24, 10, 22, outline);
+        DrawRect(texture, 47, 27, 6, 17, dark);
+        DrawRect(texture, 14, 15, 36, 38, outline);
+        DrawRect(texture, 18, 19, 28, 30, shell);
+        DrawRect(texture, 22, 23, 20, 18, dark);
+        DrawDiamond(texture, 32, 32, 9, core);
+        DrawDiamond(texture, 32, 32, 4, Hex("#ff9eba"));
+        DrawRect(texture, 20, 50, 24, 10, outline);
+        DrawRect(texture, 23, 52, 18, 6, shell);
+        DrawRect(texture, 25, 55, 3, 2, eye);
+        DrawRect(texture, 31, 55, 3, 2, eye);
+        DrawRect(texture, 37, 55, 3, 2, eye);
+        DrawLine(texture, 8, 45, 2, 52, 3, Hex("#caa7ff"));
+        DrawLine(texture, 56, 45, 62, 52, 3, Hex("#caa7ff"));
+        DrawRect(texture, 16, 42, 5, 5, core);
+        DrawRect(texture, 43, 42, 5, 5, core);
+    }
+
+    private static void DrawBulletSprite(Texture2D texture)
+    {
+        Color outline = Hex("#5a330d");
+        Color orange = Hex("#ff9f1c");
+        Color yellow = Hex("#ffe66d");
+
+        DrawRect(texture, 9, 27, 39, 10, outline);
+        DrawRect(texture, 13, 29, 31, 6, orange);
+        DrawRect(texture, 40, 30, 10, 4, yellow);
+        DrawDiamond(texture, 52, 32, 6, yellow);
+        DrawRect(texture, 5, 30, 8, 4, Hex("#ff5a1f"));
+        DrawRect(texture, 18, 34, 16, 2, Hex("#fff3a1"));
+    }
+
+    private static void DrawAcidSprite(Texture2D texture)
+    {
+        Color outline = Hex("#315e12");
+        Color acid = Hex("#a9ff25");
+        Color light = Hex("#e6ff72");
+
+        DrawDiamond(texture, 32, 32, 24, outline);
+        DrawDiamond(texture, 32, 32, 19, acid);
+        DrawDiamond(texture, 27, 38, 6, light);
+        DrawRect(texture, 42, 22, 6, 4, Hex("#72cf1d"));
+        DrawRect(texture, 16, 25, 5, 5, acid);
+        DrawRect(texture, 47, 43, 4, 4, light);
+    }
+
+    private static void DrawSingularitySprite(Texture2D texture)
+    {
+        Color outline = Hex("#160d2c");
+        Color purple = Hex("#5e35d9");
+        Color blue = Hex("#28c7ff");
+
+        DrawCircle(texture, 32, 32, 25, outline);
+        DrawCircle(texture, 32, 32, 20, purple);
+        DrawCircle(texture, 32, 32, 10, Hex("#0b1022"));
+        DrawRing(texture, 32, 32, 14, 16, blue);
+        DrawLine(texture, 19, 35, 44, 27, 3, Hex("#b88cff"));
+        DrawLine(texture, 23, 22, 42, 42, 2, Hex("#78e7ff"));
+        DrawRect(texture, 29, 29, 6, 6, Hex("#02040a"));
+    }
+
+    private static void DrawExperienceSprite(Texture2D texture)
+    {
+        Color outline = Hex("#092d66");
+        Color blue = Hex("#2d7dff");
+        Color light = Hex("#9ce7ff");
+
+        DrawDiamond(texture, 32, 32, 25, outline);
+        DrawDiamond(texture, 32, 32, 20, blue);
+        DrawLine(texture, 32, 12, 32, 52, 2, Hex("#1456c4"));
+        DrawLine(texture, 18, 32, 46, 32, 2, Hex("#1456c4"));
+        DrawRect(texture, 26, 41, 10, 5, light);
+        DrawRect(texture, 38, 35, 4, 4, light);
+    }
+
+    private static void DrawGroundTileSprite(Texture2D texture)
+    {
+        Color baseColor = Hex("#171c20");
+        Color alternate = Hex("#1d2429");
+        Color crack = Hex("#0b0f12");
+        Color dust = Hex("#2a3338");
+        Color moss = Hex("#30482e");
+
+        Fill(texture, baseColor);
+        DrawRect(texture, 0, 0, 64, 3, Hex("#101418"));
+        DrawRect(texture, 0, 61, 64, 3, Hex("#20272d"));
+        DrawRect(texture, 0, 0, 3, 64, Hex("#101418"));
+        DrawRect(texture, 61, 0, 3, 64, Hex("#20272d"));
+
+        DrawRect(texture, 7, 9, 10, 5, alternate);
+        DrawRect(texture, 40, 6, 12, 7, alternate);
+        DrawRect(texture, 25, 27, 14, 9, alternate);
+        DrawRect(texture, 8, 48, 17, 6, alternate);
+        DrawRect(texture, 47, 43, 8, 12, alternate);
+        DrawLine(texture, 12, 28, 24, 32, 2, crack);
+        DrawLine(texture, 24, 32, 31, 42, 2, crack);
+        DrawLine(texture, 44, 18, 52, 25, 2, crack);
+        DrawLine(texture, 52, 25, 58, 25, 2, crack);
+        DrawRect(texture, 15, 16, 3, 2, dust);
+        DrawRect(texture, 35, 19, 2, 3, dust);
+        DrawRect(texture, 53, 53, 3, 2, dust);
+        DrawRect(texture, 5, 37, 2, 2, moss);
+        DrawRect(texture, 34, 50, 6, 3, moss);
+        DrawRect(texture, 49, 11, 3, 3, moss);
+    }
+
+    private static void DrawFallbackSprite(Texture2D texture, Color color, SpriteShape shape)
+    {
+        const int size = 64;
         Vector2 center = new Vector2((size - 1) * 0.5f, (size - 1) * 0.5f);
 
         for (int y = 0; y < size; y++)
@@ -289,22 +648,158 @@ public static class ZombieOverdriveSceneBuilder
                     fill = Mathf.Abs(x - center.x) + Mathf.Abs(y - center.y) <= 28f;
                 }
 
-                texture.SetPixel(x, y, fill ? color : clear);
+                if (fill)
+                {
+                    texture.SetPixel(x, y, color);
+                }
             }
         }
+    }
 
-        texture.Apply();
-        File.WriteAllBytes(path, texture.EncodeToPNG());
-        Object.DestroyImmediate(texture);
+    private static void Fill(Texture2D texture, Color color)
+    {
+        for (int y = 0; y < texture.height; y++)
+        {
+            for (int x = 0; x < texture.width; x++)
+            {
+                texture.SetPixel(x, y, color);
+            }
+        }
+    }
 
-        AssetDatabase.ImportAsset(path);
-        TextureImporter importer = (TextureImporter)AssetImporter.GetAtPath(path);
-        importer.textureType = TextureImporterType.Sprite;
-        importer.spritePixelsPerUnit = 32f;
-        importer.filterMode = FilterMode.Point;
-        importer.textureCompression = TextureImporterCompression.Uncompressed;
-        importer.SaveAndReimport();
-        return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+    private static void DrawRect(Texture2D texture, int x, int y, int width, int height, Color color)
+    {
+        for (int py = y; py < y + height; py++)
+        {
+            for (int px = x; px < x + width; px++)
+            {
+                SetPixel(texture, px, py, color);
+            }
+        }
+    }
+
+    private static void DrawCircle(Texture2D texture, int centerX, int centerY, int radius, Color color)
+    {
+        int radiusSquared = radius * radius;
+        for (int y = centerY - radius; y <= centerY + radius; y++)
+        {
+            for (int x = centerX - radius; x <= centerX + radius; x++)
+            {
+                int dx = x - centerX;
+                int dy = y - centerY;
+                if (dx * dx + dy * dy <= radiusSquared)
+                {
+                    SetPixel(texture, x, y, color);
+                }
+            }
+        }
+    }
+
+    private static void DrawRing(Texture2D texture, int centerX, int centerY, int innerRadius, int outerRadius, Color color)
+    {
+        int innerSquared = innerRadius * innerRadius;
+        int outerSquared = outerRadius * outerRadius;
+        for (int y = centerY - outerRadius; y <= centerY + outerRadius; y++)
+        {
+            for (int x = centerX - outerRadius; x <= centerX + outerRadius; x++)
+            {
+                int dx = x - centerX;
+                int dy = y - centerY;
+                int distance = dx * dx + dy * dy;
+                if (distance >= innerSquared && distance <= outerSquared)
+                {
+                    SetPixel(texture, x, y, color);
+                }
+            }
+        }
+    }
+
+    private static void DrawDiamond(Texture2D texture, int centerX, int centerY, int radius, Color color)
+    {
+        for (int y = centerY - radius; y <= centerY + radius; y++)
+        {
+            for (int x = centerX - radius; x <= centerX + radius; x++)
+            {
+                if (Mathf.Abs(x - centerX) + Mathf.Abs(y - centerY) <= radius)
+                {
+                    SetPixel(texture, x, y, color);
+                }
+            }
+        }
+    }
+
+    private static void DrawOval(Texture2D texture, int x, int y, int width, int height, Color color)
+    {
+        float radiusX = width * 0.5f;
+        float radiusY = height * 0.5f;
+        float centerX = x + radiusX;
+        float centerY = y + radiusY;
+
+        for (int py = y; py < y + height; py++)
+        {
+            for (int px = x; px < x + width; px++)
+            {
+                float normalizedX = (px - centerX) / radiusX;
+                float normalizedY = (py - centerY) / radiusY;
+                if (normalizedX * normalizedX + normalizedY * normalizedY <= 1f)
+                {
+                    SetPixel(texture, px, py, color);
+                }
+            }
+        }
+    }
+
+    private static void DrawLine(Texture2D texture, int x0, int y0, int x1, int y1, int thickness, Color color)
+    {
+        int dx = Mathf.Abs(x1 - x0);
+        int sx = x0 < x1 ? 1 : -1;
+        int dy = -Mathf.Abs(y1 - y0);
+        int sy = y0 < y1 ? 1 : -1;
+        int error = dx + dy;
+
+        while (true)
+        {
+            DrawRect(texture, x0 - thickness / 2, y0 - thickness / 2, thickness, thickness, color);
+            if (x0 == x1 && y0 == y1)
+            {
+                break;
+            }
+
+            int doubledError = 2 * error;
+            if (doubledError >= dy)
+            {
+                error += dy;
+                x0 += sx;
+            }
+
+            if (doubledError <= dx)
+            {
+                error += dx;
+                y0 += sy;
+            }
+        }
+    }
+
+    private static void SetPixel(Texture2D texture, int x, int y, Color color)
+    {
+        if (x < 0 || x >= texture.width || y < 0 || y >= texture.height)
+        {
+            return;
+        }
+
+        texture.SetPixel(x, y, color);
+    }
+
+    private static Color Hex(string value)
+    {
+        Color color;
+        return ColorUtility.TryParseHtmlString(value, out color) ? color : Color.magenta;
+    }
+
+    private static Color WithAlpha(Color color, float alpha)
+    {
+        color.a = alpha;
+        return color;
     }
 
     private static GameObject CreateBulletPrefab(Sprite sprite, int layer)
