@@ -1,4 +1,5 @@
 using UnityEngine;
+using ZombieOverdrive.Audio;
 using ZombieOverdrive.Core;
 using ZombieOverdrive.Utility;
 
@@ -44,6 +45,7 @@ namespace ZombieOverdrive.Pickups
             if (Vector2.Distance(transform.position, pullTarget.position) <= collectDistance)
             {
                 levelSystem.AddExperience(value);
+                GameAudio.Play(GameSound.Pickup, value >= 5 ? 0.65f : 0.35f);
                 if (poolable != null)
                 {
                     poolable.Release();

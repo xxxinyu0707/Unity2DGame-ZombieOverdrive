@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using ZombieOverdrive.Audio;
 using ZombieOverdrive.Combat;
 using ZombieOverdrive.Enemies;
 using ZombieOverdrive.UI;
@@ -26,6 +27,7 @@ namespace ZombieOverdrive.Core
         [SerializeField] private MainMenuPanel mainMenu;
         [SerializeField] private UpgradePanel upgradePanel;
         [SerializeField] private PauseMenu pauseMenu;
+        [SerializeField] private RunResultPanel resultPanel;
         [SerializeField] private ZombieOverdrive.UI.UpgradeIconLibrary iconLibrary;
 
         private readonly PlayerStats playerStats = new PlayerStats();
@@ -74,6 +76,10 @@ namespace ZombieOverdrive.Core
             if (pauseMenu != null)
             {
                 pauseMenu.Initialize(ResumeFromPauseMenu, RestartRun, QuitGame);
+            }
+            if (resultPanel != null)
+            {
+                resultPanel.Initialize(RestartRun, QuitGame);
             }
             if (mainMenu != null)
             {
@@ -214,6 +220,7 @@ namespace ZombieOverdrive.Core
 
         public void ResumeFromUpgrade(UpgradeOption option)
         {
+            GameAudio.Play(option.Type == UpgradeType.Evolution ? GameSound.Evolution : GameSound.Menu, 0.8f);
             upgradeSystem.Apply(option);
             upgradePanel.Hide();
             State = GameState.Playing;
@@ -231,6 +238,7 @@ namespace ZombieOverdrive.Core
             State = GameState.Playing;
             Time.timeScale = 1f;
             runSettled = false;
+            GameAudio.Play(GameSound.Menu, 0.7f);
             if (mainMenu != null)
             {
                 mainMenu.Hide();
@@ -257,6 +265,7 @@ namespace ZombieOverdrive.Core
             playerHealth.Heal(playerHealth.MaxHealth * playerStats.levelUpHealPercent);
             upgradePanel.Show(upgradeSystem.RollOptions(), ResumeFromUpgrade);
             hud.SetMessage("升级");
+            GameAudio.Play(GameSound.LevelUp, 0.85f);
         }
 
         private void OnHealthChanged(float current, float max)
@@ -292,6 +301,12 @@ namespace ZombieOverdrive.Core
             Time.timeScale = 0f;
             int banked = SettleRun(false);
             hud.SetMessage("游戏结束 - 结算金币 " + banked + " - 按 R 重新开始");
+            if (resultPanel != null)
+            {
+                resultPanel.Show(false, levelSystem.Level, KillCount, RunGold, banked, elapsedSeconds);
+            }
+
+            GameAudio.Play(GameSound.GameOver, 0.8f);
         }
 
         private void WinRun()
@@ -300,6 +315,12 @@ namespace ZombieOverdrive.Core
             Time.timeScale = 0f;
             int banked = SettleRun(true);
             hud.SetMessage("胜利 - 结算金币 " + banked + " - 按 R 重新开始");
+            if (resultPanel != null)
+            {
+                resultPanel.Show(true, levelSystem.Level, KillCount, RunGold, banked, elapsedSeconds);
+            }
+
+            GameAudio.Play(GameSound.Victory, 0.9f);
         }
 
         private int SettleRun(bool victory)

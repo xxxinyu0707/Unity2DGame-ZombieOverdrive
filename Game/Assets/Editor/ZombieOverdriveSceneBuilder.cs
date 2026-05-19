@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using ZombieOverdrive.Combat;
 using ZombieOverdrive.Core;
 using ZombieOverdrive.Enemies;
+using ZombieOverdrive.Audio;
 using ZombieOverdrive.Pickups;
 using ZombieOverdrive.UI;
 using ZombieOverdrive.Utility;
@@ -44,7 +45,8 @@ public static class ZombieOverdriveSceneBuilder
         "passive_radar",
         "passive_defibrillator",
         "passive_radio",
-        "passive_repair"
+        "passive_repair",
+        "passive_goldbag"
     };
 
     [MenuItem("Zombie Overdrive/Build Prototype Scene")]
@@ -140,6 +142,7 @@ public static class ZombieOverdriveSceneBuilder
         UpgradeSystem upgradeSystem = managers.AddComponent<UpgradeSystem>();
         WaveSpawner waveSpawner = managers.AddComponent<WaveSpawner>();
         CrateSpawner crateSpawner = managers.AddComponent<CrateSpawner>();
+        GameAudio gameAudio = managers.AddComponent<GameAudio>();
         GameManager gameManager = managers.AddComponent<GameManager>();
 
         SetObjectField(waveSpawner, "walkerPool", walkerPool);
@@ -157,6 +160,9 @@ public static class ZombieOverdriveSceneBuilder
         SetObjectField(crateSpawner, "cratePool", cratePool);
         SetObjectField(crateSpawner, "resourcePickupPool", resourcePickupPool);
         SetLayerMask(crateSpawner, "enemyMask", 1 << enemyLayer);
+        AudioSource audioSource = managers.GetComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+        audioSource.spatialBlend = 0f;
 
         Canvas canvas = CreateCanvas();
         UpgradeIconLibrary iconLibrary = CreateIconLibrary(upgradeIcons);
@@ -164,6 +170,7 @@ public static class ZombieOverdriveSceneBuilder
         MainMenuPanel mainMenu = CreateMainMenu(canvas.transform);
         UpgradePanel upgradePanel = CreateUpgradePanel(canvas.transform, iconLibrary);
         PauseMenu pauseMenu = CreatePauseMenu(canvas.transform);
+        RunResultPanel resultPanel = CreateRunResultPanel(canvas.transform);
 
         SetObjectField(gameManager, "playerMovement", playerMovement);
         SetObjectField(gameManager, "playerHealth", playerHealth);
@@ -178,6 +185,7 @@ public static class ZombieOverdriveSceneBuilder
         SetObjectField(gameManager, "mainMenu", mainMenu);
         SetObjectField(gameManager, "upgradePanel", upgradePanel);
         SetObjectField(gameManager, "pauseMenu", pauseMenu);
+        SetObjectField(gameManager, "resultPanel", resultPanel);
         SetObjectField(gameManager, "iconLibrary", iconLibrary);
 
         cameraFollow.SetTarget(player.transform);
@@ -276,10 +284,12 @@ public static class ZombieOverdriveSceneBuilder
         RequireWaveSpawnerReferences();
         RequireObject<CrateSpawner>("CrateSpawner");
         RequireCrateSpawnerReferences();
+        RequireObject<GameAudio>("GameAudio");
         RequireObject<GameHud>("GameHud");
         RequireObject<MainMenuPanel>("MainMenuPanel");
         RequireObject<UpgradePanel>("UpgradePanel");
         RequireObject<PauseMenu>("PauseMenu");
+        RequireObject<RunResultPanel>("RunResultPanel");
         RequireObject<UpgradeIconLibrary>("UpgradeIconLibrary");
         RequireObject<InfiniteGround2D>("InfiniteGround2D");
         RequireObject<AimGuide>("AimGuide");
@@ -1215,6 +1225,15 @@ public static class ZombieOverdriveSceneBuilder
                 DrawRect(texture, 22, 31, 20, 4, red);
                 DrawRect(texture, 30, 23, 4, 20, red);
                 break;
+            case "passive_goldbag":
+                DrawRect(texture, 18, 24, 28, 23, black);
+                DrawRect(texture, 21, 27, 22, 17, Hex("#d79b2f"));
+                DrawRect(texture, 24, 21, 16, 7, black);
+                DrawRect(texture, 26, 23, 12, 4, Hex("#ffe08a"));
+                DrawCircle(texture, 32, 36, 8, Hex("#f8ca48"));
+                DrawRect(texture, 30, 30, 4, 12, black);
+                DrawLine(texture, 23, 44, 42, 44, 2, dark);
+                break;
             default:
                 DrawDiamond(texture, 32, 32, 18, white);
                 break;
@@ -1949,6 +1968,34 @@ public static class ZombieOverdriveSceneBuilder
         SetObjectField(pauseMenu, "quitButton", quit);
         panel.SetActive(false);
         return pauseMenu;
+    }
+
+    private static RunResultPanel CreateRunResultPanel(Transform parent)
+    {
+        GameObject panel = new GameObject("Run Result Panel");
+        panel.transform.SetParent(parent, false);
+        Image background = panel.AddComponent<Image>();
+        background.color = new Color(0.018f, 0.022f, 0.032f, 0.96f);
+        RectTransform rect = panel.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0.5f, 0.5f);
+        rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = Vector2.zero;
+        rect.sizeDelta = new Vector2(620f, 520f);
+
+        Text title = CreateText(panel.transform, "Title", "行动终止", 48, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -34f), new Vector2(520f, 72f));
+        Text summary = CreateText(panel.transform, "Summary", "", 28, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-210f, -126f), new Vector2(420f, 250f));
+        summary.color = new Color(0.9f, 0.93f, 0.98f, 1f);
+
+        Button restart = CreateMenuButton(panel.transform, "Restart Button", "再来一局", new Vector2(-120f, -190f));
+        Button quit = CreateMenuButton(panel.transform, "Quit Button", "退出游戏", new Vector2(120f, -190f));
+
+        RunResultPanel resultPanel = panel.AddComponent<RunResultPanel>();
+        SetObjectField(resultPanel, "titleText", title);
+        SetObjectField(resultPanel, "summaryText", summary);
+        SetObjectField(resultPanel, "restartButton", restart);
+        SetObjectField(resultPanel, "quitButton", quit);
+        panel.SetActive(false);
+        return resultPanel;
     }
 
     private static void CreateSlotItem(Transform parent, string name, Vector2 position, out Image icon, out Text label)

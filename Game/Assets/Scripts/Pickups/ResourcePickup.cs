@@ -1,4 +1,5 @@
 using UnityEngine;
+using ZombieOverdrive.Audio;
 using ZombieOverdrive.Combat;
 using ZombieOverdrive.Core;
 using ZombieOverdrive.Enemies;
@@ -75,15 +76,19 @@ namespace ZombieOverdrive.Pickups
                 {
                     case ResourcePickupType.Chicken:
                         collector.HealPercent(0.2f);
+                        GameAudio.Play(GameSound.Heal, 0.85f);
                         break;
                     case ResourcePickupType.Magnet:
                         collector.PullAllPickups();
+                        GameAudio.Play(GameSound.Magnet, 0.85f);
                         break;
                     case ResourcePickupType.Bomb:
                         TriggerBomb();
+                        GameAudio.Play(GameSound.Bomb, 0.9f);
                         break;
                     default:
                         collector.AddRunGold(goldValue);
+                        GameAudio.Play(GameSound.Gold, 0.55f);
                         break;
                 }
             }

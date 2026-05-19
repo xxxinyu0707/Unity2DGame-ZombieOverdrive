@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using ZombieOverdrive.Audio;
 
 namespace ZombieOverdrive.Core
 {
@@ -48,6 +49,7 @@ namespace ZombieOverdrive.Core
             currentHealth = Mathf.Max(0f, currentHealth - finalDamage);
             invincibleTimer = invincibleSecondsAfterHit;
             HealthChanged?.Invoke(currentHealth, MaxHealth);
+            GameAudio.Play(GameSound.Hit, 0.75f);
 
             if (currentHealth <= 0f)
             {

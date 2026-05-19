@@ -21,7 +21,8 @@ namespace ZombieOverdrive.Core
         Radar,
         Defibrillator,
         Radio,
-        Repair
+        Repair,
+        GoldBag
     }
 
     public struct UpgradeOption
@@ -61,6 +62,7 @@ namespace ZombieOverdrive.Core
         private readonly Dictionary<WeaponId, WeaponBase> weapons = new Dictionary<WeaponId, WeaponBase>();
         private readonly List<WeaponId> activeSlots = new List<WeaponId>();
         private readonly List<UpgradeType> passiveSlots = new List<UpgradeType>();
+        private readonly HashSet<UpgradeType> fusedPassives = new HashSet<UpgradeType>();
         private readonly HashSet<WeaponId> evolvedWeapons = new HashSet<WeaponId>();
 
         private PlayerStats stats;
@@ -74,6 +76,7 @@ namespace ZombieOverdrive.Core
             activeSlots.Clear();
             passiveSlots.Clear();
             passiveLevels.Clear();
+            fusedPassives.Clear();
             evolvedWeapons.Clear();
 
             foreach (WeaponBase weapon in weaponComponents)
@@ -127,16 +130,7 @@ namespace ZombieOverdrive.Core
                 }
             }
 
-            if (options.Count == 0)
-            {
-                options.Add(new UpgradeOption
-                {
-                    Type = UpgradeType.Repair,
-                    Title = "紧急修复",
-                    Description = "已选槽位都达到满级。恢复 35% 生命。",
-                    IconId = "passive_repair"
-                });
-            }
+            AddConsolationOptions(options);
 
             return options;
         }
@@ -212,6 +206,9 @@ namespace ZombieOverdrive.Core
                 case UpgradeType.Repair:
                     if (health != null) health.Heal(health.MaxHealth * 0.35f);
                     break;
+                case UpgradeType.GoldBag:
+                    if (GameManager.Instance != null) GameManager.Instance.AddRunGold(100);
+                    break;
             }
         }
 
@@ -228,7 +225,9 @@ namespace ZombieOverdrive.Core
                 {
                     string evolved = evolvedWeapons.Contains(activeSlots[i]) ? "  已超进化" : "";
                     builder.AppendLine("- " + GetWeaponName(activeSlots[i]) + " 等级 " + weapon.Level + evolved);
-                    builder.AppendLine("  搭配：" + GetPassiveName(GetEvolutionPassive(activeSlots[i])) + "  " + GetEvolutionReadyText(activeSlots[i]));
+                    UpgradeType passive = GetEvolutionPassive(activeSlots[i]);
+                    string fused = fusedPassives.Contains(passive) ? "（已融合并释放槽位）" : "";
+                    builder.AppendLine("  搭配：" + GetPassiveName(passive) + fused + "  " + GetEvolutionReadyText(activeSlots[i]));
                 }
                 else
                 {
@@ -309,7 +308,63 @@ namespace ZombieOverdrive.Core
             }
 
             evolvedWeapons.Add(id);
+            UpgradeType passive = GetEvolutionPassive(id);
+            if (passiveSlots.Remove(passive))
+            {
+                fusedPassives.Add(passive);
+            }
+
             weapon.Evolve();
+        }
+
+        private void AddConsolationOptions(List<UpgradeOption> options)
+        {
+            if (options.Count >= optionsPerLevel)
+            {
+                return;
+            }
+
+            if (!ContainsOption(options, UpgradeType.Repair))
+            {
+                options.Add(new UpgradeOption
+                {
+                    Type = UpgradeType.Repair,
+                    Title = "战地烧鸡",
+                    Description = "恢复 35% 最大生命值。适合在构筑接近成型时稳住局面。",
+                    Hint = "保底补给",
+                    IconId = "passive_repair"
+                });
+            }
+
+            if (options.Count >= optionsPerLevel)
+            {
+                return;
+            }
+
+            if (!ContainsOption(options, UpgradeType.GoldBag))
+            {
+                options.Add(new UpgradeOption
+                {
+                    Type = UpgradeType.GoldBag,
+                    Title = "补给钱包",
+                    Description = "立即获得 100 局内金币，结算时会转化为局外金币。",
+                    Hint = "保底收益",
+                    IconId = "passive_goldbag"
+                });
+            }
+        }
+
+        private static bool ContainsOption(List<UpgradeOption> options, UpgradeType type)
+        {
+            for (int i = 0; i < options.Count; i++)
+            {
+                if (options[i].Type == type)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private UpgradeOption TakeWeaponOption(List<WeaponBase> candidates)
@@ -379,7 +434,7 @@ namespace ZombieOverdrive.Core
             {
                 bool alreadySlotted = passiveSlots.Contains(type);
                 bool canSlotNew = passiveSlots.Count < maxPassiveSkills;
-                if ((alreadySlotted || canSlotNew) && GetPassiveLevel(type) < 5)
+                if (!fusedPassives.Contains(type) && (alreadySlotted || canSlotNew) && GetPassiveLevel(type) < 5)
                 {
                     candidates.Add(type);
                 }
@@ -494,7 +549,7 @@ namespace ZombieOverdrive.Core
             bool passiveReady = GetPassiveLevel(GetEvolutionPassive(id)) > 0;
             if (evolvedWeapons.Contains(id))
             {
-                return "已完成";
+                return "已完成，搭配被动已融合";
             }
 
             if (weaponReady && passiveReady)
@@ -688,6 +743,8 @@ namespace ZombieOverdrive.Core
                     return "战术无线电";
                 default:
                     return "修复";
+                case UpgradeType.GoldBag:
+                    return "补给钱包";
             }
         }
 
@@ -738,6 +795,8 @@ namespace ZombieOverdrive.Core
                     return "首次选择获得 1 次复活；之后提升升级回血。";
                 case UpgradeType.Radio:
                     return "补给掉落幸运 +10%。";
+                case UpgradeType.GoldBag:
+                    return "立即获得 100 金币。";
                 default:
                     return "恢复 35% 生命。";
             }

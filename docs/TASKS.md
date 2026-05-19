@@ -37,7 +37,7 @@
 - [x] Add enemy wounded/critical visual states
 - [x] Add main menu and meta progression talents
 - [x] Add UI polish
-- [ ] Add sound effects
+- [x] Add sound effects
 - [x] Add destructible crates and temporary recovery items
 - [x] Add restart and pause flow
 - [x] Add animated weapon visuals and weapon icons
