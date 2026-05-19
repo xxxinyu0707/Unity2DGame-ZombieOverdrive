@@ -16,21 +16,38 @@ namespace ZombieOverdrive.Enemies
         [SerializeField] private GameObjectPool experiencePool;
 
         [Header("Spawn")]
-        [SerializeField] private float spawnDistance = 12f;
+        [SerializeField] private float spawnDistance = 9.5f;
         [SerializeField] private float spawnInterval = 0.45f;
         [SerializeField] private int maxEnemies = 120;
+        [SerializeField] private int openingBurstCount = 6;
+        [SerializeField] private float openingBurstDistance = 7.2f;
 
         private GameManager manager;
         private float spawnTimer;
         private int aliveEnemies;
+        private bool spawnedOpeningBurst;
         private bool spawnedMidBoss;
         private bool spawnedFinalBoss;
         private bool finalBossDefeated;
 
+        public int AliveEnemies => aliveEnemies;
         public void Initialize(GameManager gameManager)
         {
             manager = gameManager;
+            spawnTimer = 0f;
+            aliveEnemies = 0;
+            spawnedOpeningBurst = false;
+            spawnedMidBoss = false;
+            spawnedFinalBoss = false;
+            finalBossDefeated = false;
+
+            EnemyHealth.EnemyKilled -= OnEnemyKilled;
             EnemyHealth.EnemyKilled += OnEnemyKilled;
+
+            if (!HasRequiredPools())
+            {
+                Debug.LogError("WaveSpawner is missing one or more pool references.");
+            }
         }
 
         private void OnDestroy()
@@ -47,6 +64,13 @@ namespace ZombieOverdrive.Enemies
 
             UpdateWaveSettings(manager.ElapsedSeconds);
             TrySpawnBoss(manager.ElapsedSeconds);
+
+            if (!spawnedOpeningBurst)
+            {
+                spawnedOpeningBurst = true;
+                SpawnOpeningBurst();
+                spawnTimer = Mathf.Min(spawnTimer, spawnInterval * 0.5f);
+            }
 
             if (spawnedFinalBoss)
             {
@@ -113,17 +137,21 @@ namespace ZombieOverdrive.Enemies
 
         private void SpawnEnemy(EnemyType type)
         {
+            SpawnEnemyAt(type, GetSpawnPosition());
+        }
+
+        private bool SpawnEnemyAt(EnemyType type, Vector2 spawnPosition)
+        {
             GameObjectPool pool = GetPool(type);
             if (pool == null)
             {
-                return;
+                return false;
             }
 
-            Vector2 spawnPosition = GetSpawnPosition();
             EnemyController enemy = pool.Get<EnemyController>(spawnPosition, Quaternion.identity);
             if (enemy == null)
             {
-                return;
+                return false;
             }
 
             float elapsedMinutes = manager.ElapsedSeconds / 60f;
@@ -135,6 +163,19 @@ namespace ZombieOverdrive.Enemies
             bool boss = type == EnemyType.MutantBoss || type == EnemyType.FinalBoss;
             enemy.GetComponent<EnemyHealth>().Initialize(hp * hpScale, xp, experiencePool, boss);
             aliveEnemies++;
+            return true;
+        }
+
+        private void SpawnOpeningBurst()
+        {
+            int count = Mathf.Max(1, openingBurstCount);
+            for (int i = 0; i < count && aliveEnemies < maxEnemies; i++)
+            {
+                float angle = Mathf.PI * 2f * i / count + Random.Range(-0.18f, 0.18f);
+                Vector2 direction = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+                Vector2 position = (Vector2)manager.Player.position + direction * openingBurstDistance;
+                SpawnEnemyAt(EnemyType.Walker, position);
+            }
         }
 
         private void TrySpawnBoss(float elapsed)
@@ -164,6 +205,17 @@ namespace ZombieOverdrive.Enemies
             }
 
             return (Vector2)manager.Player.position + direction * spawnDistance;
+        }
+
+        private bool HasRequiredPools()
+        {
+            return walkerPool != null
+                && runnerPool != null
+                && spitterPool != null
+                && tankerPool != null
+                && mutantBossPool != null
+                && finalBossPool != null
+                && experiencePool != null;
         }
 
         private GameObjectPool GetPool(EnemyType type)

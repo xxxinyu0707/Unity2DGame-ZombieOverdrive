@@ -136,6 +136,9 @@ public static class ZombieOverdriveSceneBuilder
         SetObjectField(waveSpawner, "mutantBossPool", mutantBossPool);
         SetObjectField(waveSpawner, "finalBossPool", finalBossPool);
         SetObjectField(waveSpawner, "experiencePool", xpPool);
+        SetFloatField(waveSpawner, "spawnDistance", 9.5f);
+        SetIntField(waveSpawner, "openingBurstCount", 6);
+        SetFloatField(waveSpawner, "openingBurstDistance", 7.2f);
 
         Canvas canvas = CreateCanvas();
         UpgradeIconLibrary iconLibrary = CreateIconLibrary(upgradeIcons);
@@ -170,21 +173,45 @@ public static class ZombieOverdriveSceneBuilder
     public static void SmokeTestPrototype()
     {
         BuildPrototypeScene();
-        EditorApplication.isPlaying = true;
-        double startTime = EditorApplication.timeSinceStartup;
-        EditorApplication.update += StopAfterDelay;
+        ValidateRuntimeSpawnSlice();
+        Debug.Log("Zombie Overdrive smoke test completed.");
+    }
 
-        void StopAfterDelay()
+    [MenuItem("Zombie Overdrive/Validate Runtime Spawn Slice")]
+    public static void ValidateRuntimeSpawnSlice()
+    {
+        if (!File.Exists(ScenePath))
         {
-            if (EditorApplication.timeSinceStartup - startTime < 5d)
-            {
-                return;
-            }
-
-            EditorApplication.update -= StopAfterDelay;
-            EditorApplication.isPlaying = false;
-            Debug.Log("Zombie Overdrive smoke test completed.");
+            BuildPrototypeScene();
         }
+
+        Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        if (!scene.IsValid())
+        {
+            throw new System.InvalidOperationException("Could not open prototype scene.");
+        }
+
+        GameManager manager = Object.FindObjectOfType<GameManager>(true);
+        WaveSpawner spawner = Object.FindObjectOfType<WaveSpawner>(true);
+        if (manager == null || spawner == null)
+        {
+            throw new System.InvalidOperationException("Runtime spawn validation failed: missing manager or spawner.");
+        }
+
+        spawner.Initialize(manager);
+        System.Reflection.MethodInfo burstMethod = typeof(WaveSpawner).GetMethod("SpawnOpeningBurst", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+        if (burstMethod == null)
+        {
+            throw new System.InvalidOperationException("Runtime spawn validation failed: missing SpawnOpeningBurst.");
+        }
+
+        burstMethod.Invoke(spawner, null);
+        if (spawner.AliveEnemies <= 0)
+        {
+            throw new System.InvalidOperationException("Runtime spawn validation failed: no enemies spawned.");
+        }
+
+        Debug.Log("Zombie Overdrive runtime spawn validation passed. Alive enemies: " + spawner.AliveEnemies);
     }
 
     [MenuItem("Zombie Overdrive/Validate Prototype Scene")]
@@ -211,6 +238,7 @@ public static class ZombieOverdriveSceneBuilder
         RequireObject<LightbladeWeapon>("LightbladeWeapon");
         RequireObject<LaserWeapon>("LaserWeapon");
         RequireObject<WaveSpawner>("WaveSpawner");
+        RequireWaveSpawnerReferences();
         RequireObject<GameHud>("GameHud");
         RequireObject<UpgradePanel>("UpgradePanel");
         RequireObject<PauseMenu>("PauseMenu");
@@ -249,6 +277,33 @@ public static class ZombieOverdriveSceneBuilder
         }
 
         Debug.Log("Zombie Overdrive prototype validation passed.");
+    }
+
+    private static void RequireWaveSpawnerReferences()
+    {
+        WaveSpawner spawner = Object.FindObjectOfType<WaveSpawner>(true);
+        if (spawner == null)
+        {
+            throw new System.InvalidOperationException("Missing scene object: WaveSpawner");
+        }
+
+        RequireSerializedReference(spawner, "walkerPool");
+        RequireSerializedReference(spawner, "runnerPool");
+        RequireSerializedReference(spawner, "spitterPool");
+        RequireSerializedReference(spawner, "tankerPool");
+        RequireSerializedReference(spawner, "mutantBossPool");
+        RequireSerializedReference(spawner, "finalBossPool");
+        RequireSerializedReference(spawner, "experiencePool");
+    }
+
+    private static void RequireSerializedReference(Object target, string fieldName)
+    {
+        SerializedObject serializedObject = new SerializedObject(target);
+        SerializedProperty property = serializedObject.FindProperty(fieldName);
+        if (property == null || property.objectReferenceValue == null)
+        {
+            throw new System.InvalidOperationException(target.name + " missing reference: " + fieldName);
+        }
     }
 
     private static void RequireObject<T>(string label) where T : Object
