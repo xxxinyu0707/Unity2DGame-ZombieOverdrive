@@ -13,12 +13,15 @@
 
 ## Phase 1: Prototype
 
-- [ ] Choose final concept
-- [ ] Create first scene
-- [ ] Add player movement
-- [ ] Add camera follow
-- [ ] Add collectibles
-- [ ] Add timer, score, win, lose
+- [x] Choose final concept
+- [x] Create first scene
+- [x] Add player movement
+- [x] Add camera follow
+- [x] Add collectibles
+- [x] Add timer, score, win, lose
+- [x] Add auto pistol prototype
+- [x] Add wave spawner prototype
+- [x] Add level-up choices
 
 ## Phase 2: Game Feel
 

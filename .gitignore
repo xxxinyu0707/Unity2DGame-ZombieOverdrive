@@ -16,6 +16,7 @@
 *.userprefs
 *.csproj
 *.sln
+*.vsconfig
 *.suo
 *.tmp
 *.pidb.meta

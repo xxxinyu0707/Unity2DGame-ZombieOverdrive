@@ -1,0 +1,170 @@
+using UnityEngine;
+using ZombieOverdrive.Core;
+using ZombieOverdrive.Utility;
+
+namespace ZombieOverdrive.Enemies
+{
+    public class WaveSpawner : MonoBehaviour
+    {
+        [Header("Pools")]
+        [SerializeField] private GameObjectPool walkerPool;
+        [SerializeField] private GameObjectPool runnerPool;
+        [SerializeField] private GameObjectPool tankerPool;
+        [SerializeField] private GameObjectPool experiencePool;
+
+        [Header("Spawn")]
+        [SerializeField] private float spawnDistance = 12f;
+        [SerializeField] private float spawnInterval = 0.45f;
+        [SerializeField] private int maxEnemies = 120;
+
+        private GameManager manager;
+        private float spawnTimer;
+        private int aliveEnemies;
+
+        public void Initialize(GameManager gameManager)
+        {
+            manager = gameManager;
+            EnemyHealth.EnemyKilled += OnEnemyKilled;
+        }
+
+        private void OnDestroy()
+        {
+            EnemyHealth.EnemyKilled -= OnEnemyKilled;
+        }
+
+        private void Update()
+        {
+            if (manager == null || manager.State != GameState.Playing || manager.Player == null)
+            {
+                return;
+            }
+
+            UpdateWaveSettings(manager.ElapsedSeconds);
+            spawnTimer -= Time.deltaTime;
+            if (spawnTimer <= 0f && aliveEnemies < maxEnemies)
+            {
+                SpawnEnemy(ChooseEnemyType(manager.ElapsedSeconds));
+                spawnTimer = spawnInterval;
+            }
+        }
+
+        private void UpdateWaveSettings(float elapsed)
+        {
+            if (elapsed < 120f)
+            {
+                maxEnemies = 30;
+                spawnInterval = 0.55f;
+            }
+            else if (elapsed < 240f)
+            {
+                maxEnemies = 60;
+                spawnInterval = 0.38f;
+            }
+            else if (elapsed < 360f)
+            {
+                maxEnemies = 100;
+                spawnInterval = 0.28f;
+            }
+            else
+            {
+                maxEnemies = 150;
+                spawnInterval = 0.2f;
+            }
+        }
+
+        private EnemyType ChooseEnemyType(float elapsed)
+        {
+            float roll = Random.value;
+            if (elapsed >= 360f && roll < 0.12f)
+            {
+                return EnemyType.Tanker;
+            }
+
+            if (elapsed >= 120f && roll < 0.4f)
+            {
+                return EnemyType.Runner;
+            }
+
+            return EnemyType.Walker;
+        }
+
+        private void SpawnEnemy(EnemyType type)
+        {
+            GameObjectPool pool = GetPool(type);
+            if (pool == null)
+            {
+                return;
+            }
+
+            Vector2 spawnPosition = GetSpawnPosition();
+            EnemyController enemy = pool.Get<EnemyController>(spawnPosition, Quaternion.identity);
+            if (enemy == null)
+            {
+                return;
+            }
+
+            float elapsedMinutes = manager.ElapsedSeconds / 60f;
+            float hpScale = Mathf.Pow(1f + 0.25f * elapsedMinutes, 1.5f);
+            float speedScale = Mathf.Pow(1f + 0.08f * elapsedMinutes, 0.5f);
+            GetBaseStats(type, out float hp, out float speed, out float damage, out int xp);
+
+            enemy.Initialize(manager.Player, type, speed * speedScale, damage);
+            enemy.GetComponent<EnemyHealth>().Initialize(hp * hpScale, xp, experiencePool);
+            aliveEnemies++;
+        }
+
+        private Vector2 GetSpawnPosition()
+        {
+            Vector2 direction = Random.insideUnitCircle.normalized;
+            if (direction.sqrMagnitude < 0.01f)
+            {
+                direction = Vector2.right;
+            }
+
+            return (Vector2)manager.Player.position + direction * spawnDistance;
+        }
+
+        private GameObjectPool GetPool(EnemyType type)
+        {
+            switch (type)
+            {
+                case EnemyType.Runner:
+                    return runnerPool;
+                case EnemyType.Tanker:
+                    return tankerPool;
+                default:
+                    return walkerPool;
+            }
+        }
+
+        private void GetBaseStats(EnemyType type, out float hp, out float speed, out float damage, out int xp)
+        {
+            switch (type)
+            {
+                case EnemyType.Runner:
+                    hp = 60f;
+                    speed = 3.2f;
+                    damage = 8f;
+                    xp = 5;
+                    break;
+                case EnemyType.Tanker:
+                    hp = 600f;
+                    speed = 1.1f;
+                    damage = 20f;
+                    xp = 20;
+                    break;
+                default:
+                    hp = 100f;
+                    speed = 1.65f;
+                    damage = 10f;
+                    xp = 1;
+                    break;
+            }
+        }
+
+        private void OnEnemyKilled(EnemyHealth enemy)
+        {
+            aliveEnemies = Mathf.Max(0, aliveEnemies - 1);
+        }
+    }
+}
