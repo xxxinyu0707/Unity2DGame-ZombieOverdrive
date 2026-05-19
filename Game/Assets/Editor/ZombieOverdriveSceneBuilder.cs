@@ -198,7 +198,21 @@ public static class ZombieOverdriveSceneBuilder
             throw new System.InvalidOperationException("Runtime spawn validation failed: missing manager or spawner.");
         }
 
-        spawner.Initialize(manager);
+        System.Reflection.MethodInfo managerStart = typeof(GameManager).GetMethod("Start", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+        if (managerStart == null)
+        {
+            throw new System.InvalidOperationException("Runtime spawn validation failed: missing GameManager.Start.");
+        }
+
+        try
+        {
+            managerStart.Invoke(manager, null);
+        }
+        catch (System.Reflection.TargetInvocationException exception)
+        {
+            throw new System.InvalidOperationException("Runtime spawn validation failed during GameManager.Start.", exception.InnerException);
+        }
+
         System.Reflection.MethodInfo burstMethod = typeof(WaveSpawner).GetMethod("SpawnOpeningBurst", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
         if (burstMethod == null)
         {

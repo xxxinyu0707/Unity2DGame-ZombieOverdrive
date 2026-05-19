@@ -34,23 +34,29 @@ namespace ZombieOverdrive.Combat
 
         protected override void OnInitialized()
         {
-            beam = gameObject.AddComponent<LineRenderer>();
-            beam.material = new Material(Shader.Find("Sprites/Default"));
+            beam = CreateBeamLine("Laser Outer Beam");
             ConfigureBeam(beam, new Color(1f, 0.24f, 0.1f, 0.45f), new Color(1f, 0.95f, 0.25f, 0.08f), 0.34f, 0.2f, 12);
-            coreBeam = gameObject.AddComponent<LineRenderer>();
-            coreBeam.material = new Material(Shader.Find("Sprites/Default"));
+            coreBeam = CreateBeamLine("Laser Core Beam");
             ConfigureBeam(coreBeam, new Color(1f, 0.95f, 0.55f, 0.95f), new Color(1f, 0.25f, 0.08f, 0.35f), 0.08f, 0.04f, 13);
             pulseLines = new LineRenderer[3];
             for (int i = 0; i < pulseLines.Length; i++)
             {
-                pulseLines[i] = gameObject.AddComponent<LineRenderer>();
-                pulseLines[i].material = new Material(Shader.Find("Sprites/Default"));
+                pulseLines[i] = CreateBeamLine("Laser Pulse " + (i + 1));
                 ConfigureBeam(pulseLines[i], new Color(1f, 0.8f, 0.28f, 0.55f), new Color(1f, 0.2f, 0.05f, 0.02f), 0.035f, 0.015f, 14);
             }
 
             beam.enabled = false;
             coreBeam.enabled = false;
             SetPulsesEnabled(false);
+        }
+
+        private LineRenderer CreateBeamLine(string lineName)
+        {
+            GameObject lineObject = new GameObject(lineName);
+            lineObject.transform.SetParent(transform, false);
+            LineRenderer line = lineObject.AddComponent<LineRenderer>();
+            line.material = new Material(Shader.Find("Sprites/Default"));
+            return line;
         }
 
         private void FireBeam()
