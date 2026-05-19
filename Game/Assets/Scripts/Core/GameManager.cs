@@ -193,7 +193,7 @@ namespace ZombieOverdrive.Core
             Time.timeScale = 0f;
             playerHealth.Heal(playerHealth.MaxHealth * playerStats.levelUpHealPercent);
             upgradePanel.Show(upgradeSystem.RollOptions(), ResumeFromUpgrade);
-            hud.SetMessage("Level Up");
+            hud.SetMessage("升级");
         }
 
         private void OnHealthChanged(float current, float max)
@@ -221,20 +221,20 @@ namespace ZombieOverdrive.Core
         {
             if (playerHealth.TryConsumeRevive())
             {
-                hud.SetMessage("Revived");
+                hud.SetMessage("已复活");
                 return;
             }
 
             State = GameState.GameOver;
             Time.timeScale = 0f;
-            hud.SetMessage("Game Over - Press R to restart");
+            hud.SetMessage("游戏结束 - 按 R 重新开始");
         }
 
         private void WinRun()
         {
             State = GameState.Victory;
             Time.timeScale = 0f;
-            hud.SetMessage("Victory - Press R to restart");
+            hud.SetMessage("胜利 - 按 R 重新开始");
         }
     }
 }

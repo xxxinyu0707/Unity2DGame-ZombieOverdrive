@@ -32,6 +32,9 @@
 - [x] Enforce 3 active weapon and 3 passive skill slots
 - [x] Add pause/status menu with resume, restart, and quit
 - [x] Add looping visual ground
+- [x] Add Chinese UI pass and aim guide
+- [x] Add stronger weapon visual feedback
+- [x] Add enemy wounded/critical visual states
 - [ ] Add UI polish
 - [ ] Add sound effects
 - [ ] Add destructible crates and temporary recovery items

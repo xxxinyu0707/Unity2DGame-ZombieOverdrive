@@ -40,6 +40,7 @@ namespace ZombieOverdrive.Combat
 
             int pierces = Level >= 5 ? 1 + Stats.bulletPierceBonus : Stats.bulletPierceBonus;
             Vector3 origin = transform.position + (Vector3)(AimDirection * 0.65f);
+            CombatVisuals.SpawnMuzzleFlash(origin, AimDirection, new Color(1f, 0.56f, 0.16f, 0.95f), 0.48f);
 
             for (int i = 0; i < pelletCount; i++)
             {

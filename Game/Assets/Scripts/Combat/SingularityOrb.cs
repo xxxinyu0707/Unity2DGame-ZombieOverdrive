@@ -17,6 +17,7 @@ namespace ZombieOverdrive.Combat
         private float timer;
         private float tickTimer;
         private LayerMask enemyMask;
+        private LineRenderer ring;
 
         public void Launch(Vector2 launchDirection, float orbDamage, float pullRadius, float pullForce, float lifetime, LayerMask mask)
         {
@@ -28,11 +29,13 @@ namespace ZombieOverdrive.Combat
             tickTimer = 0f;
             enemyMask = mask;
             gameObject.SetActive(true);
+            EnsureRing();
         }
 
         private void Update()
         {
             transform.position += (Vector3)(direction * speed * Time.deltaTime);
+            transform.Rotate(0f, 0f, 130f * Time.deltaTime);
             timer -= Time.deltaTime;
             tickTimer -= Time.deltaTime;
 
@@ -45,6 +48,33 @@ namespace ZombieOverdrive.Combat
             if (timer <= 0f)
             {
                 Destroy(gameObject);
+            }
+        }
+
+        private void EnsureRing()
+        {
+            if (ring != null)
+            {
+                return;
+            }
+
+            GameObject ringObject = new GameObject("Pull Radius");
+            ringObject.transform.SetParent(transform, false);
+            ring = ringObject.AddComponent<LineRenderer>();
+            ring.material = new Material(Shader.Find("Sprites/Default"));
+            ring.loop = true;
+            ring.useWorldSpace = false;
+            ring.positionCount = 36;
+            ring.startColor = new Color(0.42f, 0.2f, 1f, 0.22f);
+            ring.endColor = new Color(0.42f, 0.2f, 1f, 0.22f);
+            ring.startWidth = 0.035f;
+            ring.endWidth = 0.035f;
+            ring.sortingOrder = 6;
+
+            for (int i = 0; i < ring.positionCount; i++)
+            {
+                float angle = Mathf.PI * 2f * i / ring.positionCount;
+                ring.SetPosition(i, new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0f) * radius);
             }
         }
 

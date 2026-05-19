@@ -62,11 +62,23 @@ namespace ZombieOverdrive.Combat
 
         private static void DrawArc(Vector3 start, Vector3 end)
         {
-            GameObject lineObject = new GameObject("Tesla Arc");
-            LineRenderer line = lineObject.AddComponent<LineRenderer>();
-            line.material = new Material(Shader.Find("Sprites/Default"));
-            TransientLine transient = lineObject.AddComponent<TransientLine>();
-            transient.Show(start, end, new Color(0.25f, 0.95f, 1f, 1f), 0.07f, 0.08f);
+            const int points = 7;
+            LineRenderer line = CombatVisuals.CreateTransientPolyline(
+                "Tesla Arc",
+                points,
+                new Color(0.55f, 1f, 1f, 1f),
+                new Color(0.1f, 0.55f, 1f, 0.35f),
+                0.07f,
+                0.09f);
+
+            Vector3 delta = end - start;
+            Vector3 normal = new Vector3(-delta.y, delta.x, 0f).normalized;
+            for (int i = 0; i < points; i++)
+            {
+                float t = points <= 1 ? 0f : i / (float)(points - 1);
+                float jitter = i == 0 || i == points - 1 ? 0f : Random.Range(-0.18f, 0.18f);
+                line.SetPosition(i, Vector3.Lerp(start, end, t) + normal * jitter);
+            }
         }
 
         private EnemyHealth FindNearestEnemy(Vector2 origin, float radius, HashSet<EnemyHealth> ignored, bool requireAimCone)

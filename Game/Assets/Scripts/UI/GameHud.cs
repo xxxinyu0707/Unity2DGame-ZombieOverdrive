@@ -23,7 +23,7 @@ namespace ZombieOverdrive.UI
 
         public void SetHealth(float current, float max)
         {
-            healthText.text = $"HP {Mathf.CeilToInt(current)} / {Mathf.CeilToInt(max)}";
+            healthText.text = $"生命 {Mathf.CeilToInt(current)} / {Mathf.CeilToInt(max)}";
             healthSlider.value = max > 0f ? current / max : 0f;
         }
 
@@ -34,12 +34,12 @@ namespace ZombieOverdrive.UI
 
         public void SetLevel(int level)
         {
-            levelText.text = $"Lv {level}";
+            levelText.text = $"等级 {level}";
         }
 
         public void SetKills(int kills)
         {
-            killText.text = $"Kills {kills}";
+            killText.text = $"击杀 {kills}";
         }
 
         public void SetMessage(string message)

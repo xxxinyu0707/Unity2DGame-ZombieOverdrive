@@ -35,12 +35,12 @@ namespace ZombieOverdrive.Combat
             beam = gameObject.AddComponent<LineRenderer>();
             beam.material = new Material(Shader.Find("Sprites/Default"));
             beam.positionCount = 2;
-            beam.startColor = new Color(1f, 0.2f, 0.12f, 0.9f);
-            beam.endColor = new Color(1f, 0.2f, 0.12f, 0.15f);
-            beam.startWidth = 0.11f;
-            beam.endWidth = 0.04f;
+            beam.startColor = new Color(1f, 0.26f, 0.12f, 0.95f);
+            beam.endColor = new Color(1f, 0.95f, 0.3f, 0.3f);
+            beam.startWidth = 0.18f;
+            beam.endWidth = 0.08f;
             beam.enabled = false;
-            beam.sortingOrder = 9;
+            beam.sortingOrder = 13;
         }
 
         private void FireBeam()
@@ -51,8 +51,11 @@ namespace ZombieOverdrive.Combat
             if (beam != null)
             {
                 beam.enabled = true;
-                beam.SetPosition(0, transform.position);
-                beam.SetPosition(1, transform.position + (Vector3)(AimDirection * range));
+                Vector3 start = transform.position + (Vector3)(AimDirection * 0.55f);
+                Vector3 end = transform.position + (Vector3)(AimDirection * range);
+                beam.startWidth = (0.14f + Mathf.PingPong(Time.time * 0.12f, 0.07f)) * (Level >= 2 ? 1.25f : 1f);
+                beam.SetPosition(0, start);
+                beam.SetPosition(1, end);
             }
 
             for (int i = 0; i < count; i++)

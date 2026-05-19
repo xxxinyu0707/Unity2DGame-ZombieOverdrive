@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 172981724037638607}
   - component: {fileID: 8312427238605014194}
   - component: {fileID: 8965111270177721568}
+  - component: {fileID: 8163286495379708347}
   - component: {fileID: 6402589651970440736}
   m_Layer: 9
   m_Name: MutantBoss
@@ -202,6 +203,22 @@ MonoBehaviour:
   xpValue: 1
   deathKnockback: 0.1
   isBoss: 0
+--- !u!114 &8163286495379708347
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4902883779142971170}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3346f63e47bf7334f8f5461e2dd8cc0f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  healthySprite: {fileID: 21300000, guid: 95868045d5a34b946965398c71bc7684, type: 3}
+  woundedSprite: {fileID: 21300000, guid: 8bf31b16d167a384cb2a4441a18a5940, type: 3}
+  criticalSprite: {fileID: 21300000, guid: 48073f49cb738974cb2fd96fc6546e68, type: 3}
+  hitFlashColor: {r: 1, g: 0.42, b: 0.42, a: 1}
 --- !u!114 &6402589651970440736
 MonoBehaviour:
   m_ObjectHideFlags: 0

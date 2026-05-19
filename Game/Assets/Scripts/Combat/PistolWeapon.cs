@@ -38,6 +38,7 @@ namespace ZombieOverdrive.Combat
             float damage = RollDamage(baseDamage * (1f + (Level - 1) * 0.16f));
             Vector3 origin = transform.position + (Vector3)(direction * 0.6f);
             Vector2 side = new Vector2(-direction.y, direction.x);
+            CombatVisuals.SpawnMuzzleFlash(origin, direction, new Color(1f, 0.86f, 0.35f, 0.95f), 0.26f);
 
             for (int i = 0; i < shots; i++)
             {

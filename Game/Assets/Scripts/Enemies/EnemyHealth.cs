@@ -17,6 +17,7 @@ namespace ZombieOverdrive.Enemies
         private float maxHealth;
 
         public static event Action<EnemyHealth> EnemyKilled;
+        public event Action<float, float> HealthChanged;
 
         public bool IsAlive => gameObject.activeInHierarchy && currentHealth > 0f;
         public float CurrentHealth => currentHealth;
@@ -39,6 +40,7 @@ namespace ZombieOverdrive.Enemies
             xpValue = droppedXp;
             xpPool = experiencePool;
             isBoss = boss;
+            HealthChanged?.Invoke(currentHealth, maxHealth);
         }
 
         public void TakeDamage(float amount)
@@ -49,6 +51,7 @@ namespace ZombieOverdrive.Enemies
             }
 
             currentHealth -= amount;
+            HealthChanged?.Invoke(Mathf.Max(0f, currentHealth), maxHealth);
             if (currentHealth <= 0f)
             {
                 Die();

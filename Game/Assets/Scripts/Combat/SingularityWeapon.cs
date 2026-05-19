@@ -35,6 +35,7 @@ namespace ZombieOverdrive.Combat
             for (int i = 0; i < count; i++)
             {
                 Vector2 direction = Rotate(AimDirection, Random.Range(-8f, 8f));
+                CombatVisuals.SpawnRing(transform.position + (Vector3)(direction * 0.45f), new Color(0.55f, 0.35f, 1f, 0.8f), 0.35f, 0.18f);
                 GameObject orbObject = Instantiate(orbPrefab, transform.position, Quaternion.identity);
                 SingularityOrb orb = orbObject.GetComponent<SingularityOrb>();
                 if (orb != null)

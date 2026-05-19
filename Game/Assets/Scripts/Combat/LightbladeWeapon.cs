@@ -10,14 +10,23 @@ namespace ZombieOverdrive.Combat
         [SerializeField] private float baseRadius = 2.1f;
         [SerializeField] private float arcDegrees = 120f;
         [SerializeField] private LayerMask enemyMask;
+        [SerializeField] private Sprite swordSprite;
 
         private readonly Collider2D[] hits = new Collider2D[64];
         private float cooldownTimer;
+        private SpriteRenderer swordRenderer;
+        private float slashVisualTimer;
+        private float slashVisualDuration;
+        private float slashStartAngle;
+        private float slashArc;
+        private float slashRadius;
 
         public override WeaponId Id => WeaponId.Lightblade;
 
         private void Update()
         {
+            UpdateSwordVisual();
+
             if (!IsUnlocked || Stats == null || Movement == null)
             {
                 return;
@@ -31,12 +40,23 @@ namespace ZombieOverdrive.Combat
             }
         }
 
+        protected override void OnInitialized()
+        {
+            GameObject swordObject = new GameObject("Lightblade Sword Visual");
+            swordObject.transform.SetParent(transform, false);
+            swordRenderer = swordObject.AddComponent<SpriteRenderer>();
+            swordRenderer.sprite = swordSprite;
+            swordRenderer.sortingOrder = 14;
+            swordRenderer.enabled = false;
+        }
+
         private void Slash()
         {
             float radius = baseRadius * AreaMultiplier * (Level >= 2 ? 1.25f : 1f);
             float arc = Level >= 5 ? 240f : arcDegrees;
             int count = Physics2D.OverlapCircleNonAlloc(transform.position, radius, hits, enemyMask);
             DrawSlash(radius, arc);
+            ShowSwordSlash(radius, arc);
 
             for (int i = 0; i < count; i++)
             {
@@ -59,6 +79,46 @@ namespace ZombieOverdrive.Combat
                     controller.ApplyKnockback(toEnemy.normalized * 0.75f);
                 }
             }
+        }
+
+        private void ShowSwordSlash(float radius, float arc)
+        {
+            if (swordRenderer == null)
+            {
+                return;
+            }
+
+            slashVisualDuration = 0.16f;
+            slashVisualTimer = slashVisualDuration;
+            slashArc = arc;
+            slashRadius = radius;
+            slashStartAngle = Mathf.Atan2(AimDirection.y, AimDirection.x) * Mathf.Rad2Deg - arc * 0.5f;
+            swordRenderer.enabled = true;
+            swordRenderer.color = new Color(0.9f, 1f, 1f, 0.95f);
+        }
+
+        private void UpdateSwordVisual()
+        {
+            if (swordRenderer == null || !swordRenderer.enabled)
+            {
+                return;
+            }
+
+            slashVisualTimer -= Time.deltaTime;
+            if (slashVisualTimer <= 0f)
+            {
+                swordRenderer.enabled = false;
+                return;
+            }
+
+            float t = 1f - slashVisualTimer / Mathf.Max(0.01f, slashVisualDuration);
+            float eased = 1f - Mathf.Pow(1f - t, 2f);
+            float angle = slashStartAngle + slashArc * eased;
+            Vector2 direction = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad));
+            swordRenderer.transform.position = transform.position + (Vector3)(direction * (slashRadius * 0.55f));
+            swordRenderer.transform.rotation = Quaternion.Euler(0f, 0f, angle - 35f);
+            swordRenderer.transform.localScale = Vector3.one * (0.85f + slashRadius * 0.18f);
+            swordRenderer.color = new Color(0.9f, 1f, 1f, Mathf.Lerp(0.15f, 0.95f, slashVisualTimer / slashVisualDuration));
         }
 
         private void DrawSlash(float radius, float arc)

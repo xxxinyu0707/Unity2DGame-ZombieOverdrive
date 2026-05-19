@@ -115,8 +115,8 @@ namespace ZombieOverdrive.Core
                 options.Add(new UpgradeOption
                 {
                     Type = UpgradeType.Repair,
-                    Title = "Emergency Repair",
-                    Description = "All chosen slots are maxed. Recover 35% health."
+                    Title = "紧急修复",
+                    Description = "已选槽位都达到满级。恢复 35% 生命。"
                 });
             }
 
@@ -196,39 +196,39 @@ namespace ZombieOverdrive.Core
         public string BuildStatusText(int level, int kills, float elapsedSeconds)
         {
             StringBuilder builder = new StringBuilder(512);
-            builder.AppendLine("RUN STATUS");
-            builder.AppendLine("Time " + FormatTime(elapsedSeconds) + "   Level " + level + "   Kills " + kills);
+            builder.AppendLine("作战状态");
+            builder.AppendLine("时间 " + FormatTime(elapsedSeconds) + "   等级 " + level + "   击杀 " + kills);
             builder.AppendLine();
-            builder.AppendLine("Active Weapons " + activeSlots.Count + "/" + maxActiveWeapons);
+            builder.AppendLine("主动武器 " + activeSlots.Count + "/" + maxActiveWeapons);
             for (int i = 0; i < maxActiveWeapons; i++)
             {
                 if (i < activeSlots.Count && weapons.TryGetValue(activeSlots[i], out WeaponBase weapon))
                 {
-                    builder.AppendLine("- " + GetWeaponName(activeSlots[i]) + " Lv " + weapon.Level);
+                    builder.AppendLine("- " + GetWeaponName(activeSlots[i]) + " 等级 " + weapon.Level);
                 }
                 else
                 {
-                    builder.AppendLine("- [Empty]");
+                    builder.AppendLine("- [空槽]");
                 }
             }
 
             builder.AppendLine();
-            builder.AppendLine("Passive Skills " + passiveSlots.Count + "/" + maxPassiveSkills);
+            builder.AppendLine("被动技能 " + passiveSlots.Count + "/" + maxPassiveSkills);
             for (int i = 0; i < maxPassiveSkills; i++)
             {
                 if (i < passiveSlots.Count)
                 {
                     UpgradeType passive = passiveSlots[i];
-                    builder.AppendLine("- " + GetPassiveName(passive) + " Lv " + GetPassiveLevel(passive));
+                    builder.AppendLine("- " + GetPassiveName(passive) + " 等级 " + GetPassiveLevel(passive));
                 }
                 else
                 {
-                    builder.AppendLine("- [Empty]");
+                    builder.AppendLine("- [空槽]");
                 }
             }
 
             builder.AppendLine();
-            builder.AppendLine("ESC/Resume to continue. Restart starts a new run.");
+            builder.AppendLine("按 ESC 或继续按钮返回游戏。重新开始会开启新一局。");
             return builder.ToString();
         }
 
@@ -345,13 +345,13 @@ namespace ZombieOverdrive.Core
         private UpgradeOption CreateWeaponOption(WeaponBase weapon)
         {
             int nextLevel = weapon.Level + 1;
-            string verb = weapon.IsUnlocked ? "Upgrade" : "Unlock";
+            string verb = weapon.IsUnlocked ? "升级" : "解锁";
             return new UpgradeOption
             {
                 Type = UpgradeType.Weapon,
                 WeaponId = weapon.Id,
-                Title = verb + ": " + GetWeaponName(weapon.Id),
-                Description = "Lv " + nextLevel + ". " + GetWeaponDescription(weapon.Id)
+                Title = verb + "：" + GetWeaponName(weapon.Id),
+                Description = "等级 " + nextLevel + "。" + GetWeaponDescription(weapon.Id)
             };
         }
 
@@ -361,7 +361,7 @@ namespace ZombieOverdrive.Core
             return new UpgradeOption
             {
                 Type = type,
-                Title = GetPassiveName(type) + " Lv " + nextLevel,
+                Title = GetPassiveName(type) + " 等级 " + nextLevel,
                 Description = GetPassiveDescription(type)
             };
         }
@@ -378,17 +378,17 @@ namespace ZombieOverdrive.Core
             switch (id)
             {
                 case WeaponId.Shotgun:
-                    return "Shotgun";
+                    return "爆裂霰弹枪";
                 case WeaponId.Tesla:
-                    return "Tesla Glove";
+                    return "电磁手套";
                 case WeaponId.Singularity:
-                    return "Singularity Gun";
+                    return "重力黑洞炮";
                 case WeaponId.Lightblade:
-                    return "Lightblade";
+                    return "光刃影切";
                 case WeaponId.Laser:
-                    return "Fission Laser";
+                    return "裂变激光枪";
                 default:
-                    return "Pistol";
+                    return "哨兵手枪";
             }
         }
 
@@ -397,31 +397,31 @@ namespace ZombieOverdrive.Core
             switch (type)
             {
                 case UpgradeType.AmmoBox:
-                    return "Ammo Box";
+                    return "扩容弹药箱";
                 case UpgradeType.Overclock:
-                    return "Overclock";
+                    return "超频处理器";
                 case UpgradeType.Adrenaline:
-                    return "Adrenaline";
+                    return "肾上腺素";
                 case UpgradeType.NanoArmor:
-                    return "Nano Armor";
+                    return "钛合金护甲";
                 case UpgradeType.Propellent:
-                    return "Propellent";
+                    return "高能推进剂";
                 case UpgradeType.GravityCore:
-                    return "Gravity Core";
+                    return "重力核心";
                 case UpgradeType.Magnet:
-                    return "Magnet";
+                    return "超导磁铁";
                 case UpgradeType.HazmatSuit:
-                    return "Hazmat Suit";
+                    return "防化服";
                 case UpgradeType.GreedChip:
-                    return "Greed Chip";
+                    return "贪婪芯片";
                 case UpgradeType.Radar:
-                    return "Radar";
+                    return "战术雷达";
                 case UpgradeType.Defibrillator:
-                    return "Defibrillator";
+                    return "紧急除颤器";
                 case UpgradeType.Radio:
-                    return "Radio";
+                    return "战术无线电";
                 default:
-                    return "Repair";
+                    return "修复";
             }
         }
 
@@ -430,17 +430,17 @@ namespace ZombieOverdrive.Core
             switch (id)
             {
                 case WeaponId.Shotgun:
-                    return "Short-range cone burst with knockback.";
+                    return "近距离扇形爆发，附带击退。";
                 case WeaponId.Tesla:
-                    return "Chains lightning between nearby enemies in your aim direction.";
+                    return "沿瞄准方向锁定敌人，电弧会连锁传导。";
                 case WeaponId.Singularity:
-                    return "Fires a slow gravity orb that pulls and damages crowds.";
+                    return "发射缓慢黑洞球，牵引并伤害尸群。";
                 case WeaponId.Lightblade:
-                    return "Front arc melee slash aimed by the mouse.";
+                    return "向鼠标方向挥出前方扇形近战斩击。";
                 case WeaponId.Laser:
-                    return "Continuous piercing beam in the aim direction.";
+                    return "朝瞄准方向持续发射穿透激光。";
                 default:
-                    return "Reliable aimed bullet weapon.";
+                    return "稳定可靠的瞄准射击武器。";
             }
         }
 
@@ -449,31 +449,31 @@ namespace ZombieOverdrive.Core
             switch (type)
             {
                 case UpgradeType.AmmoBox:
-                    return "Weapon damage +8%, area +5%.";
+                    return "武器伤害 +8%，范围 +5%。";
                 case UpgradeType.Overclock:
-                    return "Attack speed +9%.";
+                    return "攻击速度 +9%。";
                 case UpgradeType.Adrenaline:
-                    return "Move speed +7%.";
+                    return "移动速度 +7%。";
                 case UpgradeType.NanoArmor:
-                    return "Incoming damage -6%.";
+                    return "受到伤害 -6%。";
                 case UpgradeType.Propellent:
-                    return "Projectile speed +12%, bullet pierce +1.";
+                    return "弹体速度 +12%，子弹穿透 +1。";
                 case UpgradeType.GravityCore:
-                    return "Duration effects last +12%.";
+                    return "持续性效果时长 +12%。";
                 case UpgradeType.Magnet:
-                    return "Pickup range +1.25.";
+                    return "拾取范围 +1.25。";
                 case UpgradeType.HazmatSuit:
-                    return "Max health +18, regen +0.35/sec.";
+                    return "生命上限 +18，每秒回复 +0.35。";
                 case UpgradeType.GreedChip:
-                    return "XP gain +8%.";
+                    return "经验获取 +8%。";
                 case UpgradeType.Radar:
-                    return "Crit chance +4%, crit damage +10%.";
+                    return "暴击率 +4%，暴击伤害 +10%。";
                 case UpgradeType.Defibrillator:
-                    return "First pick grants 1 revive; later picks improve level-up healing.";
+                    return "首次选择获得 1 次复活；之后提升升级回血。";
                 case UpgradeType.Radio:
-                    return "Supply drop luck +10%.";
+                    return "补给掉落幸运 +10%。";
                 default:
-                    return "Recover 35% health.";
+                    return "恢复 35% 生命。";
             }
         }
     }

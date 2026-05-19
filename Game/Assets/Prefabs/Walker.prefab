@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 8538326594284707220}
   - component: {fileID: 6011506253408720890}
   - component: {fileID: 5213106245281921248}
+  - component: {fileID: 2705662671784617970}
   - component: {fileID: 4393706342662331457}
   m_Layer: 9
   m_Name: Walker
@@ -202,6 +203,22 @@ MonoBehaviour:
   xpValue: 1
   deathKnockback: 0.1
   isBoss: 0
+--- !u!114 &2705662671784617970
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2590005248674216212}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3346f63e47bf7334f8f5461e2dd8cc0f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  healthySprite: {fileID: 21300000, guid: 524ec12bf3c5f44429da808fadbb270b, type: 3}
+  woundedSprite: {fileID: 21300000, guid: ef6bf3028936ef143bf0e250c334ebb5, type: 3}
+  criticalSprite: {fileID: 21300000, guid: 153d5d843ca3d1b47b69e924fe59a187, type: 3}
+  hitFlashColor: {r: 1, g: 0.42, b: 0.42, a: 1}
 --- !u!114 &4393706342662331457
 MonoBehaviour:
   m_ObjectHideFlags: 0

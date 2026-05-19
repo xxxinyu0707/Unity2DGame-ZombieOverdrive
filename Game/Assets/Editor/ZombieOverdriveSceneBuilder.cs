@@ -39,16 +39,30 @@ public static class ZombieOverdriveSceneBuilder
         Sprite orbSprite = CreateSprite("singularity_orb", new Color(0.45f, 0.2f, 1f, 1f), SpriteShape.Circle);
         Sprite xpSprite = CreateSprite("xp_crystal", new Color(0.25f, 0.55f, 1f, 1f), SpriteShape.Diamond);
         Sprite tileSprite = CreateSprite("ground_tile", new Color(0.12f, 0.14f, 0.16f, 1f), SpriteShape.Square);
+        Sprite swordSprite = CreateSprite("lightblade_sword", new Color(0.75f, 1f, 1f, 1f), SpriteShape.Diamond);
+        Sprite crosshairSprite = CreateSprite("crosshair", new Color(0.9f, 1f, 1f, 1f), SpriteShape.Circle);
+        Sprite walkerWoundedSprite = CreateSprite("walker_wounded", new Color(0.25f, 0.85f, 0.35f, 1f), SpriteShape.Circle);
+        Sprite walkerCriticalSprite = CreateSprite("walker_critical", new Color(0.25f, 0.85f, 0.35f, 1f), SpriteShape.Circle);
+        Sprite runnerWoundedSprite = CreateSprite("runner_wounded", new Color(1f, 0.45f, 0.25f, 1f), SpriteShape.Circle);
+        Sprite runnerCriticalSprite = CreateSprite("runner_critical", new Color(1f, 0.45f, 0.25f, 1f), SpriteShape.Circle);
+        Sprite spitterWoundedSprite = CreateSprite("spitter_wounded", new Color(0.95f, 0.85f, 0.25f, 1f), SpriteShape.Circle);
+        Sprite spitterCriticalSprite = CreateSprite("spitter_critical", new Color(0.95f, 0.85f, 0.25f, 1f), SpriteShape.Circle);
+        Sprite tankerWoundedSprite = CreateSprite("tanker_wounded", new Color(0.55f, 0.6f, 0.65f, 1f), SpriteShape.Circle);
+        Sprite tankerCriticalSprite = CreateSprite("tanker_critical", new Color(0.55f, 0.6f, 0.65f, 1f), SpriteShape.Circle);
+        Sprite bossWoundedSprite = CreateSprite("boss_wounded", new Color(0.9f, 0.15f, 0.25f, 1f), SpriteShape.Circle);
+        Sprite bossCriticalSprite = CreateSprite("boss_critical", new Color(0.9f, 0.15f, 0.25f, 1f), SpriteShape.Circle);
+        Sprite finalBossWoundedSprite = CreateSprite("final_boss_wounded", new Color(0.55f, 0.1f, 0.8f, 1f), SpriteShape.Circle);
+        Sprite finalBossCriticalSprite = CreateSprite("final_boss_critical", new Color(0.55f, 0.1f, 0.8f, 1f), SpriteShape.Circle);
 
         GameObject bulletPrefab = CreateBulletPrefab(bulletSprite, projectileLayer);
         GameObject acidPrefab = CreateAcidPrefab(acidSprite, projectileLayer);
         GameObject orbPrefab = CreateSingularityOrbPrefab(orbSprite, projectileLayer);
-        GameObject walkerPrefab = CreateEnemyPrefab("Walker", walkerSprite, enemyLayer, 0.75f, null);
-        GameObject runnerPrefab = CreateEnemyPrefab("Runner", runnerSprite, enemyLayer, 0.58f, null);
-        GameObject spitterPrefab = CreateEnemyPrefab("Spitter", spitterSprite, enemyLayer, 0.85f, acidPrefab);
-        GameObject tankerPrefab = CreateEnemyPrefab("Tanker", tankerSprite, enemyLayer, 1.25f, null);
-        GameObject mutantBossPrefab = CreateEnemyPrefab("MutantBoss", bossSprite, enemyLayer, 2.1f, null);
-        GameObject finalBossPrefab = CreateEnemyPrefab("FinalBoss", finalBossSprite, enemyLayer, 2.7f, acidPrefab);
+        GameObject walkerPrefab = CreateEnemyPrefab("Walker", walkerSprite, walkerWoundedSprite, walkerCriticalSprite, enemyLayer, 0.75f, null);
+        GameObject runnerPrefab = CreateEnemyPrefab("Runner", runnerSprite, runnerWoundedSprite, runnerCriticalSprite, enemyLayer, 0.58f, null);
+        GameObject spitterPrefab = CreateEnemyPrefab("Spitter", spitterSprite, spitterWoundedSprite, spitterCriticalSprite, enemyLayer, 0.85f, acidPrefab);
+        GameObject tankerPrefab = CreateEnemyPrefab("Tanker", tankerSprite, tankerWoundedSprite, tankerCriticalSprite, enemyLayer, 1.25f, null);
+        GameObject mutantBossPrefab = CreateEnemyPrefab("MutantBoss", bossSprite, bossWoundedSprite, bossCriticalSprite, enemyLayer, 2.1f, null);
+        GameObject finalBossPrefab = CreateEnemyPrefab("FinalBoss", finalBossSprite, finalBossWoundedSprite, finalBossCriticalSprite, enemyLayer, 2.7f, acidPrefab);
         GameObject xpPrefab = CreateExperiencePrefab(xpSprite, pickupLayer);
 
         Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -56,9 +70,10 @@ public static class ZombieOverdriveSceneBuilder
 
         InfiniteGround2D ground = CreateGround(tileSprite);
 
-        GameObject player = CreatePlayer(playerSprite, playerLayer, pickupLayer, bulletPrefab, orbPrefab, enemyLayer);
+        GameObject player = CreatePlayer(playerSprite, playerLayer, pickupLayer, bulletPrefab, orbPrefab, enemyLayer, swordSprite);
         CameraFollow2D cameraFollow = CreateCamera(player.transform);
         ground.SetTarget(player.transform);
+        CreateAimGuide(player.GetComponent<PlayerMovement>(), player.transform, crosshairSprite);
         CreateEventSystem();
 
         GameObject poolsRoot = new GameObject("Pools");
@@ -169,6 +184,7 @@ public static class ZombieOverdriveSceneBuilder
         RequireObject<UpgradePanel>("UpgradePanel");
         RequireObject<PauseMenu>("PauseMenu");
         RequireObject<InfiniteGround2D>("InfiniteGround2D");
+        RequireObject<AimGuide>("AimGuide");
 
         RequireAsset<GameObject>("Assets/Prefabs/Bullet.prefab");
         RequireAsset<GameObject>("Assets/Prefabs/AcidProjectile.prefab");
@@ -306,20 +322,68 @@ public static class ZombieOverdriveSceneBuilder
             case "walker":
                 DrawWalkerSprite(texture);
                 return true;
+            case "walker_wounded":
+                DrawWalkerSprite(texture);
+                DrawDamageOverlay(texture, 1);
+                return true;
+            case "walker_critical":
+                DrawWalkerSprite(texture);
+                DrawDamageOverlay(texture, 2);
+                return true;
             case "runner":
                 DrawRunnerSprite(texture);
+                return true;
+            case "runner_wounded":
+                DrawRunnerSprite(texture);
+                DrawDamageOverlay(texture, 1);
+                return true;
+            case "runner_critical":
+                DrawRunnerSprite(texture);
+                DrawDamageOverlay(texture, 2);
                 return true;
             case "spitter":
                 DrawSpitterSprite(texture);
                 return true;
+            case "spitter_wounded":
+                DrawSpitterSprite(texture);
+                DrawDamageOverlay(texture, 1);
+                return true;
+            case "spitter_critical":
+                DrawSpitterSprite(texture);
+                DrawDamageOverlay(texture, 2);
+                return true;
             case "tanker":
                 DrawTankerSprite(texture);
+                return true;
+            case "tanker_wounded":
+                DrawTankerSprite(texture);
+                DrawDamageOverlay(texture, 1);
+                return true;
+            case "tanker_critical":
+                DrawTankerSprite(texture);
+                DrawDamageOverlay(texture, 2);
                 return true;
             case "boss":
                 DrawBossSprite(texture);
                 return true;
+            case "boss_wounded":
+                DrawBossSprite(texture);
+                DrawDamageOverlay(texture, 1);
+                return true;
+            case "boss_critical":
+                DrawBossSprite(texture);
+                DrawDamageOverlay(texture, 2);
+                return true;
             case "final_boss":
                 DrawFinalBossSprite(texture);
+                return true;
+            case "final_boss_wounded":
+                DrawFinalBossSprite(texture);
+                DrawDamageOverlay(texture, 1);
+                return true;
+            case "final_boss_critical":
+                DrawFinalBossSprite(texture);
+                DrawDamageOverlay(texture, 2);
                 return true;
             case "bullet":
                 DrawBulletSprite(texture);
@@ -336,6 +400,12 @@ public static class ZombieOverdriveSceneBuilder
             case "ground_tile":
                 DrawGroundTileSprite(texture);
                 return true;
+            case "lightblade_sword":
+                DrawSwordSprite(texture);
+                return true;
+            case "crosshair":
+                DrawCrosshairSprite(texture);
+                return true;
             default:
                 return false;
         }
@@ -351,25 +421,27 @@ public static class ZombieOverdriveSceneBuilder
         Color visor = Hex("#101d2a");
         Color metal = Hex("#b6c6d1");
 
-        DrawOval(texture, 14, 9, 42, 12, WithAlpha(Hex("#05070a"), 0.38f));
-        DrawRect(texture, 21, 12, 10, 12, outline);
-        DrawRect(texture, 24, 14, 5, 9, suitDark);
-        DrawRect(texture, 34, 12, 10, 12, outline);
-        DrawRect(texture, 36, 14, 5, 9, suitDark);
-        DrawRect(texture, 18, 22, 28, 24, outline);
-        DrawRect(texture, 22, 25, 20, 19, suit);
-        DrawRect(texture, 25, 38, 12, 4, highlight);
-        DrawRect(texture, 14, 29, 8, 15, outline);
-        DrawRect(texture, 16, 31, 5, 11, suitDark);
-        DrawRect(texture, 43, 28, 8, 15, outline);
-        DrawRect(texture, 45, 30, 5, 11, suitDark);
-        DrawRect(texture, 24, 43, 18, 14, outline);
-        DrawRect(texture, 27, 45, 12, 10, skin);
-        DrawRect(texture, 25, 52, 16, 5, visor);
-        DrawRect(texture, 47, 32, 12, 5, outline);
-        DrawRect(texture, 50, 33, 9, 3, metal);
-        DrawRect(texture, 58, 34, 4, 2, Hex("#ffe66a"));
-        DrawRect(texture, 17, 24, 5, 13, Hex("#0d314f"));
+        DrawOval(texture, 13, 8, 38, 11, WithAlpha(Hex("#05070a"), 0.35f));
+        DrawRect(texture, 23, 10, 8, 10, outline);
+        DrawRect(texture, 25, 12, 5, 7, suitDark);
+        DrawRect(texture, 34, 10, 8, 10, outline);
+        DrawRect(texture, 35, 12, 5, 7, suitDark);
+        DrawRect(texture, 17, 20, 30, 21, outline);
+        DrawRect(texture, 21, 23, 22, 16, suit);
+        DrawRect(texture, 23, 34, 17, 4, highlight);
+        DrawRect(texture, 14, 25, 8, 14, outline);
+        DrawRect(texture, 16, 27, 5, 10, suitDark);
+        DrawRect(texture, 42, 24, 9, 14, outline);
+        DrawRect(texture, 44, 26, 6, 10, suitDark);
+        DrawRect(texture, 20, 38, 24, 20, outline);
+        DrawRect(texture, 23, 41, 18, 15, skin);
+        DrawRect(texture, 22, 51, 20, 5, visor);
+        DrawRect(texture, 26, 44, 4, 3, Hex("#f7d8a8"));
+        DrawRect(texture, 35, 44, 4, 3, Hex("#f7d8a8"));
+        DrawRect(texture, 47, 31, 13, 5, outline);
+        DrawRect(texture, 50, 32, 9, 3, metal);
+        DrawRect(texture, 58, 33, 4, 2, Hex("#ffe66a"));
+        DrawRect(texture, 18, 23, 4, 10, Hex("#0d314f"));
     }
 
     private static void DrawWalkerSprite(Texture2D texture)
@@ -380,25 +452,25 @@ public static class ZombieOverdriveSceneBuilder
         Color cloth = Hex("#354b2e");
         Color wound = Hex("#b63f4c");
 
-        DrawOval(texture, 15, 9, 38, 11, WithAlpha(Hex("#05070a"), 0.34f));
-        DrawRect(texture, 20, 13, 10, 13, outline);
-        DrawRect(texture, 23, 15, 5, 10, dark);
-        DrawRect(texture, 34, 12, 10, 14, outline);
-        DrawRect(texture, 36, 14, 5, 11, dark);
-        DrawRect(texture, 19, 23, 26, 23, outline);
-        DrawRect(texture, 23, 26, 18, 17, skin);
-        DrawRect(texture, 24, 27, 15, 7, cloth);
-        DrawRect(texture, 12, 31, 10, 7, outline);
-        DrawRect(texture, 13, 33, 8, 3, skin);
-        DrawRect(texture, 42, 30, 12, 7, outline);
-        DrawRect(texture, 43, 32, 9, 3, skin);
-        DrawRect(texture, 24, 43, 17, 14, outline);
-        DrawRect(texture, 27, 45, 11, 10, skin);
-        DrawRect(texture, 29, 51, 2, 2, Hex("#f7d95d"));
-        DrawRect(texture, 35, 51, 2, 2, Hex("#f7d95d"));
-        DrawRect(texture, 31, 44, 6, 2, dark);
-        DrawRect(texture, 38, 35, 4, 5, wound);
-        DrawRect(texture, 21, 39, 4, 3, Hex("#84e073"));
+        DrawOval(texture, 14, 8, 38, 11, WithAlpha(Hex("#05070a"), 0.34f));
+        DrawRect(texture, 20, 10, 9, 10, outline);
+        DrawRect(texture, 22, 12, 5, 7, dark);
+        DrawRect(texture, 35, 10, 9, 11, outline);
+        DrawRect(texture, 37, 12, 5, 8, dark);
+        DrawRect(texture, 17, 20, 30, 21, outline);
+        DrawRect(texture, 21, 24, 22, 15, skin);
+        DrawRect(texture, 23, 25, 17, 6, cloth);
+        DrawRect(texture, 12, 27, 10, 8, outline);
+        DrawRect(texture, 14, 29, 8, 4, skin);
+        DrawRect(texture, 43, 27, 12, 8, outline);
+        DrawRect(texture, 44, 29, 9, 4, skin);
+        DrawRect(texture, 21, 39, 22, 19, outline);
+        DrawRect(texture, 24, 42, 16, 14, skin);
+        DrawRect(texture, 27, 51, 3, 2, Hex("#f7d95d"));
+        DrawRect(texture, 35, 51, 3, 2, Hex("#f7d95d"));
+        DrawRect(texture, 30, 44, 7, 2, dark);
+        DrawRect(texture, 38, 34, 4, 5, wound);
+        DrawRect(texture, 22, 36, 4, 3, Hex("#84e073"));
     }
 
     private static void DrawRunnerSprite(Texture2D texture)
@@ -408,23 +480,23 @@ public static class ZombieOverdriveSceneBuilder
         Color dark = Hex("#a73725");
         Color cloth = Hex("#53322b");
 
-        DrawOval(texture, 15, 9, 38, 11, WithAlpha(Hex("#05070a"), 0.32f));
-        DrawRect(texture, 18, 13, 14, 8, outline);
-        DrawRect(texture, 20, 15, 10, 4, dark);
-        DrawRect(texture, 36, 13, 7, 16, outline);
-        DrawRect(texture, 38, 15, 3, 12, dark);
-        DrawRect(texture, 22, 23, 23, 22, outline);
-        DrawRect(texture, 25, 26, 16, 16, skin);
-        DrawRect(texture, 27, 28, 12, 5, cloth);
-        DrawLine(texture, 15, 38, 23, 31, 4, outline);
-        DrawLine(texture, 16, 38, 23, 32, 2, skin);
-        DrawLine(texture, 42, 34, 54, 42, 4, outline);
-        DrawLine(texture, 43, 34, 53, 41, 2, skin);
-        DrawRect(texture, 26, 43, 15, 13, outline);
-        DrawRect(texture, 29, 45, 9, 9, skin);
-        DrawRect(texture, 30, 51, 2, 2, Hex("#ffd45c"));
-        DrawRect(texture, 35, 51, 2, 2, Hex("#ffd45c"));
-        DrawRect(texture, 23, 42, 6, 4, dark);
+        DrawOval(texture, 15, 8, 35, 10, WithAlpha(Hex("#05070a"), 0.32f));
+        DrawRect(texture, 18, 11, 12, 8, outline);
+        DrawRect(texture, 20, 13, 8, 4, dark);
+        DrawRect(texture, 36, 11, 8, 12, outline);
+        DrawRect(texture, 38, 13, 4, 9, dark);
+        DrawRect(texture, 20, 20, 27, 20, outline);
+        DrawRect(texture, 24, 23, 19, 15, skin);
+        DrawRect(texture, 27, 25, 12, 5, cloth);
+        DrawLine(texture, 15, 35, 24, 29, 4, outline);
+        DrawLine(texture, 16, 35, 24, 30, 2, skin);
+        DrawLine(texture, 43, 31, 54, 38, 4, outline);
+        DrawLine(texture, 44, 31, 53, 37, 2, skin);
+        DrawRect(texture, 24, 38, 20, 19, outline);
+        DrawRect(texture, 28, 41, 13, 14, skin);
+        DrawRect(texture, 30, 50, 3, 2, Hex("#ffd45c"));
+        DrawRect(texture, 36, 50, 3, 2, Hex("#ffd45c"));
+        DrawRect(texture, 24, 40, 6, 4, dark);
     }
 
     private static void DrawSpitterSprite(Texture2D texture)
@@ -626,6 +698,56 @@ public static class ZombieOverdriveSceneBuilder
         DrawRect(texture, 5, 37, 2, 2, moss);
         DrawRect(texture, 34, 50, 6, 3, moss);
         DrawRect(texture, 49, 11, 3, 3, moss);
+    }
+
+    private static void DrawSwordSprite(Texture2D texture)
+    {
+        Color outline = Hex("#103042");
+        Color blade = Hex("#bffcff");
+        Color core = Hex("#ffffff");
+        Color hilt = Hex("#24305a");
+        Color grip = Hex("#ffd36b");
+
+        DrawLine(texture, 18, 8, 42, 54, 8, outline);
+        DrawLine(texture, 20, 10, 43, 54, 5, blade);
+        DrawLine(texture, 23, 16, 43, 54, 2, core);
+        DrawRect(texture, 15, 10, 18, 5, hilt);
+        DrawRect(texture, 21, 3, 5, 12, grip);
+        DrawDiamond(texture, 44, 56, 5, blade);
+    }
+
+    private static void DrawCrosshairSprite(Texture2D texture)
+    {
+        Color color = Hex("#d9fbff");
+        Color shadow = WithAlpha(Hex("#0a1d24"), 0.65f);
+
+        DrawRing(texture, 32, 32, 11, 12, shadow);
+        DrawRing(texture, 32, 32, 9, 10, color);
+        DrawRect(texture, 31, 13, 2, 10, color);
+        DrawRect(texture, 31, 41, 2, 10, color);
+        DrawRect(texture, 13, 31, 10, 2, color);
+        DrawRect(texture, 41, 31, 10, 2, color);
+        DrawRect(texture, 31, 31, 2, 2, WithAlpha(color, 0.7f));
+    }
+
+    private static void DrawDamageOverlay(Texture2D texture, int severity)
+    {
+        Color blood = severity >= 2 ? Hex("#7e1020") : Hex("#b82a32");
+        Color darkBlood = Hex("#3c0610");
+        DrawRect(texture, 22, 30, 5, 5, blood);
+        DrawRect(texture, 40, 36, 4, 5, blood);
+        DrawRect(texture, 31, 45, 8, 3, blood);
+
+        if (severity < 2)
+        {
+            return;
+        }
+
+        DrawRect(texture, 25, 50, 4, 3, blood);
+        DrawRect(texture, 43, 27, 5, 4, darkBlood);
+        DrawLine(texture, 20, 23, 27, 19, 2, darkBlood);
+        DrawLine(texture, 35, 40, 45, 46, 2, darkBlood);
+        DrawRect(texture, 16, 35, 3, 3, blood);
     }
 
     private static void DrawFallbackSprite(Texture2D texture, Color color, SpriteShape shape)
@@ -847,7 +969,7 @@ public static class ZombieOverdriveSceneBuilder
         return SavePrefab(orb, "SingularityOrb.prefab");
     }
 
-    private static GameObject CreateEnemyPrefab(string name, Sprite sprite, int layer, float scale, GameObject acidProjectilePrefab)
+    private static GameObject CreateEnemyPrefab(string name, Sprite sprite, Sprite woundedSprite, Sprite criticalSprite, int layer, float scale, GameObject acidProjectilePrefab)
     {
         GameObject enemy = new GameObject(name);
         enemy.layer = layer;
@@ -863,6 +985,8 @@ public static class ZombieOverdriveSceneBuilder
         collider.radius = 0.45f;
         EnemyController controller = enemy.AddComponent<EnemyController>();
         enemy.AddComponent<EnemyHealth>();
+        EnemyDamageVisual damageVisual = enemy.AddComponent<EnemyDamageVisual>();
+        damageVisual.Configure(sprite, woundedSprite, criticalSprite);
         enemy.AddComponent<Poolable>();
         SetLayerMask(controller, "enemyMask", 1 << layer);
         if (acidProjectilePrefab != null)
@@ -897,7 +1021,7 @@ public static class ZombieOverdriveSceneBuilder
         return prefab;
     }
 
-    private static GameObject CreatePlayer(Sprite sprite, int playerLayer, int pickupLayer, GameObject bulletPrefab, GameObject orbPrefab, int enemyLayer)
+    private static GameObject CreatePlayer(Sprite sprite, int playerLayer, int pickupLayer, GameObject bulletPrefab, GameObject orbPrefab, int enemyLayer, Sprite swordSprite)
     {
         GameObject player = new GameObject("Player");
         player.layer = playerLayer;
@@ -934,6 +1058,7 @@ public static class ZombieOverdriveSceneBuilder
         SetLayerMask(singularity, "enemyMask", 1 << enemyLayer);
         LightbladeWeapon lightblade = player.AddComponent<LightbladeWeapon>();
         SetLayerMask(lightblade, "enemyMask", 1 << enemyLayer);
+        SetObjectField(lightblade, "swordSprite", swordSprite);
         LaserWeapon laser = player.AddComponent<LaserWeapon>();
         SetLayerMask(laser, "enemyMask", 1 << enemyLayer);
 
@@ -945,6 +1070,7 @@ public static class ZombieOverdriveSceneBuilder
         GameObject root = new GameObject("Infinite Ground Placeholder");
         InfiniteGround2D infiniteGround = root.AddComponent<InfiniteGround2D>();
         const float tileSize = 36f;
+        SetFloatField(infiniteGround, "tileSize", tileSize);
         for (int y = -1; y <= 1; y++)
         {
             for (int x = -1; x <= 1; x++)
@@ -956,7 +1082,7 @@ public static class ZombieOverdriveSceneBuilder
                 SpriteRenderer renderer = tile.AddComponent<SpriteRenderer>();
                 renderer.sprite = sprite;
                 renderer.sortingOrder = -10;
-                renderer.color = ((x + y) & 1) == 0 ? Color.white : new Color(0.85f, 0.9f, 1f, 1f);
+                renderer.color = Color.white;
             }
         }
 
@@ -976,6 +1102,20 @@ public static class ZombieOverdriveSceneBuilder
         CameraFollow2D follow = cameraObject.AddComponent<CameraFollow2D>();
         follow.SetTarget(player);
         return follow;
+    }
+
+    private static AimGuide CreateAimGuide(PlayerMovement movement, Transform player, Sprite crosshairSprite)
+    {
+        GameObject guideObject = new GameObject("Aim Guide");
+        guideObject.AddComponent<LineRenderer>();
+        AimGuide guide = guideObject.AddComponent<AimGuide>();
+        GameObject crosshairObject = new GameObject("Mouse Crosshair");
+        SpriteRenderer renderer = crosshairObject.AddComponent<SpriteRenderer>();
+        renderer.sprite = crosshairSprite;
+        renderer.sortingOrder = 15;
+        crosshairObject.transform.localScale = Vector3.one * 0.65f;
+        guide.Initialize(movement, player, renderer);
+        return guide;
     }
 
     private static GameObjectPool CreatePool(string name, GameObject prefab, int prewarm, Transform parent)
@@ -1012,9 +1152,9 @@ public static class ZombieOverdriveSceneBuilder
         GameHud hud = hudObject.AddComponent<GameHud>();
 
         Text timer = CreateText(hudObject.transform, "Timer", "10:00", 42, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -20f), new Vector2(220f, 60f));
-        Text health = CreateText(hudObject.transform, "Health Text", "HP", 24, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(24f, -22f), new Vector2(260f, 40f));
-        Text level = CreateText(hudObject.transform, "Level Text", "Lv 1", 24, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(24f, -92f), new Vector2(120f, 36f));
-        Text kills = CreateText(hudObject.transform, "Kills Text", "Kills 0", 24, TextAnchor.UpperRight, new Vector2(1f, 1f), new Vector2(-24f, -22f), new Vector2(220f, 40f));
+        Text health = CreateText(hudObject.transform, "Health Text", "生命", 24, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(24f, -22f), new Vector2(300f, 40f));
+        Text level = CreateText(hudObject.transform, "Level Text", "等级 1", 24, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(24f, -92f), new Vector2(160f, 36f));
+        Text kills = CreateText(hudObject.transform, "Kills Text", "击杀 0", 24, TextAnchor.UpperRight, new Vector2(1f, 1f), new Vector2(-24f, -22f), new Vector2(220f, 40f));
         Text message = CreateText(hudObject.transform, "Message", "", 48, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(900f, 120f));
 
         Slider hpSlider = CreateSlider(hudObject.transform, "Health Bar", new Vector2(0f, 1f), new Vector2(24f, -62f), new Vector2(280f, 22f), new Color(0.85f, 0.1f, 0.12f, 1f));
@@ -1042,7 +1182,7 @@ public static class ZombieOverdriveSceneBuilder
         rect.anchoredPosition = Vector2.zero;
         rect.sizeDelta = new Vector2(980f, 520f);
 
-        CreateText(panel.transform, "Title", "Choose an Upgrade", 42, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -28f), new Vector2(600f, 70f));
+        CreateText(panel.transform, "Title", "选择升级", 42, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -28f), new Vector2(600f, 70f));
 
         UpgradePanel upgradePanel = panel.AddComponent<UpgradePanel>();
         Button[] buttons = new Button[3];
@@ -1067,8 +1207,8 @@ public static class ZombieOverdriveSceneBuilder
             buttonRect.anchoredPosition = new Vector2((i - 1) * 300f, -40f);
             buttonRect.sizeDelta = new Vector2(260f, 300f);
 
-            titles[i] = CreateText(buttonObject.transform, "Title", "Upgrade", 26, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -28f), new Vector2(220f, 70f));
-            descriptions[i] = CreateText(buttonObject.transform, "Description", "Description", 21, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.45f), new Vector2(0f, 0f), new Vector2(220f, 170f));
+            titles[i] = CreateText(buttonObject.transform, "Title", "升级", 26, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -28f), new Vector2(220f, 70f));
+            descriptions[i] = CreateText(buttonObject.transform, "Description", "说明", 21, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.45f), new Vector2(0f, 0f), new Vector2(220f, 170f));
             buttons[i] = button;
         }
 
@@ -1091,11 +1231,11 @@ public static class ZombieOverdriveSceneBuilder
         rect.anchoredPosition = Vector2.zero;
         rect.sizeDelta = new Vector2(760f, 620f);
 
-        CreateText(panel.transform, "Title", "Paused", 44, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -24f), new Vector2(500f, 70f));
+        CreateText(panel.transform, "Title", "暂停", 44, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -24f), new Vector2(500f, 70f));
         Text status = CreateText(panel.transform, "Status", "", 22, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-330f, -100f), new Vector2(660f, 330f));
-        Button resume = CreateMenuButton(panel.transform, "Resume Button", "Resume", new Vector2(-220f, -245f));
-        Button restart = CreateMenuButton(panel.transform, "Restart Button", "Restart", new Vector2(0f, -245f));
-        Button quit = CreateMenuButton(panel.transform, "Quit Button", "Quit", new Vector2(220f, -245f));
+        Button resume = CreateMenuButton(panel.transform, "Resume Button", "继续", new Vector2(-220f, -245f));
+        Button restart = CreateMenuButton(panel.transform, "Restart Button", "重开", new Vector2(0f, -245f));
+        Button quit = CreateMenuButton(panel.transform, "Quit Button", "退出", new Vector2(220f, -245f));
 
         PauseMenu pauseMenu = panel.AddComponent<PauseMenu>();
         SetObjectField(pauseMenu, "statusText", status);
@@ -1221,6 +1361,15 @@ public static class ZombieOverdriveSceneBuilder
         SerializedObject serializedObject = new SerializedObject(target);
         SerializedProperty property = serializedObject.FindProperty(fieldName);
         property.intValue = value;
+        serializedObject.ApplyModifiedPropertiesWithoutUndo();
+        EditorUtility.SetDirty(target);
+    }
+
+    private static void SetFloatField(Object target, string fieldName, float value)
+    {
+        SerializedObject serializedObject = new SerializedObject(target);
+        SerializedProperty property = serializedObject.FindProperty(fieldName);
+        property.floatValue = value;
         serializedObject.ApplyModifiedPropertiesWithoutUndo();
         EditorUtility.SetDirty(target);
     }

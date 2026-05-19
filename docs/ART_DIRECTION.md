@@ -4,12 +4,16 @@
 
 `Zombie Overdrive` uses a compact top-down pixel style. The current asset pass is intentionally project-generated instead of imported from external packs, so it has no third-party art dependency.
 
+The character direction is inspired by chunky top-down zombie roguelites: oversized heads, short bodies, clear silhouettes, low-resolution color blocks, and a slightly playful apocalypse tone. It is a reference direction only; no external sprites are copied.
+
 ## Generated Asset Set
 
 - Player survivor sprite
 - Walker, Runner, Spitter, Tanker enemy sprites
 - Mid boss and final boss sprites
+- Wounded and critical-health variants for all enemy types
 - Bullet, acid projectile, singularity orb, and experience crystal sprites
+- Lightblade sword and mouse crosshair sprites
 - Looping cracked ground tile
 
 ## Pipeline
@@ -28,5 +32,5 @@ The generated textures use point filtering, disabled mipmaps, and transparent al
 
 - Add simple walk/attack animation sheets for player and enemy types.
 - Add weapon icons to the upgrade cards and pause menu.
-- Add impact flashes and pickup sparkle frames.
+- Add pickup sparkle frames.
 - Add a few decorative ground variants, such as rubble, hazard stripes, and cracked asphalt.
