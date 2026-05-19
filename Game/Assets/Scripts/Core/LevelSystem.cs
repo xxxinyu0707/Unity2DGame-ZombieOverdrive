@@ -7,6 +7,7 @@ namespace ZombieOverdrive.Core
     {
         [SerializeField] private int startingLevel = 1;
 
+        private PlayerStats stats;
         private int currentXp;
         private int xpToNextLevel;
 
@@ -22,6 +23,11 @@ namespace ZombieOverdrive.Core
             xpToNextLevel = CalculateRequiredXp(Level);
         }
 
+        public void Initialize(PlayerStats playerStats)
+        {
+            stats = playerStats;
+        }
+
         public void AddExperience(int amount)
         {
             if (amount <= 0)
@@ -29,7 +35,8 @@ namespace ZombieOverdrive.Core
                 return;
             }
 
-            currentXp += amount;
+            float multiplier = stats != null ? stats.xpMultiplier : 1f;
+            currentXp += Mathf.Max(1, Mathf.RoundToInt(amount * multiplier));
             while (currentXp >= xpToNextLevel)
             {
                 currentXp -= xpToNextLevel;
@@ -44,7 +51,22 @@ namespace ZombieOverdrive.Core
 
         public static int CalculateRequiredXp(int level)
         {
-            return Mathf.RoundToInt(10f + level * level * 1.2f + level * 8f);
+            if (level <= 1)
+            {
+                return 4;
+            }
+
+            if (level <= 5)
+            {
+                return 4 + (level - 1) * 3;
+            }
+
+            if (level <= 12)
+            {
+                return Mathf.RoundToInt(18f + (level - 5) * 4.5f);
+            }
+
+            return Mathf.RoundToInt(50f + (level - 12) * 8f + Mathf.Pow(level - 12, 1.35f) * 2.5f);
         }
     }
 }

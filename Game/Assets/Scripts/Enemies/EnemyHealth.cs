@@ -9,6 +9,7 @@ namespace ZombieOverdrive.Enemies
     {
         [SerializeField] private int xpValue = 1;
         [SerializeField] private float deathKnockback = 0.1f;
+        [SerializeField] private bool isBoss;
 
         private Poolable poolable;
         private GameObjectPool xpPool;
@@ -18,6 +19,8 @@ namespace ZombieOverdrive.Enemies
         public static event Action<EnemyHealth> EnemyKilled;
 
         public bool IsAlive => gameObject.activeInHierarchy && currentHealth > 0f;
+        public float CurrentHealth => currentHealth;
+        public float MaxHealth => maxHealth;
 
         private void Awake()
         {
@@ -26,10 +29,16 @@ namespace ZombieOverdrive.Enemies
 
         public void Initialize(float health, int droppedXp, GameObjectPool experiencePool)
         {
+            Initialize(health, droppedXp, experiencePool, false);
+        }
+
+        public void Initialize(float health, int droppedXp, GameObjectPool experiencePool, bool boss)
+        {
             maxHealth = health;
             currentHealth = maxHealth;
             xpValue = droppedXp;
             xpPool = experiencePool;
+            isBoss = boss;
         }
 
         public void TakeDamage(float amount)
@@ -68,11 +77,16 @@ namespace ZombieOverdrive.Enemies
                 return;
             }
 
-            Vector2 offset = UnityEngine.Random.insideUnitCircle * deathKnockback;
-            ExperiencePickup pickup = xpPool.Get<ExperiencePickup>(transform.position + (Vector3)offset, Quaternion.identity);
-            if (pickup != null)
+            int drops = isBoss ? 4 : 1;
+            int valuePerDrop = isBoss ? Mathf.Max(1, xpValue / drops) : xpValue;
+            for (int i = 0; i < drops; i++)
             {
-                pickup.SetValue(xpValue);
+                Vector2 offset = UnityEngine.Random.insideUnitCircle * (isBoss ? 1.2f : deathKnockback);
+                ExperiencePickup pickup = xpPool.Get<ExperiencePickup>(transform.position + (Vector3)offset, Quaternion.identity);
+                if (pickup != null)
+                {
+                    pickup.SetValue(valuePerDrop);
+                }
             }
         }
     }

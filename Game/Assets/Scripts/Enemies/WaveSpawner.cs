@@ -9,7 +9,10 @@ namespace ZombieOverdrive.Enemies
         [Header("Pools")]
         [SerializeField] private GameObjectPool walkerPool;
         [SerializeField] private GameObjectPool runnerPool;
+        [SerializeField] private GameObjectPool spitterPool;
         [SerializeField] private GameObjectPool tankerPool;
+        [SerializeField] private GameObjectPool mutantBossPool;
+        [SerializeField] private GameObjectPool finalBossPool;
         [SerializeField] private GameObjectPool experiencePool;
 
         [Header("Spawn")]
@@ -20,6 +23,9 @@ namespace ZombieOverdrive.Enemies
         private GameManager manager;
         private float spawnTimer;
         private int aliveEnemies;
+        private bool spawnedMidBoss;
+        private bool spawnedFinalBoss;
+        private bool finalBossDefeated;
 
         public void Initialize(GameManager gameManager)
         {
@@ -40,6 +46,13 @@ namespace ZombieOverdrive.Enemies
             }
 
             UpdateWaveSettings(manager.ElapsedSeconds);
+            TrySpawnBoss(manager.ElapsedSeconds);
+
+            if (spawnedFinalBoss)
+            {
+                return;
+            }
+
             spawnTimer -= Time.deltaTime;
             if (spawnTimer <= 0f && aliveEnemies < maxEnemies)
             {
@@ -53,34 +66,44 @@ namespace ZombieOverdrive.Enemies
             if (elapsed < 120f)
             {
                 maxEnemies = 30;
-                spawnInterval = 0.55f;
+                spawnInterval = 0.42f;
             }
             else if (elapsed < 240f)
             {
                 maxEnemies = 60;
-                spawnInterval = 0.38f;
+                spawnInterval = 0.32f;
             }
             else if (elapsed < 360f)
             {
                 maxEnemies = 100;
-                spawnInterval = 0.28f;
+                spawnInterval = 0.24f;
+            }
+            else if (elapsed < 480f)
+            {
+                maxEnemies = 150;
+                spawnInterval = 0.18f;
             }
             else
             {
-                maxEnemies = 150;
-                spawnInterval = 0.2f;
+                maxEnemies = 220;
+                spawnInterval = 0.12f;
             }
         }
 
         private EnemyType ChooseEnemyType(float elapsed)
         {
             float roll = Random.value;
-            if (elapsed >= 360f && roll < 0.12f)
+            if (elapsed >= 360f && roll < 0.16f)
             {
                 return EnemyType.Tanker;
             }
 
-            if (elapsed >= 120f && roll < 0.4f)
+            if (elapsed >= 240f && roll < 0.28f)
+            {
+                return EnemyType.Spitter;
+            }
+
+            if (elapsed >= 120f && roll < 0.45f)
             {
                 return EnemyType.Runner;
             }
@@ -109,9 +132,28 @@ namespace ZombieOverdrive.Enemies
             GetBaseStats(type, out float hp, out float speed, out float damage, out int xp);
 
             enemy.Initialize(manager.Player, type, speed * speedScale, damage);
-            enemy.GetComponent<EnemyHealth>().Initialize(hp * hpScale, xp, experiencePool);
+            bool boss = type == EnemyType.MutantBoss || type == EnemyType.FinalBoss;
+            enemy.GetComponent<EnemyHealth>().Initialize(hp * hpScale, xp, experiencePool, boss);
             aliveEnemies++;
         }
+
+        private void TrySpawnBoss(float elapsed)
+        {
+            if (!spawnedMidBoss && elapsed >= 360f)
+            {
+                spawnedMidBoss = true;
+                SpawnEnemy(EnemyType.MutantBoss);
+            }
+
+            if (!spawnedFinalBoss && elapsed >= 600f)
+            {
+                spawnedFinalBoss = true;
+                aliveEnemies = 0;
+                SpawnEnemy(EnemyType.FinalBoss);
+            }
+        }
+
+        public bool FinalBossDefeated => finalBossDefeated;
 
         private Vector2 GetSpawnPosition()
         {
@@ -130,8 +172,14 @@ namespace ZombieOverdrive.Enemies
             {
                 case EnemyType.Runner:
                     return runnerPool;
+                case EnemyType.Spitter:
+                    return spitterPool;
                 case EnemyType.Tanker:
                     return tankerPool;
+                case EnemyType.MutantBoss:
+                    return mutantBossPool;
+                case EnemyType.FinalBoss:
+                    return finalBossPool;
                 default:
                     return walkerPool;
             }
@@ -142,21 +190,39 @@ namespace ZombieOverdrive.Enemies
             switch (type)
             {
                 case EnemyType.Runner:
-                    hp = 60f;
-                    speed = 3.2f;
-                    damage = 8f;
+                    hp = 36f;
+                    speed = 3.05f;
+                    damage = 5f;
+                    xp = 5;
+                    break;
+                case EnemyType.Spitter:
+                    hp = 72f;
+                    speed = 1.35f;
+                    damage = 7f;
                     xp = 5;
                     break;
                 case EnemyType.Tanker:
-                    hp = 600f;
-                    speed = 1.1f;
-                    damage = 20f;
+                    hp = 420f;
+                    speed = 0.95f;
+                    damage = 14f;
                     xp = 20;
                     break;
+                case EnemyType.MutantBoss:
+                    hp = 2600f;
+                    speed = 1.35f;
+                    damage = 18f;
+                    xp = 120;
+                    break;
+                case EnemyType.FinalBoss:
+                    hp = 10000f;
+                    speed = 1.05f;
+                    damage = 24f;
+                    xp = 400;
+                    break;
                 default:
-                    hp = 100f;
-                    speed = 1.65f;
-                    damage = 10f;
+                    hp = 44f;
+                    speed = 1.35f;
+                    damage = 4f;
                     xp = 1;
                     break;
             }
@@ -165,6 +231,14 @@ namespace ZombieOverdrive.Enemies
         private void OnEnemyKilled(EnemyHealth enemy)
         {
             aliveEnemies = Mathf.Max(0, aliveEnemies - 1);
+            if (enemy != null)
+            {
+                EnemyController controller = enemy.GetComponent<EnemyController>();
+                if (controller != null && controller.Type == EnemyType.FinalBoss)
+                {
+                    finalBossDefeated = true;
+                }
+            }
         }
     }
 }

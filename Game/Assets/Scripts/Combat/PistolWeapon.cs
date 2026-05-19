@@ -1,37 +1,23 @@
 using UnityEngine;
-using ZombieOverdrive.Core;
 using ZombieOverdrive.Utility;
 
 namespace ZombieOverdrive.Combat
 {
-    public class PistolWeapon : MonoBehaviour
+    public class PistolWeapon : WeaponBase
     {
         [SerializeField] private GameObjectPool bulletPool;
         [SerializeField] private Transform muzzle;
-        [SerializeField] private float baseDamage = 30f;
-        [SerializeField] private float baseCooldown = 0.45f;
+        [SerializeField] private float baseDamage = 42f;
+        [SerializeField] private float baseCooldown = 0.36f;
         [SerializeField] private float parallelShotOffset = 0.18f;
 
-        private PlayerStats stats;
-        private PlayerMovement movement;
         private float cooldownTimer;
 
-        public int Level { get; private set; } = 1;
-
-        public void Initialize(PlayerStats playerStats, PlayerMovement playerMovement)
-        {
-            stats = playerStats;
-            movement = playerMovement;
-        }
-
-        public void AddLevel()
-        {
-            Level = Mathf.Min(5, Level + 1);
-        }
+        public override WeaponId Id => WeaponId.Pistol;
 
         private void Update()
         {
-            if (stats == null || movement == null || bulletPool == null)
+            if (Stats == null || Movement == null || bulletPool == null || !IsUnlocked)
             {
                 return;
             }
@@ -40,16 +26,16 @@ namespace ZombieOverdrive.Combat
             if (cooldownTimer <= 0f)
             {
                 Fire();
-                cooldownTimer = baseCooldown / Mathf.Max(0.1f, stats.fireRateMultiplier) * LevelCooldownFactor();
+                cooldownTimer = baseCooldown / FireRateMultiplier * LevelCooldownFactor();
             }
         }
 
         private void Fire()
         {
-            Vector2 direction = movement.AimDirection;
+            Vector2 direction = AimDirection;
             int shots = Level >= 4 ? 2 : 1;
-            int pierces = stats.bulletPierceBonus + (Level >= 5 ? 2 : 0);
-            float damage = baseDamage * stats.damageMultiplier * (1f + (Level - 1) * 0.12f);
+            int pierces = Stats.bulletPierceBonus + (Level >= 5 ? 2 : 0);
+            float damage = RollDamage(baseDamage * (1f + (Level - 1) * 0.16f));
             Vector3 origin = muzzle != null ? muzzle.position : transform.position;
             Vector2 side = new Vector2(-direction.y, direction.x);
 
@@ -65,7 +51,7 @@ namespace ZombieOverdrive.Combat
             Bullet bullet = bulletPool.Get<Bullet>(position, Quaternion.identity);
             if (bullet != null)
             {
-                bullet.Launch(direction, damage, pierces);
+                bullet.Launch(direction, damage, pierces, 0.15f, Stats != null ? Stats.projectileSpeedMultiplier : 1f, false);
             }
         }
 

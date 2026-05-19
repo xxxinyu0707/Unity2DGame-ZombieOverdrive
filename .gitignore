@@ -28,6 +28,7 @@
 # Unity crash/debug output
 sysinfo.txt
 *.stackdump
+unity-*.log
 
 # Unity asset store tools
 [Aa]ssets/AssetStoreTools*

@@ -14,6 +14,8 @@ namespace ZombieOverdrive.Combat
         private Vector2 direction;
         private float timer;
         private int remainingPierces;
+        private float knockback;
+        private bool piercingThroughAll;
 
         public float Damage { get; private set; }
 
@@ -24,17 +26,29 @@ namespace ZombieOverdrive.Combat
 
         public void Launch(Vector2 launchDirection, float damage, int pierces)
         {
+            Launch(launchDirection, damage, pierces, 0f, 1f, false);
+        }
+
+        public void Launch(Vector2 launchDirection, float damage, int pierces, float knockbackForce, float speedMultiplier, bool infinitePierce)
+        {
             direction = launchDirection.sqrMagnitude > 0.001f ? launchDirection.normalized : Vector2.right;
             Damage = damage;
             remainingPierces = pierces;
+            knockback = knockbackForce;
+            piercingThroughAll = infinitePierce;
             timer = lifetime;
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
             transform.rotation = Quaternion.Euler(0f, 0f, angle);
+            transform.localScale = Vector3.one;
+            speedMultiplier = Mathf.Max(0.1f, speedMultiplier);
+            currentSpeed = speed * speedMultiplier;
         }
+
+        private float currentSpeed;
 
         private void Update()
         {
-            transform.position += (Vector3)(direction * speed * Time.deltaTime);
+            transform.position += (Vector3)(direction * currentSpeed * Time.deltaTime);
             timer -= Time.deltaTime;
             if (timer <= 0f)
             {
@@ -51,6 +65,20 @@ namespace ZombieOverdrive.Combat
             }
 
             enemy.TakeDamage(Damage);
+            if (knockback > 0f)
+            {
+                EnemyController controller = other.GetComponent<EnemyController>();
+                if (controller != null)
+                {
+                    controller.ApplyKnockback(direction * knockback);
+                }
+            }
+
+            if (piercingThroughAll)
+            {
+                return;
+            }
+
             remainingPierces--;
             if (remainingPierces < 0)
             {

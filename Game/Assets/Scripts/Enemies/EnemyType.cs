@@ -4,6 +4,9 @@ namespace ZombieOverdrive.Enemies
     {
         Walker,
         Runner,
-        Tanker
+        Spitter,
+        Tanker,
+        MutantBoss,
+        FinalBoss
     }
 }

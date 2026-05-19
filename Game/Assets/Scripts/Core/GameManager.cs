@@ -17,6 +17,7 @@ namespace ZombieOverdrive.Core
         [SerializeField] private LevelSystem levelSystem;
         [SerializeField] private UpgradeSystem upgradeSystem;
         [SerializeField] private PistolWeapon pistolWeapon;
+        [SerializeField] private WeaponBase[] weapons;
         [SerializeField] private WaveSpawner waveSpawner;
         [SerializeField] private GameHud hud;
         [SerializeField] private UpgradePanel upgradePanel;
@@ -40,9 +41,22 @@ namespace ZombieOverdrive.Core
         {
             playerMovement.Initialize(playerStats);
             playerHealth.Initialize(playerStats);
+            levelSystem.Initialize(playerStats);
             playerCollector.Initialize(playerStats, levelSystem);
-            upgradeSystem.Initialize(playerStats, pistolWeapon, playerHealth);
-            pistolWeapon.Initialize(playerStats, playerMovement);
+            if (weapons == null || weapons.Length == 0)
+            {
+                weapons = playerMovement.GetComponents<WeaponBase>();
+            }
+
+            for (int i = 0; i < weapons.Length; i++)
+            {
+                if (weapons[i] != null)
+                {
+                    weapons[i].Initialize(playerStats, playerMovement);
+                }
+            }
+
+            upgradeSystem.Initialize(playerStats, weapons, playerHealth);
             waveSpawner.Initialize(this);
 
             playerHealth.HealthChanged += OnHealthChanged;
@@ -62,6 +76,19 @@ namespace ZombieOverdrive.Core
 
         private void OnDestroy()
         {
+            if (playerHealth != null)
+            {
+                playerHealth.HealthChanged -= OnHealthChanged;
+                playerHealth.Died -= OnPlayerDied;
+            }
+
+            if (levelSystem != null)
+            {
+                levelSystem.ExperienceChanged -= OnExperienceChanged;
+                levelSystem.LevelChanged -= OnLevelChanged;
+                levelSystem.LevelUpAvailable -= OnLevelUpAvailable;
+            }
+
             EnemyHealth.EnemyKilled -= OnEnemyKilled;
         }
 
@@ -86,7 +113,7 @@ namespace ZombieOverdrive.Core
             elapsedSeconds += Time.deltaTime;
             hud.SetTimer(elapsedSeconds, runDurationSeconds);
 
-            if (elapsedSeconds >= runDurationSeconds)
+            if (elapsedSeconds >= runDurationSeconds && waveSpawner != null && waveSpawner.FinalBossDefeated)
             {
                 WinRun();
             }
@@ -126,6 +153,7 @@ namespace ZombieOverdrive.Core
         {
             State = GameState.LevelUp;
             Time.timeScale = 0f;
+            playerHealth.Heal(playerHealth.MaxHealth * playerStats.levelUpHealPercent);
             upgradePanel.Show(upgradeSystem.RollOptions(), ResumeFromUpgrade);
             hud.SetMessage("Level Up");
         }
@@ -153,6 +181,12 @@ namespace ZombieOverdrive.Core
 
         private void OnPlayerDied()
         {
+            if (playerHealth.TryConsumeRevive())
+            {
+                hud.SetMessage("Revived");
+                return;
+            }
+
             State = GameState.GameOver;
             Time.timeScale = 0f;
             hud.SetMessage("Game Over - Press R to restart");

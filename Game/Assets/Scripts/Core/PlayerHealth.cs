@@ -30,6 +30,11 @@ namespace ZombieOverdrive.Core
             {
                 invincibleTimer -= Time.deltaTime;
             }
+
+            if (stats != null && stats.healthRegenPerSecond > 0f && currentHealth > 0f && currentHealth < MaxHealth)
+            {
+                Heal(stats.healthRegenPerSecond * Time.deltaTime);
+            }
         }
 
         public void TakeDamage(float amount)
@@ -39,7 +44,8 @@ namespace ZombieOverdrive.Core
                 return;
             }
 
-            currentHealth = Mathf.Max(0f, currentHealth - amount);
+            float finalDamage = stats != null ? stats.ModifyIncomingDamage(amount) : amount;
+            currentHealth = Mathf.Max(0f, currentHealth - finalDamage);
             invincibleTimer = invincibleSecondsAfterHit;
             HealthChanged?.Invoke(currentHealth, MaxHealth);
 
@@ -58,6 +64,20 @@ namespace ZombieOverdrive.Core
 
             currentHealth = Mathf.Min(MaxHealth, currentHealth + amount);
             HealthChanged?.Invoke(currentHealth, MaxHealth);
+        }
+
+        public bool TryConsumeRevive()
+        {
+            if (stats == null || stats.reviveCharges <= 0)
+            {
+                return false;
+            }
+
+            stats.reviveCharges--;
+            currentHealth = MaxHealth * 0.45f;
+            invincibleTimer = 2.5f;
+            HealthChanged?.Invoke(currentHealth, MaxHealth);
+            return true;
         }
     }
 }

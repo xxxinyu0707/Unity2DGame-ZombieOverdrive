@@ -30,15 +30,24 @@ public static class ZombieOverdriveSceneBuilder
         Sprite playerSprite = CreateSprite("player", new Color(0.25f, 0.75f, 1f, 1f), SpriteShape.Circle);
         Sprite walkerSprite = CreateSprite("walker", new Color(0.25f, 0.85f, 0.35f, 1f), SpriteShape.Circle);
         Sprite runnerSprite = CreateSprite("runner", new Color(1f, 0.45f, 0.25f, 1f), SpriteShape.Circle);
+        Sprite spitterSprite = CreateSprite("spitter", new Color(0.95f, 0.85f, 0.25f, 1f), SpriteShape.Circle);
         Sprite tankerSprite = CreateSprite("tanker", new Color(0.55f, 0.6f, 0.65f, 1f), SpriteShape.Circle);
+        Sprite bossSprite = CreateSprite("boss", new Color(0.9f, 0.15f, 0.25f, 1f), SpriteShape.Circle);
         Sprite bulletSprite = CreateSprite("bullet", new Color(1f, 0.9f, 0.25f, 1f), SpriteShape.Diamond);
+        Sprite acidSprite = CreateSprite("acid", new Color(0.65f, 1f, 0.2f, 1f), SpriteShape.Diamond);
+        Sprite orbSprite = CreateSprite("singularity_orb", new Color(0.45f, 0.2f, 1f, 1f), SpriteShape.Circle);
         Sprite xpSprite = CreateSprite("xp_crystal", new Color(0.25f, 0.55f, 1f, 1f), SpriteShape.Diamond);
         Sprite tileSprite = CreateSprite("ground_tile", new Color(0.12f, 0.14f, 0.16f, 1f), SpriteShape.Square);
 
         GameObject bulletPrefab = CreateBulletPrefab(bulletSprite, projectileLayer);
-        GameObject walkerPrefab = CreateEnemyPrefab("Walker", walkerSprite, enemyLayer, 0.9f);
-        GameObject runnerPrefab = CreateEnemyPrefab("Runner", runnerSprite, enemyLayer, 0.65f);
-        GameObject tankerPrefab = CreateEnemyPrefab("Tanker", tankerSprite, enemyLayer, 1.35f);
+        GameObject acidPrefab = CreateAcidPrefab(acidSprite, projectileLayer);
+        GameObject orbPrefab = CreateSingularityOrbPrefab(orbSprite, projectileLayer);
+        GameObject walkerPrefab = CreateEnemyPrefab("Walker", walkerSprite, enemyLayer, 0.75f, null);
+        GameObject runnerPrefab = CreateEnemyPrefab("Runner", runnerSprite, enemyLayer, 0.58f, null);
+        GameObject spitterPrefab = CreateEnemyPrefab("Spitter", spitterSprite, enemyLayer, 0.85f, acidPrefab);
+        GameObject tankerPrefab = CreateEnemyPrefab("Tanker", tankerSprite, enemyLayer, 1.25f, null);
+        GameObject mutantBossPrefab = CreateEnemyPrefab("MutantBoss", bossSprite, enemyLayer, 2.1f, null);
+        GameObject finalBossPrefab = CreateEnemyPrefab("FinalBoss", bossSprite, enemyLayer, 2.7f, acidPrefab);
         GameObject xpPrefab = CreateExperiencePrefab(xpSprite, pickupLayer);
 
         Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -46,7 +55,7 @@ public static class ZombieOverdriveSceneBuilder
 
         CreateGround(tileSprite);
 
-        GameObject player = CreatePlayer(playerSprite, playerLayer, pickupLayer, bulletPrefab);
+        GameObject player = CreatePlayer(playerSprite, playerLayer, pickupLayer, bulletPrefab, orbPrefab, enemyLayer);
         CameraFollow2D cameraFollow = CreateCamera(player.transform);
         CreateEventSystem();
 
@@ -54,11 +63,16 @@ public static class ZombieOverdriveSceneBuilder
         GameObjectPool bulletPool = CreatePool("Bullet Pool", bulletPrefab, 80, poolsRoot.transform);
         GameObjectPool walkerPool = CreatePool("Walker Pool", walkerPrefab, 80, poolsRoot.transform);
         GameObjectPool runnerPool = CreatePool("Runner Pool", runnerPrefab, 50, poolsRoot.transform);
-        GameObjectPool tankerPool = CreatePool("Tanker Pool", tankerPrefab, 10, poolsRoot.transform);
-        GameObjectPool xpPool = CreatePool("Experience Pool", xpPrefab, 150, poolsRoot.transform);
+        GameObjectPool spitterPool = CreatePool("Spitter Pool", spitterPrefab, 35, poolsRoot.transform);
+        GameObjectPool tankerPool = CreatePool("Tanker Pool", tankerPrefab, 16, poolsRoot.transform);
+        GameObjectPool mutantBossPool = CreatePool("Mutant Boss Pool", mutantBossPrefab, 1, poolsRoot.transform);
+        GameObjectPool finalBossPool = CreatePool("Final Boss Pool", finalBossPrefab, 1, poolsRoot.transform);
+        GameObjectPool xpPool = CreatePool("Experience Pool", xpPrefab, 220, poolsRoot.transform);
 
         PistolWeapon pistol = player.GetComponent<PistolWeapon>();
         SetObjectField(pistol, "bulletPool", bulletPool);
+        ShotgunWeapon shotgun = player.GetComponent<ShotgunWeapon>();
+        SetObjectField(shotgun, "bulletPool", bulletPool);
 
         GameObject managers = new GameObject("Game Systems");
         LevelSystem levelSystem = player.GetComponent<LevelSystem>();
@@ -71,7 +85,10 @@ public static class ZombieOverdriveSceneBuilder
 
         SetObjectField(waveSpawner, "walkerPool", walkerPool);
         SetObjectField(waveSpawner, "runnerPool", runnerPool);
+        SetObjectField(waveSpawner, "spitterPool", spitterPool);
         SetObjectField(waveSpawner, "tankerPool", tankerPool);
+        SetObjectField(waveSpawner, "mutantBossPool", mutantBossPool);
+        SetObjectField(waveSpawner, "finalBossPool", finalBossPool);
         SetObjectField(waveSpawner, "experiencePool", xpPool);
 
         Canvas canvas = CreateCanvas();
@@ -84,6 +101,7 @@ public static class ZombieOverdriveSceneBuilder
         SetObjectField(gameManager, "levelSystem", levelSystem);
         SetObjectField(gameManager, "upgradeSystem", upgradeSystem);
         SetObjectField(gameManager, "pistolWeapon", pistol);
+        SetArrayField(gameManager, "weapons", player.GetComponents<WeaponBase>());
         SetObjectField(gameManager, "waveSpawner", waveSpawner);
         SetObjectField(gameManager, "hud", hud);
         SetObjectField(gameManager, "upgradePanel", upgradePanel);
@@ -137,14 +155,24 @@ public static class ZombieOverdriveSceneBuilder
         RequireObject<PlayerMovement>("PlayerMovement");
         RequireObject<PlayerHealth>("PlayerHealth");
         RequireObject<PistolWeapon>("PistolWeapon");
+        RequireObject<ShotgunWeapon>("ShotgunWeapon");
+        RequireObject<TeslaWeapon>("TeslaWeapon");
+        RequireObject<SingularityWeapon>("SingularityWeapon");
+        RequireObject<LightbladeWeapon>("LightbladeWeapon");
+        RequireObject<LaserWeapon>("LaserWeapon");
         RequireObject<WaveSpawner>("WaveSpawner");
         RequireObject<GameHud>("GameHud");
         RequireObject<UpgradePanel>("UpgradePanel");
 
         RequireAsset<GameObject>("Assets/Prefabs/Bullet.prefab");
+        RequireAsset<GameObject>("Assets/Prefabs/AcidProjectile.prefab");
+        RequireAsset<GameObject>("Assets/Prefabs/SingularityOrb.prefab");
         RequireAsset<GameObject>("Assets/Prefabs/Walker.prefab");
         RequireAsset<GameObject>("Assets/Prefabs/Runner.prefab");
+        RequireAsset<GameObject>("Assets/Prefabs/Spitter.prefab");
         RequireAsset<GameObject>("Assets/Prefabs/Tanker.prefab");
+        RequireAsset<GameObject>("Assets/Prefabs/MutantBoss.prefab");
+        RequireAsset<GameObject>("Assets/Prefabs/FinalBoss.prefab");
         RequireAsset<GameObject>("Assets/Prefabs/ExperienceCrystal.prefab");
 
         bool sceneInBuild = false;
@@ -289,7 +317,37 @@ public static class ZombieOverdriveSceneBuilder
         return SavePrefab(bullet, "Bullet.prefab");
     }
 
-    private static GameObject CreateEnemyPrefab(string name, Sprite sprite, int layer, float scale)
+    private static GameObject CreateAcidPrefab(Sprite sprite, int layer)
+    {
+        GameObject acid = new GameObject("Acid Projectile");
+        acid.layer = layer;
+        SpriteRenderer renderer = acid.AddComponent<SpriteRenderer>();
+        renderer.sprite = sprite;
+        renderer.sortingOrder = 7;
+        acid.transform.localScale = new Vector3(0.3f, 0.3f, 1f);
+        CircleCollider2D collider = acid.AddComponent<CircleCollider2D>();
+        collider.isTrigger = true;
+        collider.radius = 0.35f;
+        acid.AddComponent<AcidProjectile>();
+        return SavePrefab(acid, "AcidProjectile.prefab");
+    }
+
+    private static GameObject CreateSingularityOrbPrefab(Sprite sprite, int layer)
+    {
+        GameObject orb = new GameObject("Singularity Orb");
+        orb.layer = layer;
+        SpriteRenderer renderer = orb.AddComponent<SpriteRenderer>();
+        renderer.sprite = sprite;
+        renderer.sortingOrder = 6;
+        orb.transform.localScale = new Vector3(0.75f, 0.75f, 1f);
+        CircleCollider2D collider = orb.AddComponent<CircleCollider2D>();
+        collider.isTrigger = true;
+        collider.radius = 0.55f;
+        orb.AddComponent<SingularityOrb>();
+        return SavePrefab(orb, "SingularityOrb.prefab");
+    }
+
+    private static GameObject CreateEnemyPrefab(string name, Sprite sprite, int layer, float scale, GameObject acidProjectilePrefab)
     {
         GameObject enemy = new GameObject(name);
         enemy.layer = layer;
@@ -307,6 +365,11 @@ public static class ZombieOverdriveSceneBuilder
         enemy.AddComponent<EnemyHealth>();
         enemy.AddComponent<Poolable>();
         SetLayerMask(controller, "enemyMask", 1 << layer);
+        if (acidProjectilePrefab != null)
+        {
+            SetObjectField(controller, "acidProjectilePrefab", acidProjectilePrefab);
+        }
+
         return SavePrefab(enemy, name + ".prefab");
     }
 
@@ -334,7 +397,7 @@ public static class ZombieOverdriveSceneBuilder
         return prefab;
     }
 
-    private static GameObject CreatePlayer(Sprite sprite, int playerLayer, int pickupLayer, GameObject bulletPrefab)
+    private static GameObject CreatePlayer(Sprite sprite, int playerLayer, int pickupLayer, GameObject bulletPrefab, GameObject orbPrefab, int enemyLayer)
     {
         GameObject player = new GameObject("Player");
         player.layer = playerLayer;
@@ -362,6 +425,17 @@ public static class ZombieOverdriveSceneBuilder
 
         PistolWeapon pistol = player.AddComponent<PistolWeapon>();
         SetObjectField(pistol, "muzzle", muzzle.transform);
+        ShotgunWeapon shotgun = player.AddComponent<ShotgunWeapon>();
+        SetObjectField(shotgun, "muzzle", muzzle.transform);
+        TeslaWeapon tesla = player.AddComponent<TeslaWeapon>();
+        SetLayerMask(tesla, "enemyMask", 1 << enemyLayer);
+        SingularityWeapon singularity = player.AddComponent<SingularityWeapon>();
+        SetObjectField(singularity, "orbPrefab", orbPrefab);
+        SetLayerMask(singularity, "enemyMask", 1 << enemyLayer);
+        LightbladeWeapon lightblade = player.AddComponent<LightbladeWeapon>();
+        SetLayerMask(lightblade, "enemyMask", 1 << enemyLayer);
+        LaserWeapon laser = player.AddComponent<LaserWeapon>();
+        SetLayerMask(laser, "enemyMask", 1 << enemyLayer);
 
         return player;
     }

@@ -7,9 +7,9 @@
 - [x] Add Git LFS attributes for large assets
 - [x] Add environment check script
 - [x] Install Tuanjie Hub
-- [ ] Install Tuanjie Engine
-- [ ] Create Tuanjie/Unity project in `Game/`
-- [ ] Configure Visible Meta Files and Force Text
+- [x] Install Tuanjie Engine
+- [x] Create Tuanjie/Unity project in `Game/`
+- [x] Configure Visible Meta Files and Force Text
 
 ## Phase 1: Prototype
 
@@ -25,11 +25,14 @@
 
 ## Phase 2: Game Feel
 
-- [ ] Add placeholder art
+- [x] Add placeholder art
+- [x] Tune early damage, enemy damage, XP curve, and level-up healing
+- [x] Add six first-pass weapons
+- [x] Add Spitter and simplified boss enemies
 - [ ] Add UI polish
 - [ ] Add sound effects
-- [ ] Add enemy or obstacle
-- [ ] Add restart and pause flow
+- [ ] Add destructible crates and temporary recovery items
+- [x] Add restart and pause flow
 
 ## Phase 3: Submission
 

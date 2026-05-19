@@ -33,7 +33,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.65, y: 0.65, z: 0.65}
+  m_LocalScale: {x: 0.58, y: 0.58, z: 0.58}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -166,6 +166,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   xpValue: 1
   deathKnockback: 0.1
+  isBoss: 0
 --- !u!114 &4291973511215605679
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -185,6 +186,7 @@ MonoBehaviour:
   enemyMask:
     serializedVersion: 2
     m_Bits: 512
+  acidProjectilePrefab: {fileID: 0}
 --- !u!114 &8199559021794356418
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -199,6 +201,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   xpValue: 1
   deathKnockback: 0.1
+  isBoss: 0
 --- !u!114 &177097833363962740
 MonoBehaviour:
   m_ObjectHideFlags: 0

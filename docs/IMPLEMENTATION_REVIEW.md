@@ -55,19 +55,21 @@ Implemented scaffold:
 - Bullet, enemy, XP crystal prefabs
 - Object pooling
 - Player movement and health
-- Pistol weapon
-- Enemy chase behavior
-- Wave spawner
+- Pistol, shotgun, tesla, singularity, lightblade, and laser first-pass weapons
+- Walker, Runner, Spitter, Tanker, mid boss, and final boss first-pass enemies
+- Faster early XP curve and level-up healing
+- Time-based wave spawner with simplified boss timing
 - XP collection and level-up options
+- 12 passive upgrade hooks represented as stat modifiers
 - HUD and upgrade panel
 
 ## Recommended Next Additions
 
-1. Add shotgun as the second weapon.
-2. Add enemy hit flash and death burst feedback.
-3. Add audio placeholders for shooting, hit, pickup, level up.
-4. Add a simple main menu and run result screen.
-5. Add a proper 10-minute timeline with mid-run and final boss.
+1. Add enemy hit flash, death burst, and clearer weapon VFX.
+2. Add audio placeholders for shooting, hit, pickup, level up.
+3. Add boss telegraphs and more distinct boss attack patterns.
+4. Add destructible crates with healing, attract orb, and screen clear drops.
+5. Add a simple main menu and run result screen.
 6. Add save data for permanent upgrades.
 
 ## Missing Design Details To Clarify Later
