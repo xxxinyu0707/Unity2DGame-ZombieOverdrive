@@ -13,6 +13,9 @@ namespace ZombieOverdrive.Combat
         [SerializeField] private float armDistance = 0.22f;
 
         private Poolable poolable;
+        private SpriteRenderer spriteRenderer;
+        private Vector3 defaultScale;
+        private Color defaultColor = Color.white;
         private Vector3 startPosition;
         private Vector2 direction;
         private float timer;
@@ -23,6 +26,8 @@ namespace ZombieOverdrive.Combat
         private int splitCount;
         private float splitAngle;
         private float splitDamageMultiplier;
+        private Color splitTint;
+        private Vector2 splitScale;
         private bool splitOnFirstEnemyHit;
         private bool hasSplit;
         private bool burstOnHit;
@@ -42,6 +47,12 @@ namespace ZombieOverdrive.Combat
         private void Awake()
         {
             poolable = GetComponent<Poolable>();
+            spriteRenderer = GetComponent<SpriteRenderer>();
+            defaultScale = transform.localScale;
+            if (spriteRenderer != null)
+            {
+                defaultColor = spriteRenderer.color;
+            }
         }
 
         public void Launch(Vector2 launchDirection, float damage, int pierces)
@@ -61,6 +72,8 @@ namespace ZombieOverdrive.Combat
             splitCount = 0;
             splitAngle = 0f;
             splitDamageMultiplier = 0f;
+            splitTint = new Color(0.6f, 0.95f, 1f, 1f);
+            splitScale = new Vector2(0.18f, 0.12f);
             splitOnFirstEnemyHit = false;
             hasSplit = false;
             burstOnHit = false;
@@ -77,18 +90,44 @@ namespace ZombieOverdrive.Combat
             timer = lifetime;
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
             transform.rotation = Quaternion.Euler(0f, 0f, angle);
-            transform.localScale = Vector3.one;
+            transform.localScale = defaultScale;
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.color = defaultColor;
+            }
+
             speedMultiplier = Mathf.Max(0.1f, speedMultiplier);
             currentSpeed = speed * speedMultiplier;
         }
 
         public void ConfigureSplit(GameObjectPool pool, int count, float angleDegrees, float damageMultiplier)
         {
+            ConfigureSplit(pool, count, angleDegrees, damageMultiplier, new Color(0.6f, 0.95f, 1f, 1f), new Vector2(0.18f, 0.12f));
+        }
+
+        public void ConfigureSplit(GameObjectPool pool, int count, float angleDegrees, float damageMultiplier, Color childTint, Vector2 childScale)
+        {
             sourcePool = pool;
             splitCount = Mathf.Max(0, count);
             splitAngle = Mathf.Max(0f, angleDegrees);
             splitDamageMultiplier = Mathf.Max(0f, damageMultiplier);
+            splitTint = childTint;
+            splitScale = new Vector2(Mathf.Max(0.05f, childScale.x), Mathf.Max(0.05f, childScale.y));
             splitOnFirstEnemyHit = sourcePool != null && splitCount > 0 && splitDamageMultiplier > 0f;
+        }
+
+        public void ConfigureVisual(Color tint, Vector2 scale, float rotationOffsetDegrees = 0f)
+        {
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.color = tint;
+            }
+
+            transform.localScale = new Vector3(Mathf.Max(0.05f, scale.x), Mathf.Max(0.05f, scale.y), 1f);
+            if (Mathf.Abs(rotationOffsetDegrees) > 0.01f)
+            {
+                transform.rotation *= Quaternion.Euler(0f, 0f, rotationOffsetDegrees);
+            }
         }
 
         public void ConfigureBurst(float radius, float damageMultiplier, LayerMask mask)
@@ -199,6 +238,7 @@ namespace ZombieOverdrive.Combat
                 if (split != null)
                 {
                     split.Launch(Rotate(direction, angle), Damage * splitDamageMultiplier, 0, knockback * 0.45f, Mathf.Max(0.8f, currentSpeed / speed), false);
+                    split.ConfigureVisual(splitTint, splitScale, Random.Range(-18f, 18f));
                 }
             }
         }

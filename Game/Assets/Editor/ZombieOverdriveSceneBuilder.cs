@@ -288,6 +288,7 @@ public static class ZombieOverdriveSceneBuilder
         RequireObject<GameHud>("GameHud");
         RequireObject<MainMenuPanel>("MainMenuPanel");
         RequireObject<UpgradePanel>("UpgradePanel");
+        RequireUpgradePanelReferences();
         RequireObject<PauseMenu>("PauseMenu");
         RequireObject<RunResultPanel>("RunResultPanel");
         RequireObject<UpgradeIconLibrary>("UpgradeIconLibrary");
@@ -357,6 +358,18 @@ public static class ZombieOverdriveSceneBuilder
 
         RequireSerializedReference(spawner, "cratePool");
         RequireSerializedReference(spawner, "resourcePickupPool");
+    }
+
+    private static void RequireUpgradePanelReferences()
+    {
+        UpgradePanel panel = Object.FindObjectOfType<UpgradePanel>(true);
+        if (panel == null)
+        {
+            throw new System.InvalidOperationException("Missing scene object: UpgradePanel");
+        }
+
+        RequireSerializedReference(panel, "rerollButton");
+        RequireSerializedReference(panel, "rerollText");
     }
 
     private static void RequireSerializedReference(Object target, string fieldName)
@@ -1909,6 +1922,10 @@ public static class ZombieOverdriveSceneBuilder
         Text[] titles = new Text[3];
         Text[] descriptions = new Text[3];
         Text[] hints = new Text[3];
+        Button reroll = CreateMenuButton(panel.transform, "Reroll", "刷新词条 3/3", new Vector2(0f, -238f));
+        RectTransform rerollRect = reroll.GetComponent<RectTransform>();
+        rerollRect.sizeDelta = new Vector2(220f, 48f);
+        Text rerollLabel = reroll.GetComponentInChildren<Text>();
 
         for (int i = 0; i < 3; i++)
         {
@@ -1952,6 +1969,8 @@ public static class ZombieOverdriveSceneBuilder
         SetArrayField(upgradePanel, "titleTexts", titles);
         SetArrayField(upgradePanel, "descriptionTexts", descriptions);
         SetArrayField(upgradePanel, "hintTexts", hints);
+        SetObjectField(upgradePanel, "rerollButton", reroll);
+        SetObjectField(upgradePanel, "rerollText", rerollLabel);
         SetObjectField(upgradePanel, "iconLibrary", iconLibrary);
         panel.SetActive(false);
         return upgradePanel;

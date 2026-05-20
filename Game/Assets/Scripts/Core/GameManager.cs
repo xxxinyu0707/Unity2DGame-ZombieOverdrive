@@ -265,9 +265,23 @@ namespace ZombieOverdrive.Core
             State = GameState.LevelUp;
             Time.timeScale = 0f;
             playerHealth.Heal(playerHealth.MaxHealth * playerStats.levelUpHealPercent);
-            upgradePanel.Show(upgradeSystem.RollOptions(), ResumeFromUpgrade);
+            upgradePanel.Show(upgradeSystem.RollOptions(), ResumeFromUpgrade, RerollUpgradeOptions, upgradeSystem.RerollsRemaining);
             hud.SetMessage("升级");
             GameAudio.Play(GameSound.LevelUp, 0.85f);
+        }
+
+        private void RerollUpgradeOptions()
+        {
+            if (State != GameState.LevelUp || upgradeSystem == null || upgradePanel == null)
+            {
+                return;
+            }
+
+            if (upgradeSystem.TrySpendReroll(out var options))
+            {
+                upgradePanel.Refresh(options, upgradeSystem.RerollsRemaining);
+                GameAudio.Play(GameSound.Menu, 0.55f);
+            }
         }
 
         private void OnHealthChanged(float current, float max)

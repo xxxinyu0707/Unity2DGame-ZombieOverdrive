@@ -14,16 +14,23 @@ namespace ZombieOverdrive.UI
         [SerializeField] private Text[] titleTexts;
         [SerializeField] private Text[] descriptionTexts;
         [SerializeField] private Text[] hintTexts;
+        [SerializeField] private Button rerollButton;
+        [SerializeField] private Text rerollText;
         [SerializeField] private UpgradeIconLibrary iconLibrary;
 
         private Action<UpgradeOption> onSelected;
+        private Action onReroll;
         private List<UpgradeOption> currentOptions;
+        private int currentRerollsRemaining;
 
-        public void Show(List<UpgradeOption> options, Action<UpgradeOption> selectedCallback)
+        public void Show(List<UpgradeOption> options, Action<UpgradeOption> selectedCallback, Action rerollCallback, int rerollsRemaining)
         {
             currentOptions = options;
             onSelected = selectedCallback;
+            onReroll = rerollCallback;
+            currentRerollsRemaining = rerollsRemaining;
             gameObject.SetActive(true);
+            RefreshRerollButton();
 
             for (int i = 0; i < optionButtons.Length; i++)
             {
@@ -62,6 +69,11 @@ namespace ZombieOverdrive.UI
             }
         }
 
+        public void Refresh(List<UpgradeOption> options, int rerollsRemaining)
+        {
+            Show(options, onSelected, onReroll, rerollsRemaining);
+        }
+
         public void Hide()
         {
             gameObject.SetActive(false);
@@ -75,6 +87,29 @@ namespace ZombieOverdrive.UI
             }
 
             onSelected?.Invoke(currentOptions[index]);
+        }
+
+        private void RefreshRerollButton()
+        {
+            if (rerollButton == null)
+            {
+                return;
+            }
+
+            rerollButton.onClick.RemoveAllListeners();
+            bool canReroll = onReroll != null && currentRerollsRemaining > 0;
+            rerollButton.interactable = canReroll;
+            if (rerollText != null)
+            {
+                rerollText.text = currentRerollsRemaining > 0
+                    ? "刷新词条 " + currentRerollsRemaining + "/3"
+                    : "刷新已用完";
+            }
+
+            if (canReroll)
+            {
+                rerollButton.onClick.AddListener(() => onReroll?.Invoke());
+            }
         }
     }
 }

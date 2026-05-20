@@ -61,6 +61,10 @@ namespace ZombieOverdrive.Combat
                     float damage = RollDamage(baseDamage * (1f + (Level - 1) * 0.08f) * (IsEvolved ? 1.08f : 1f));
                     float knockback = IsEvolved ? 1.1f : Level >= 4 ? 0.72f : 0.45f;
                     bullet.Launch(direction, damage, pierces, knockback, Stats.projectileSpeedMultiplier * (IsEvolved ? 0.95f : 0.8f), false);
+                    bullet.ConfigureVisual(
+                        IsEvolved ? new Color(1f, 0.28f, 0.12f, 1f) : new Color(1f, 0.58f, 0.18f, 1f),
+                        IsEvolved ? new Vector2(0.34f, 0.26f) : new Vector2(0.24f, 0.2f),
+                        Random.Range(-16f, 16f));
                     if (Level >= 3)
                     {
                         bullet.ConfigureFirePatch(IsEvolved ? 0.9f : 0.48f, damage * (IsEvolved ? 1.45f : 0.95f), IsEvolved ? 2.4f : 1.2f, enemyMask);

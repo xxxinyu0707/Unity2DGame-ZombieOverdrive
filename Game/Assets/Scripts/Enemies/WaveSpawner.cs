@@ -157,7 +157,12 @@ namespace ZombieOverdrive.Enemies
             }
 
             float elapsedMinutes = manager.ElapsedSeconds / 60f;
-            float hpScale = Mathf.Pow(1f + 0.28f * elapsedMinutes, 1.55f);
+            float hpScale = Mathf.Pow(1f + 0.24f * elapsedMinutes, 1.5f);
+            if (manager.ElapsedSeconds >= 300f)
+            {
+                hpScale *= 1f + (manager.ElapsedSeconds - 300f) / 300f * 0.32f;
+            }
+
             float speedScale = Mathf.Pow(1f + 0.085f * elapsedMinutes, 0.55f);
             float damageScale = 1f + elapsedMinutes * 0.08f;
             GetBaseStats(type, out float hp, out float speed, out float damage, out int xp);

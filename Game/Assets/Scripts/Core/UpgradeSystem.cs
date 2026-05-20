@@ -41,6 +41,7 @@ namespace ZombieOverdrive.Core
         [SerializeField] private int optionsPerLevel = 3;
         [SerializeField] private int maxActiveWeapons = 3;
         [SerializeField] private int maxPassiveSkills = 3;
+        [SerializeField] private int rerollsPerRun = 3;
 
         private readonly List<UpgradeType> passivePool = new List<UpgradeType>
         {
@@ -67,6 +68,7 @@ namespace ZombieOverdrive.Core
 
         private PlayerStats stats;
         private PlayerHealth health;
+        private int rerollsRemaining;
 
         public void Initialize(PlayerStats playerStats, IEnumerable<WeaponBase> weaponComponents, PlayerHealth playerHealth)
         {
@@ -78,6 +80,7 @@ namespace ZombieOverdrive.Core
             passiveLevels.Clear();
             fusedPassives.Clear();
             evolvedWeapons.Clear();
+            rerollsRemaining = Mathf.Max(0, rerollsPerRun);
 
             foreach (WeaponBase weapon in weaponComponents)
             {
@@ -133,6 +136,19 @@ namespace ZombieOverdrive.Core
             AddConsolationOptions(options);
 
             return options;
+        }
+
+        public bool TrySpendReroll(out List<UpgradeOption> options)
+        {
+            options = null;
+            if (rerollsRemaining <= 0)
+            {
+                return false;
+            }
+
+            rerollsRemaining--;
+            options = RollOptions();
+            return true;
         }
 
         public void Apply(UpgradeOption option)
@@ -240,7 +256,7 @@ namespace ZombieOverdrive.Core
             {
                 state = "已完成";
             }
-            else if (IsWeaponUnlocked(id) && GetWeaponLevel(id) >= 5 && GetPassiveLevel(GetEvolutionPassive(id)) > 0)
+            else if (IsWeaponUnlocked(id) && GetWeaponLevel(id) >= 5 && GetPassiveLevel(GetEvolutionPassive(id)) >= 5)
             {
                 state = "可进化";
             }
@@ -461,7 +477,7 @@ namespace ZombieOverdrive.Core
         {
             return weapon != null
                 && weapon.Level >= 5
-                && GetPassiveLevel(GetEvolutionPassive(id)) > 0
+                && GetPassiveLevel(GetEvolutionPassive(id)) >= 5
                 && !evolvedWeapons.Contains(id);
         }
 
@@ -488,7 +504,7 @@ namespace ZombieOverdrive.Core
                 Type = UpgradeType.Evolution,
                 WeaponId = weapon.Id,
                 Title = "超进化：" + GetEvolutionName(weapon.Id),
-                Description = GetWeaponName(weapon.Id) + " 已满级，并拥有 " + GetPassiveName(GetEvolutionPassive(weapon.Id)) + "。选择后获得强化形态。",
+                Description = GetWeaponName(weapon.Id) + " 与 " + GetPassiveName(GetEvolutionPassive(weapon.Id)) + " 均已满级。选择后获得超进化形态。",
                 Highlight = true,
                 Hint = "觉醒组合已完成",
                 IconId = GetEvolutionIconId(weapon.Id)
@@ -532,6 +548,8 @@ namespace ZombieOverdrive.Core
 
         public int MaxPassiveSkills => maxPassiveSkills;
 
+        public int RerollsRemaining => rerollsRemaining;
+
         public int GetPassiveSkillLevel(UpgradeType type)
         {
             return GetPassiveLevel(type);
@@ -540,7 +558,7 @@ namespace ZombieOverdrive.Core
         public string GetEvolutionReadyText(WeaponId id)
         {
             bool weaponReady = GetWeaponLevel(id) >= 5;
-            bool passiveReady = GetPassiveLevel(GetEvolutionPassive(id)) > 0;
+            bool passiveReady = GetPassiveLevel(GetEvolutionPassive(id)) >= 5;
             if (evolvedWeapons.Contains(id))
             {
                 return "已完成，搭配被动已融合";
@@ -551,7 +569,7 @@ namespace ZombieOverdrive.Core
                 return "可超进化";
             }
 
-            return "需要武器 5 级 + 对应被动";
+            return "需要武器 5 级 + 对应被动 5 级";
         }
 
         private bool HasMatchingEvolutionPassive(WeaponId id)
@@ -576,11 +594,16 @@ namespace ZombieOverdrive.Core
         {
             UpgradeType passive = GetEvolutionPassive(id);
             string hint = "超进化搭配：" + GetPassiveName(passive);
-            if (GetPassiveLevel(passive) > 0 && GetWeaponLevel(id) < 5)
+            int passiveLevel = GetPassiveLevel(passive);
+            if (passiveLevel > 0 && passiveLevel < 5)
             {
-                hint += " 已拥有，武器升到 5 级即可觉醒";
+                hint += " " + passiveLevel + "/5";
             }
-            else if (GetPassiveLevel(passive) == 0)
+            else if (passiveLevel >= 5 && GetWeaponLevel(id) < 5)
+            {
+                hint += " 被动已满级，武器升到 5 级即可觉醒";
+            }
+            else if (passiveLevel == 0)
             {
                 hint += " 未拥有";
             }
