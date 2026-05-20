@@ -31,6 +31,7 @@ namespace ZombieOverdrive.UI
             onReroll = rerollCallback;
             currentRerollsRemaining = rerollsRemaining;
             gameObject.SetActive(true);
+            UIFontProvider.ApplyToChildren(gameObject);
             EnsureLayout();
             RefreshRerollButton();
 
@@ -211,6 +212,7 @@ namespace ZombieOverdrive.UI
         private static void ConfigureText(Text text, int fontSize, int minSize, int maxSize, TextAnchor alignment)
         {
             text.fontSize = fontSize;
+            UIFontProvider.ApplyTo(text);
             text.alignment = alignment;
             text.supportRichText = true;
             text.horizontalOverflow = HorizontalWrapMode.Wrap;

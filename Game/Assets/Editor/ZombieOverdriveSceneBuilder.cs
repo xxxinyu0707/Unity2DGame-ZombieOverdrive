@@ -2137,7 +2137,7 @@ public static class ZombieOverdriveSceneBuilder
         GameObject textObject = new GameObject(name);
         textObject.transform.SetParent(parent, false);
         Text uiText = textObject.AddComponent<Text>();
-        uiText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        uiText.font = UIFontProvider.Font;
         uiText.text = text;
         uiText.fontSize = fontSize;
         uiText.color = Color.white;

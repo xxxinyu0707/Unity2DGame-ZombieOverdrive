@@ -19,6 +19,7 @@ namespace ZombieOverdrive.UI
 
         private void Start()
         {
+            UIFontProvider.ApplyToChildren(gameObject);
             if (healthSlider != null)
             {
                 targetHealth = healthSlider.value;

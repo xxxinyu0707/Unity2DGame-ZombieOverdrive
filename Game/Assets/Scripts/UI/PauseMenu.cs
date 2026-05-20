@@ -22,6 +22,7 @@ namespace ZombieOverdrive.UI
 
         public void Initialize(Action resume, Action restart, Action quit)
         {
+            UIFontProvider.ApplyToChildren(gameObject);
             onResume = resume;
             onRestart = restart;
             onQuit = quit;
@@ -280,7 +281,7 @@ namespace ZombieOverdrive.UI
                 titleObject.transform.SetParent(parent, false);
                 rect = titleObject.GetComponent<RectTransform>();
                 text = titleObject.GetComponent<Text>();
-                text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                text.font = UIFontProvider.Font;
                 text.color = Color.white;
                 text.alignment = TextAnchor.UpperLeft;
             }

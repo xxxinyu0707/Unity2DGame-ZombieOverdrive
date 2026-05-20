@@ -27,6 +27,7 @@ namespace ZombieOverdrive.UI
 
         public void Initialize(Action start, Action quit)
         {
+            UIFontProvider.ApplyToChildren(gameObject);
             onStart = start;
             onQuit = quit;
 
