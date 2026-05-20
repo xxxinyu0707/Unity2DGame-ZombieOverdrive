@@ -35,6 +35,10 @@ namespace ZombieOverdrive.Audio
             source.spatialBlend = 0f;
             source.volume = 0.55f;
             BuildClips();
+            if (GetComponent<MusicManager>() == null)
+            {
+                gameObject.AddComponent<MusicManager>();
+            }
         }
 
         public static void Play(GameSound sound, float volume = 1f)

@@ -143,6 +143,7 @@ public static class ZombieOverdriveSceneBuilder
         WaveSpawner waveSpawner = managers.AddComponent<WaveSpawner>();
         CrateSpawner crateSpawner = managers.AddComponent<CrateSpawner>();
         GameAudio gameAudio = managers.AddComponent<GameAudio>();
+        managers.AddComponent<MusicManager>();
         GameManager gameManager = managers.AddComponent<GameManager>();
 
         SetObjectField(waveSpawner, "walkerPool", walkerPool);
@@ -285,6 +286,7 @@ public static class ZombieOverdriveSceneBuilder
         RequireObject<CrateSpawner>("CrateSpawner");
         RequireCrateSpawnerReferences();
         RequireObject<GameAudio>("GameAudio");
+        RequireObject<MusicManager>("MusicManager");
         RequireObject<GameHud>("GameHud");
         RequireObject<MainMenuPanel>("MainMenuPanel");
         RequireObject<UpgradePanel>("UpgradePanel");
