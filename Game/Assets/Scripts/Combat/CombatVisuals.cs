@@ -5,6 +5,7 @@ namespace ZombieOverdrive.Combat
     public static class CombatVisuals
     {
         private static Sprite diamondSprite;
+        private static Sprite discSprite;
 
         public static void SpawnMuzzleFlash(Vector3 position, Vector2 direction, Color color, float size = 0.35f)
         {
@@ -93,8 +94,53 @@ namespace ZombieOverdrive.Combat
 
         public static void SpawnExplosion(Vector3 position, Color color, float radius, float seconds)
         {
-            SpawnRing(position, color, radius, seconds);
-            SpawnRing(position, new Color(color.r, color.g, color.b, Mathf.Min(color.a * 0.45f, 0.45f)), radius * 0.55f, seconds * 0.85f);
+            SpawnSoftBurst(position, color, radius, seconds, 10, true);
+        }
+
+        public static void SpawnCrateBreak(Vector3 position)
+        {
+            SpawnSoftBurst(position, new Color(1f, 0.72f, 0.28f, 0.85f), 0.9f, 0.22f, 12, true);
+        }
+
+        public static void SpawnBombBlast(Vector3 position, float radius)
+        {
+            SpawnSoftBurst(position, new Color(1f, 0.82f, 0.18f, 0.78f), radius, 0.34f, 22, true);
+            SpawnSoftBurst(position, new Color(1f, 0.25f, 0.08f, 0.52f), radius * 0.58f, 0.24f, 14, false);
+        }
+
+        public static void SpawnSoftBurst(Vector3 position, Color color, float radius, float seconds, int particleCount, bool shards)
+        {
+            GameObject root = new GameObject("Soft Burst");
+            root.transform.position = position;
+            Object.Destroy(root, seconds);
+
+            SpriteRenderer core = CreateDiscRenderer(root.transform, "Burst Core", color, radius * 0.9f, 0f, 12);
+            FadeAndExpand fade = core.gameObject.AddComponent<FadeAndExpand>();
+            fade.Initialize(core, color, radius * 1.25f, seconds, 0.52f);
+
+            for (int i = 0; i < particleCount; i++)
+            {
+                float angle = i * Mathf.PI * 2f / particleCount + Random.Range(-0.18f, 0.18f);
+                float distance = Random.Range(radius * 0.12f, radius * 0.95f);
+                float size = Random.Range(radius * 0.035f, radius * 0.095f);
+                Color particleColor = new Color(
+                    Mathf.Clamp01(color.r + Random.Range(-0.08f, 0.08f)),
+                    Mathf.Clamp01(color.g + Random.Range(-0.12f, 0.12f)),
+                    Mathf.Clamp01(color.b + Random.Range(-0.08f, 0.08f)),
+                    Random.Range(0.36f, 0.82f));
+
+                SpriteRenderer particle = CreateDiscRenderer(root.transform, shards ? "Burst Shard" : "Burst Puff", particleColor, size, 0.02f + i * 0.001f, 13);
+                Vector3 offset = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0f) * distance;
+                particle.transform.localPosition = offset;
+                particle.transform.rotation = Quaternion.Euler(0f, 0f, angle * Mathf.Rad2Deg + Random.Range(-35f, 35f));
+                if (shards)
+                {
+                    particle.transform.localScale = new Vector3(size * Random.Range(0.55f, 0.85f), size * Random.Range(1.4f, 2.4f), 1f);
+                }
+
+                FadeAndDrift drift = particle.gameObject.AddComponent<FadeAndDrift>();
+                drift.Initialize(particle, particleColor, offset.normalized * Random.Range(radius * 0.75f, radius * 1.55f), seconds * Random.Range(0.68f, 1f), shards ? Random.Range(120f, 260f) : Random.Range(-35f, 35f));
+            }
         }
 
         private static Sprite CreateDiamondSprite()
@@ -121,6 +167,114 @@ namespace ZombieOverdrive.Combat
             texture.Apply(false);
             diamondSprite = Sprite.Create(texture, new Rect(0f, 0f, size, size), new Vector2(0.5f, 0.5f), 16f);
             return diamondSprite;
+        }
+
+        private static SpriteRenderer CreateDiscRenderer(Transform parent, string name, Color color, float size, float zOffset, int sortingOrder)
+        {
+            GameObject visual = new GameObject(name);
+            visual.transform.SetParent(parent, false);
+            visual.transform.localPosition = new Vector3(0f, 0f, zOffset);
+            visual.transform.localScale = Vector3.one * size;
+            SpriteRenderer renderer = visual.AddComponent<SpriteRenderer>();
+            renderer.sprite = CreateDiscSprite();
+            renderer.color = color;
+            renderer.sortingOrder = sortingOrder;
+            return renderer;
+        }
+
+        private static Sprite CreateDiscSprite()
+        {
+            if (discSprite != null)
+            {
+                return discSprite;
+            }
+
+            const int size = 24;
+            float center = (size - 1) * 0.5f;
+            Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            Color clear = new Color(0f, 0f, 0f, 0f);
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = (x - center) / center;
+                    float dy = (y - center) / center;
+                    float distance = Mathf.Sqrt(dx * dx + dy * dy);
+                    float alpha = Mathf.Clamp01((1f - distance) * 1.55f);
+                    texture.SetPixel(x, y, distance <= 1f ? new Color(1f, 1f, 1f, alpha) : clear);
+                }
+            }
+
+            texture.filterMode = FilterMode.Point;
+            texture.Apply(false);
+            discSprite = Sprite.Create(texture, new Rect(0f, 0f, size, size), new Vector2(0.5f, 0.5f), size);
+            return discSprite;
+        }
+
+        private sealed class FadeAndExpand : MonoBehaviour
+        {
+            private SpriteRenderer target;
+            private Color color;
+            private float targetSize;
+            private float duration;
+            private float startScale;
+            private float age;
+
+            public void Initialize(SpriteRenderer renderer, Color initialColor, float finalSize, float seconds, float alphaScale)
+            {
+                target = renderer;
+                color = new Color(initialColor.r, initialColor.g, initialColor.b, initialColor.a * alphaScale);
+                targetSize = finalSize;
+                duration = Mathf.Max(0.03f, seconds);
+                startScale = renderer.transform.localScale.x;
+            }
+
+            private void Update()
+            {
+                if (target == null)
+                {
+                    return;
+                }
+
+                age += Time.deltaTime;
+                float t = Mathf.Clamp01(age / duration);
+                float scale = Mathf.Lerp(startScale, targetSize, Mathf.SmoothStep(0f, 1f, t));
+                target.transform.localScale = Vector3.one * scale;
+                target.color = new Color(color.r, color.g, color.b, color.a * (1f - t));
+            }
+        }
+
+        private sealed class FadeAndDrift : MonoBehaviour
+        {
+            private SpriteRenderer target;
+            private Color color;
+            private Vector3 velocity;
+            private float duration;
+            private float spin;
+            private float age;
+
+            public void Initialize(SpriteRenderer renderer, Color initialColor, Vector3 driftVelocity, float seconds, float spinSpeed)
+            {
+                target = renderer;
+                color = initialColor;
+                velocity = driftVelocity;
+                duration = Mathf.Max(0.03f, seconds);
+                spin = spinSpeed;
+            }
+
+            private void Update()
+            {
+                if (target == null)
+                {
+                    return;
+                }
+
+                age += Time.deltaTime;
+                float t = Mathf.Clamp01(age / duration);
+                target.transform.localPosition += velocity * Time.deltaTime * (1f - t * 0.6f);
+                target.transform.Rotate(0f, 0f, spin * Time.deltaTime);
+                target.color = new Color(color.r, color.g, color.b, color.a * (1f - t));
+            }
         }
     }
 }

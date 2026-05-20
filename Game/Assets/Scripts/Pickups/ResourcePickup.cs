@@ -123,7 +123,7 @@ namespace ZombieOverdrive.Pickups
                 }
             }
 
-            CombatVisuals.SpawnRing(transform.position, new Color(1f, 0.85f, 0.25f, 0.9f), 4.5f, 0.22f);
+            CombatVisuals.SpawnBombBlast(transform.position, 4.5f);
         }
 
         private void Release()

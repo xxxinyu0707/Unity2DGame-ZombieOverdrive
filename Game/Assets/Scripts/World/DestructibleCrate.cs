@@ -1,5 +1,6 @@
 using UnityEngine;
 using ZombieOverdrive.Audio;
+using ZombieOverdrive.Combat;
 using ZombieOverdrive.Pickups;
 using ZombieOverdrive.Utility;
 
@@ -45,7 +46,7 @@ namespace ZombieOverdrive.World
         {
             DropReward();
             GameAudio.Play(GameSound.CrateBreak, 0.75f);
-            ZombieOverdrive.Combat.CombatVisuals.SpawnRing(transform.position, new Color(1f, 0.75f, 0.3f, 0.75f), 0.8f, 0.16f);
+            CombatVisuals.SpawnCrateBreak(transform.position);
             if (poolable != null)
             {
                 poolable.Release();
