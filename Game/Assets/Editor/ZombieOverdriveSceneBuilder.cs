@@ -286,7 +286,6 @@ public static class ZombieOverdriveSceneBuilder
         RequireObject<CrateSpawner>("CrateSpawner");
         RequireCrateSpawnerReferences();
         RequireObject<GameAudio>("GameAudio");
-        RequireObject<MusicManager>("MusicManager");
         RequireObject<GameHud>("GameHud");
         RequireObject<MainMenuPanel>("MainMenuPanel");
         RequireObject<UpgradePanel>("UpgradePanel");
