@@ -12,7 +12,7 @@ namespace ZombieOverdrive.Core
         public float projectileSpeedMultiplier = 1f;
         public float areaMultiplier = 1f;
         public float durationMultiplier = 1f;
-        public float magnetRange = 3.5f;
+        public float magnetRange = 2.75f;
         public float damageReduction;
         public float healthRegenPerSecond;
         public float xpMultiplier = 1f;

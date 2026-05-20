@@ -193,7 +193,7 @@ namespace ZombieOverdrive.Core
                     break;
                 case UpgradeType.Magnet:
                     AddPassiveLevel(option.Type);
-                    stats.AddMagnetRange(0.95f);
+                    stats.AddMagnetRange(0.55f);
                     break;
                 case UpgradeType.HazmatSuit:
                     AddPassiveLevel(option.Type);
@@ -843,7 +843,7 @@ namespace ZombieOverdrive.Core
                 case UpgradeType.GravityCore:
                     return "持续性效果时长 +10%。";
                 case UpgradeType.Magnet:
-                    return "拾取范围 +0.95。";
+                    return "拾取范围 +0.55。";
                 case UpgradeType.HazmatSuit:
                     return "生命上限 +16，每秒回复 +0.28。";
                 case UpgradeType.GreedChip:

@@ -77,7 +77,7 @@ namespace ZombieOverdrive.Core
             stats.AddMaxHealth(GetTalentLevel(MetaTalent.Vitality) * 12f);
             stats.AddMoveSpeed(GetTalentLevel(MetaTalent.Mobility) * 0.055f);
             stats.AddDamage(GetTalentLevel(MetaTalent.Power) * 0.06f);
-            stats.AddMagnetRange(GetTalentLevel(MetaTalent.Magnet) * 0.55f);
+            stats.AddMagnetRange(GetTalentLevel(MetaTalent.Magnet) * 0.32f);
             stats.AddGoldGain(GetTalentLevel(MetaTalent.Greed) * 0.1f);
 
             int secondChance = GetTalentLevel(MetaTalent.SecondChance);
@@ -121,7 +121,7 @@ namespace ZombieOverdrive.Core
                 case MetaTalent.Power:
                     return "全武器伤害每级 +6%。";
                 case MetaTalent.Magnet:
-                    return "初始拾取范围每级提升。";
+                    return "初始拾取范围每级小幅提升。";
                 case MetaTalent.Greed:
                     return "局内金币收益每级 +10%。";
                 case MetaTalent.SecondChance:
