@@ -63,12 +63,16 @@ namespace ZombieOverdrive.Combat
 
             for (int i = 0; i < maxTargets && current != null; i++)
             {
-                float damage = RollDamage(baseDamage * (1f + (Level - 1) * 0.16f) * (i == 0 && Level >= 2 ? 1.24f : 1f) * (IsEvolved ? 1.38f : 1f));
+                float damage = RollDamage(baseDamage * (1f + (Level - 1) * 0.16f) * (i == 0 && Level >= 2 ? 1.35f : 1f) * (IsEvolved ? 1.48f : 1f));
                 current.TakeDamage(damage);
                 EnemyController controller = current.GetComponent<EnemyController>();
                 if (controller != null)
                 {
                     controller.ApplySlow(IsEvolved ? 0.65f : Level >= 3 ? 0.5f : 0.25f, IsEvolved ? 1.15f : 0.75f);
+                    if (Level >= 3 && Random.value < (IsEvolved ? 0.45f : 0.15f))
+                    {
+                        controller.ApplyStun(IsEvolved ? 0.42f : 0.22f);
+                    }
                 }
 
                 DrawArc(origin, current.transform.position, IsEvolved);
@@ -78,7 +82,7 @@ namespace ZombieOverdrive.Combat
                     CombatVisuals.SpawnRing(current.transform.position, new Color(0.36f, 0.95f, 1f, 0.38f), 0.32f + i * 0.018f, 0.1f);
                 }
 
-                if (IsEvolved && Random.value < 0.75f)
+                if ((IsEvolved || Level >= 4) && Random.value < (IsEvolved ? 0.82f : 0.3f))
                 {
                     EnemyHealth fork = FindNearestEnemy(current.transform.position, chainRadius * AreaMultiplier * 1.15f, struck, false);
                     if (fork != null)
@@ -93,8 +97,32 @@ namespace ZombieOverdrive.Combat
                     }
                 }
 
+                if (Level >= 5 && !current.IsAlive)
+                {
+                    ChainBurst(current.transform.position, damage * (IsEvolved ? 0.85f : 0.45f));
+                }
+
                 origin = current.transform.position;
                 current = FindNearestEnemy(origin, chainRadius * AreaMultiplier * (IsEvolved ? 1.25f : 1f), struck, false);
+            }
+        }
+
+        private void ChainBurst(Vector3 center, float damage)
+        {
+            CombatVisuals.SpawnExplosion(center, new Color(0.35f, 0.95f, 1f, 0.55f), IsEvolved ? 0.82f : 0.48f, 0.12f);
+            int count = Physics2D.OverlapCircleNonAlloc(center, IsEvolved ? 1.25f : 0.75f, hits, enemyMask);
+            for (int i = 0; i < count; i++)
+            {
+                EnemyHealth enemy = hits[i].GetComponent<EnemyHealth>();
+                if (enemy != null && enemy.IsAlive)
+                {
+                    enemy.TakeDamage(damage);
+                    EnemyController controller = enemy.GetComponent<EnemyController>();
+                    if (controller != null)
+                    {
+                        controller.ApplySlow(0.35f, 0.5f);
+                    }
+                }
             }
         }
 

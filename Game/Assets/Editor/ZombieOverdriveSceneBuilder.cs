@@ -1647,8 +1647,10 @@ public static class ZombieOverdriveSceneBuilder
 
         PistolWeapon pistol = player.AddComponent<PistolWeapon>();
         SetObjectField(pistol, "muzzle", muzzle.transform);
+        SetLayerMask(pistol, "enemyMask", weaponTargetMask);
         ShotgunWeapon shotgun = player.AddComponent<ShotgunWeapon>();
         SetObjectField(shotgun, "muzzle", muzzle.transform);
+        SetLayerMask(shotgun, "enemyMask", weaponTargetMask);
         TeslaWeapon tesla = player.AddComponent<TeslaWeapon>();
         SetLayerMask(tesla, "enemyMask", weaponTargetMask);
         SingularityWeapon singularity = player.AddComponent<SingularityWeapon>();

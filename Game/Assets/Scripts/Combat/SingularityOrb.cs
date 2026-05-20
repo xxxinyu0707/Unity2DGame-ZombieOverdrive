@@ -20,6 +20,10 @@ namespace ZombieOverdrive.Combat
         private LayerMask enemyMask;
         private LineRenderer ring;
         private bool evolved;
+        private float maxHealthPercentDamage;
+        private bool absorbProjectiles;
+        private bool collapseOnEnd;
+        private bool ending;
 
         public void Launch(Vector2 launchDirection, float orbDamage, float pullRadius, float pullForce, float lifetime, LayerMask mask)
         {
@@ -27,6 +31,11 @@ namespace ZombieOverdrive.Combat
         }
 
         public void Launch(Vector2 launchDirection, float orbDamage, float pullRadius, float pullForce, float lifetime, LayerMask mask, bool evolvedOrb)
+        {
+            Launch(launchDirection, orbDamage, pullRadius, pullForce, lifetime, mask, evolvedOrb, 0f, false, false);
+        }
+
+        public void Launch(Vector2 launchDirection, float orbDamage, float pullRadius, float pullForce, float lifetime, LayerMask mask, bool evolvedOrb, float percentDamage, bool absorbBullets, bool collapse)
         {
             direction = launchDirection.sqrMagnitude > 0.001f ? launchDirection.normalized : Vector2.right;
             damage = orbDamage;
@@ -36,6 +45,10 @@ namespace ZombieOverdrive.Combat
             tickTimer = 0f;
             enemyMask = mask;
             evolved = evolvedOrb;
+            maxHealthPercentDamage = Mathf.Max(0f, percentDamage);
+            absorbProjectiles = absorbBullets;
+            collapseOnEnd = collapse;
+            ending = false;
             gameObject.SetActive(true);
             EnsureRing();
             UpdateRingShape();
@@ -56,7 +69,7 @@ namespace ZombieOverdrive.Combat
 
             if (timer <= 0f)
             {
-                Destroy(gameObject);
+                EndOrb();
             }
         }
 
@@ -114,7 +127,8 @@ namespace ZombieOverdrive.Combat
                     continue;
                 }
 
-                enemy.TakeDamage(damage);
+                float percentDamage = maxHealthPercentDamage > 0f ? enemy.MaxHealth * maxHealthPercentDamage : 0f;
+                enemy.TakeDamage(damage + percentDamage);
                 EnemyController controller = Hits[i].GetComponent<EnemyController>();
                 if (controller != null)
                 {
@@ -127,10 +141,54 @@ namespace ZombieOverdrive.Combat
                 }
             }
 
+            if (absorbProjectiles)
+            {
+                AbsorbProjectiles();
+            }
+
             if (evolved)
             {
                 CombatVisuals.SpawnRing(transform.position, new Color(0.8f, 0.35f, 1f, 0.28f), radius * 0.42f, 0.08f);
             }
+        }
+
+        private void AbsorbProjectiles()
+        {
+            Collider2D[] nearby = Physics2D.OverlapCircleAll(transform.position, radius);
+            for (int i = 0; i < nearby.Length; i++)
+            {
+                AcidProjectile acid = nearby[i].GetComponent<AcidProjectile>();
+                if (acid != null)
+                {
+                    Destroy(acid.gameObject);
+                    CombatVisuals.SpawnRing(acid.transform.position, new Color(0.55f, 1f, 0.35f, 0.35f), 0.22f, 0.08f);
+                }
+            }
+        }
+
+        private void EndOrb()
+        {
+            if (ending)
+            {
+                return;
+            }
+
+            ending = true;
+            if (collapseOnEnd)
+            {
+                CombatVisuals.SpawnExplosion(transform.position, new Color(0.85f, 0.35f, 1f, 0.75f), radius * 0.8f, 0.18f);
+                int count = Physics2D.OverlapCircleNonAlloc(transform.position, radius * 1.05f, Hits, enemyMask);
+                for (int i = 0; i < count; i++)
+                {
+                    EnemyHealth enemy = Hits[i].GetComponent<EnemyHealth>();
+                    if (enemy != null && enemy.IsAlive)
+                    {
+                        enemy.TakeDamage(damage * 3f + enemy.MaxHealth * 0.025f);
+                    }
+                }
+            }
+
+            Destroy(gameObject);
         }
     }
 }

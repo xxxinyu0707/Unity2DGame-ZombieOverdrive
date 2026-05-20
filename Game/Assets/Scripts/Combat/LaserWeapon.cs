@@ -17,6 +17,8 @@ namespace ZombieOverdrive.Combat
         private LineRenderer leftSplitBeam;
         private LineRenderer rightSplitBeam;
         private LineRenderer[] pulseLines;
+        private readonly System.Collections.Generic.Dictionary<EnemyHealth, float> heatStacks = new System.Collections.Generic.Dictionary<EnemyHealth, float>();
+        private readonly System.Collections.Generic.List<EnemyHealth> cleanupBuffer = new System.Collections.Generic.List<EnemyHealth>();
 
         public override WeaponId Id => WeaponId.Laser;
 
@@ -76,7 +78,8 @@ namespace ZombieOverdrive.Combat
 
         private void FireBeam()
         {
-            float width = beamWidth * AreaMultiplier * (Level >= 2 ? 1.35f : 1f) * (IsEvolved ? 1.25f : 1f);
+            CleanupHeatStacks();
+            float width = beamWidth * AreaMultiplier * (Level >= 2 ? 1.5f : 1f) * (IsEvolved ? 1.25f : 1f);
             float damage = RollDamage(baseDamagePerSecond * (1f + (Level - 1) * 0.14f) * (IsEvolved ? 1.42f : 1f)) * Time.deltaTime;
             if (beam != null)
             {
@@ -95,11 +98,11 @@ namespace ZombieOverdrive.Combat
                 UpdatePulseLines(start, end, levelScale);
             }
 
-            DamageBeam(AimDirection, width, damage, IsEvolved ? 1f : 1f);
+            DamageBeam(AimDirection, width, damage, IsEvolved ? 1f : 1f, 0);
             if (IsEvolved)
             {
-                DamageBeam(Rotate(AimDirection, 16f), width * 0.65f, damage * 0.46f, 1f);
-                DamageBeam(Rotate(AimDirection, -16f), width * 0.65f, damage * 0.46f, 1f);
+                DamageBeam(Rotate(AimDirection, 16f), width * 0.65f, damage * 0.52f, 1f, 0);
+                DamageBeam(Rotate(AimDirection, -16f), width * 0.65f, damage * 0.52f, 1f, 0);
             }
             else
             {
@@ -107,9 +110,10 @@ namespace ZombieOverdrive.Combat
             }
         }
 
-        private void DamageBeam(Vector2 direction, float width, float damage, float crateMultiplier)
+        private void DamageBeam(Vector2 direction, float width, float damage, float crateMultiplier, int bounceDepth)
         {
             int count = Physics2D.CircleCastNonAlloc(transform.position, width, direction, hits, range, enemyMask);
+            EnemyHealth firstEnemy = null;
             for (int i = 0; i < count; i++)
             {
                 EnemyHealth enemy = hits[i].collider.GetComponent<EnemyHealth>();
@@ -124,7 +128,102 @@ namespace ZombieOverdrive.Combat
                     continue;
                 }
 
-                enemy.TakeDamage(damage);
+                firstEnemy = firstEnemy == null ? enemy : firstEnemy;
+                float finalDamage = damage;
+                if (Level >= 4)
+                {
+                    finalDamage *= GetHeatMultiplier(enemy);
+                }
+
+                enemy.TakeDamage(finalDamage);
+                if (IsEvolved && !enemy.IsAlive)
+                {
+                    ChainExplosion(enemy.transform.position, damage * 4f);
+                }
+            }
+
+            if (Level >= 3 && firstEnemy != null && bounceDepth < (Level >= 5 ? 3 : 1))
+            {
+                RefractFrom(firstEnemy, damage * (IsEvolved ? 0.65f : 0.45f), bounceDepth + 1);
+            }
+        }
+
+        private float GetHeatMultiplier(EnemyHealth enemy)
+        {
+            float heat = 0f;
+            heatStacks.TryGetValue(enemy, out heat);
+            heat = Mathf.Min(0.6f, heat + Time.deltaTime * 0.1f);
+            heatStacks[enemy] = heat;
+            return 1f + heat;
+        }
+
+        private void CleanupHeatStacks()
+        {
+            if (heatStacks.Count == 0)
+            {
+                return;
+            }
+
+            cleanupBuffer.Clear();
+            foreach (EnemyHealth enemy in heatStacks.Keys)
+            {
+                if (enemy == null || !enemy.IsAlive)
+                {
+                    cleanupBuffer.Add(enemy);
+                }
+            }
+
+            for (int i = 0; i < cleanupBuffer.Count; i++)
+            {
+                heatStacks.Remove(cleanupBuffer[i]);
+            }
+        }
+
+        private void RefractFrom(EnemyHealth source, float damage, int depth)
+        {
+            Collider2D[] nearby = Physics2D.OverlapCircleAll(source.transform.position, 4.2f * AreaMultiplier, enemyMask);
+            EnemyHealth best = null;
+            float bestDistance = float.MaxValue;
+            for (int i = 0; i < nearby.Length; i++)
+            {
+                EnemyHealth enemy = nearby[i].GetComponent<EnemyHealth>();
+                if (enemy == null || !enemy.IsAlive || enemy == source)
+                {
+                    continue;
+                }
+
+                float distance = ((Vector2)enemy.transform.position - (Vector2)source.transform.position).sqrMagnitude;
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    best = enemy;
+                }
+            }
+
+            if (best == null)
+            {
+                return;
+            }
+
+            CombatVisuals.SpawnTelegraphLine(source.transform.position, best.transform.position, IsEvolved ? 0.08f : 0.045f, 0.08f, IsEvolved ? new Color(1f, 0.55f, 0.24f, 0.8f) : new Color(1f, 0.86f, 0.34f, 0.62f));
+            best.TakeDamage(damage);
+            if (depth < (Level >= 5 ? 3 : 1))
+            {
+                RefractFrom(best, damage * 0.72f, depth + 1);
+            }
+        }
+
+        private void ChainExplosion(Vector3 center, float damage)
+        {
+            CombatVisuals.SpawnExplosion(center, new Color(1f, 0.38f, 0.12f, 0.65f), 0.82f, 0.12f);
+            Collider2D[] nearby = Physics2D.OverlapCircleAll(center, 1.35f * AreaMultiplier, enemyMask);
+            for (int i = 0; i < nearby.Length; i++)
+            {
+                EnemyHealth enemy = nearby[i].GetComponent<EnemyHealth>();
+                if (enemy != null && enemy.IsAlive)
+                {
+                    enemy.TakeDamage(damage);
+                }
             }
         }
 

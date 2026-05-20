@@ -68,6 +68,16 @@ namespace ZombieOverdrive.Core
             HealthChanged?.Invoke(currentHealth, MaxHealth);
         }
 
+        public void GrantInvincibility(float seconds)
+        {
+            if (seconds <= 0f)
+            {
+                return;
+            }
+
+            invincibleTimer = Mathf.Max(invincibleTimer, seconds);
+        }
+
         public bool TryConsumeRevive()
         {
             if (stats == null || stats.reviveCharges <= 0)

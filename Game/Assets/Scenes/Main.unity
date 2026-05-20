@@ -11375,6 +11375,9 @@ MonoBehaviour:
   baseDamage: 8.5
   baseCooldown: 1.85
   spreadAngle: 58
+  enemyMask:
+    serializedVersion: 2
+    m_Bits: 4608
 --- !u!4 &1692501332
 Transform:
   m_ObjectHideFlags: 0
@@ -11409,6 +11412,9 @@ MonoBehaviour:
   baseDamage: 38
   baseCooldown: 0.42
   parallelShotOffset: 0.18
+  enemyMask:
+    serializedVersion: 2
+    m_Bits: 4608
 --- !u!114 &1692501334
 MonoBehaviour:
   m_ObjectHideFlags: 0

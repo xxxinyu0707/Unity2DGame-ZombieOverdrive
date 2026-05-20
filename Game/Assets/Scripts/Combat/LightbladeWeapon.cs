@@ -1,4 +1,5 @@
 using UnityEngine;
+using ZombieOverdrive.Core;
 using ZombieOverdrive.Enemies;
 using ZombieOverdrive.World;
 
@@ -21,6 +22,7 @@ namespace ZombieOverdrive.Combat
         private float slashStartAngle;
         private float slashArc;
         private float slashRadius;
+        private PlayerHealth wielderHealth;
 
         public override WeaponId Id => WeaponId.Lightblade;
 
@@ -49,6 +51,7 @@ namespace ZombieOverdrive.Combat
             swordRenderer.sprite = swordSprite;
             swordRenderer.sortingOrder = 14;
             swordRenderer.enabled = false;
+            wielderHealth = GetComponent<PlayerHealth>();
         }
 
         private void Slash()
@@ -58,10 +61,21 @@ namespace ZombieOverdrive.Combat
             int count = Physics2D.OverlapCircleNonAlloc(transform.position, radius, hits, enemyMask);
             DrawSlash(radius, arc);
             ShowSwordSlash(radius, arc);
+            if (Level >= 2)
+            {
+                FireSwordWave(radius);
+            }
+
+            if (Level >= 3 && Random.value < 0.15f)
+            {
+                wielderHealth?.GrantInvincibility(0.2f);
+            }
+
             if (IsEvolved)
             {
                 CombatVisuals.SpawnRing(transform.position, new Color(1f, 0.35f, 0.48f, 0.42f), radius * 0.65f, 0.14f);
                 DrawSlash(radius * 0.72f, 360f, 0.05f, new Color(1f, 0.75f, 0.82f, 0.7f));
+                FireSwordWave(radius * 1.2f);
             }
 
             for (int i = 0; i < count; i++)
@@ -84,11 +98,40 @@ namespace ZombieOverdrive.Combat
                     continue;
                 }
 
-                enemy.TakeDamage(RollDamage(baseDamage * (1f + (Level - 1) * 0.13f) * (IsEvolved ? 1.6f : 1f)));
+                float damage = baseDamage * (1f + (Level - 1) * 0.13f) * (IsEvolved ? 1.6f : 1f);
+                bool executeWindow = Level >= 4 && enemy.CurrentHealth / Mathf.Max(1f, enemy.MaxHealth) <= 0.35f;
+                if (executeWindow)
+                {
+                    damage *= 2f;
+                    if (enemy.IsBoss)
+                    {
+                        wielderHealth?.Heal(wielderHealth.MaxHealth * 0.02f);
+                    }
+                }
+
+                enemy.TakeDamage(RollDamage(damage));
                 EnemyController controller = enemy.GetComponent<EnemyController>();
                 if (controller != null)
                 {
                     controller.ApplyKnockback(toEnemy.normalized * (IsEvolved ? 1.15f : 0.75f));
+                }
+            }
+        }
+
+        private void FireSwordWave(float radius)
+        {
+            float waveRange = radius * (IsEvolved ? 2.6f : 1.75f);
+            float waveWidth = IsEvolved ? 0.9f : 0.52f;
+            Vector3 start = transform.position + (Vector3)(AimDirection * 0.6f);
+            Vector3 end = transform.position + (Vector3)(AimDirection * waveRange);
+            CombatVisuals.SpawnTelegraphLine(start, end, IsEvolved ? 0.12f : 0.075f, 0.12f, IsEvolved ? new Color(1f, 0.45f, 0.55f, 0.85f) : new Color(0.75f, 1f, 1f, 0.68f));
+            RaycastHit2D[] waveHits = Physics2D.CircleCastAll(transform.position, waveWidth, AimDirection, waveRange, enemyMask);
+            for (int i = 0; i < waveHits.Length; i++)
+            {
+                EnemyHealth enemy = waveHits[i].collider.GetComponent<EnemyHealth>();
+                if (enemy != null && enemy.IsAlive)
+                {
+                    enemy.TakeDamage(RollDamage(baseDamage * (IsEvolved ? 0.72f : 0.35f)));
                 }
             }
         }

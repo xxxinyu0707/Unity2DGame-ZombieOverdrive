@@ -10,6 +10,7 @@ namespace ZombieOverdrive.Combat
         [SerializeField] private float baseDamage = 8.5f;
         [SerializeField] private float baseCooldown = 1.85f;
         [SerializeField] private float spreadAngle = 58f;
+        [SerializeField] private LayerMask enemyMask;
 
         private float cooldownTimer;
 
@@ -26,22 +27,18 @@ namespace ZombieOverdrive.Combat
             if (cooldownTimer <= 0f)
             {
                 Fire();
-                cooldownTimer = baseCooldown / FireRateMultiplier * (IsEvolved ? 0.62f : Level >= 4 ? 0.82f : 1f);
+                cooldownTimer = baseCooldown / FireRateMultiplier * (IsEvolved ? 0.5f : Level >= 4 ? 0.62f : 1f);
             }
         }
 
         private void Fire()
         {
-            int pelletCount = IsEvolved ? 14 : Level >= 2 ? 6 : 5;
-            if (Level >= 5)
-            {
-                pelletCount += 1;
-            }
+            int pelletCount = IsEvolved ? 24 : Level >= 2 ? 7 : 5;
 
             int pierces = Level >= 5 ? 1 + Stats.bulletPierceBonus : Stats.bulletPierceBonus;
             if (IsEvolved)
             {
-                pierces += 3;
+                pierces += 4;
             }
 
             Vector3 origin = transform.position + (Vector3)(AimDirection * 0.65f);
@@ -53,14 +50,26 @@ namespace ZombieOverdrive.Combat
 
             for (int i = 0; i < pelletCount; i++)
             {
-                float spread = IsEvolved ? spreadAngle * 1.15f : spreadAngle;
-                float randomAngle = Random.Range(-spread * 0.5f, spread * 0.5f);
+                float spread = IsEvolved ? 360f : Level >= 2 ? spreadAngle * 0.85f : spreadAngle;
+                float randomAngle = IsEvolved
+                    ? i * (360f / pelletCount) + Random.Range(-5f, 5f)
+                    : Random.Range(-spread * 0.5f, spread * 0.5f);
                 Vector2 direction = Rotate(AimDirection, randomAngle);
                 Bullet bullet = bulletPool.Get<Bullet>(origin, Quaternion.identity);
                 if (bullet != null)
                 {
-                    float damage = RollDamage(baseDamage * (1f + (Level - 1) * 0.09f) * (IsEvolved ? 1.32f : 1f));
-                    bullet.Launch(direction, damage, pierces, IsEvolved ? 0.95f : 0.45f, Stats.projectileSpeedMultiplier * (IsEvolved ? 0.95f : 0.8f), false);
+                    float damage = RollDamage(baseDamage * (1f + (Level - 1) * 0.08f) * (IsEvolved ? 1.08f : 1f));
+                    float knockback = IsEvolved ? 1.1f : Level >= 4 ? 0.72f : 0.45f;
+                    bullet.Launch(direction, damage, pierces, knockback, Stats.projectileSpeedMultiplier * (IsEvolved ? 0.95f : 0.8f), false);
+                    if (Level >= 3)
+                    {
+                        bullet.ConfigureFirePatch(IsEvolved ? 0.9f : 0.48f, damage * (IsEvolved ? 1.45f : 0.95f), IsEvolved ? 2.4f : 1.2f, enemyMask);
+                    }
+
+                    if (IsEvolved)
+                    {
+                        bullet.ConfigureBurst(0.65f, 0.45f, enemyMask);
+                    }
                 }
             }
         }

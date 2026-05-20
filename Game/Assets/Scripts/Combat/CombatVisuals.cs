@@ -59,6 +59,44 @@ namespace ZombieOverdrive.Combat
             return line;
         }
 
+        public static void SpawnTelegraphLine(Vector3 start, Vector3 end, float width, float seconds, Color color)
+        {
+            LineRenderer line = CreateTransientPolyline("Attack Telegraph", 2, color, color, width, seconds);
+            line.sortingOrder = 2;
+            line.SetPosition(0, start);
+            line.SetPosition(1, end);
+        }
+
+        public static void SpawnTelegraphCircle(Vector3 position, float radius, float seconds, Color color)
+        {
+            GameObject circle = new GameObject("Attack Circle Telegraph");
+            circle.transform.position = position;
+            LineRenderer line = circle.AddComponent<LineRenderer>();
+            line.material = new Material(Shader.Find("Sprites/Default"));
+            line.loop = true;
+            line.useWorldSpace = false;
+            line.positionCount = 36;
+            line.startColor = color;
+            line.endColor = new Color(color.r, color.g, color.b, Mathf.Min(color.a, 0.18f));
+            line.startWidth = 0.055f;
+            line.endWidth = 0.055f;
+            line.sortingOrder = 2;
+
+            for (int i = 0; i < line.positionCount; i++)
+            {
+                float angle = Mathf.PI * 2f * i / line.positionCount;
+                line.SetPosition(i, new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0f) * radius);
+            }
+
+            Object.Destroy(circle, seconds);
+        }
+
+        public static void SpawnExplosion(Vector3 position, Color color, float radius, float seconds)
+        {
+            SpawnRing(position, color, radius, seconds);
+            SpawnRing(position, new Color(color.r, color.g, color.b, Mathf.Min(color.a * 0.45f, 0.45f)), radius * 0.55f, seconds * 0.85f);
+        }
+
         private static Sprite CreateDiamondSprite()
         {
             if (diamondSprite != null)

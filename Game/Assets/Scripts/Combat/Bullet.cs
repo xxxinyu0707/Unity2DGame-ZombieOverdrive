@@ -19,6 +19,23 @@ namespace ZombieOverdrive.Combat
         private int remainingPierces;
         private float knockback;
         private bool piercingThroughAll;
+        private GameObjectPool sourcePool;
+        private int splitCount;
+        private float splitAngle;
+        private float splitDamageMultiplier;
+        private bool splitOnFirstEnemyHit;
+        private bool hasSplit;
+        private bool burstOnHit;
+        private float burstRadius;
+        private float burstDamageMultiplier;
+        private LayerMask burstMask;
+        private bool leaveFireOnHit;
+        private float fireRadius;
+        private float fireDps;
+        private float fireDuration;
+        private LayerMask fireMask;
+        private bool bonusVsImpaired;
+        private float impairedDamageMultiplier;
 
         public float Damage { get; private set; }
 
@@ -40,12 +57,61 @@ namespace ZombieOverdrive.Combat
             remainingPierces = pierces;
             knockback = knockbackForce;
             piercingThroughAll = infinitePierce;
+            sourcePool = null;
+            splitCount = 0;
+            splitAngle = 0f;
+            splitDamageMultiplier = 0f;
+            splitOnFirstEnemyHit = false;
+            hasSplit = false;
+            burstOnHit = false;
+            burstRadius = 0f;
+            burstDamageMultiplier = 0f;
+            burstMask = default;
+            leaveFireOnHit = false;
+            fireRadius = 0f;
+            fireDps = 0f;
+            fireDuration = 0f;
+            fireMask = default;
+            bonusVsImpaired = false;
+            impairedDamageMultiplier = 1f;
             timer = lifetime;
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
             transform.rotation = Quaternion.Euler(0f, 0f, angle);
             transform.localScale = Vector3.one;
             speedMultiplier = Mathf.Max(0.1f, speedMultiplier);
             currentSpeed = speed * speedMultiplier;
+        }
+
+        public void ConfigureSplit(GameObjectPool pool, int count, float angleDegrees, float damageMultiplier)
+        {
+            sourcePool = pool;
+            splitCount = Mathf.Max(0, count);
+            splitAngle = Mathf.Max(0f, angleDegrees);
+            splitDamageMultiplier = Mathf.Max(0f, damageMultiplier);
+            splitOnFirstEnemyHit = sourcePool != null && splitCount > 0 && splitDamageMultiplier > 0f;
+        }
+
+        public void ConfigureBurst(float radius, float damageMultiplier, LayerMask mask)
+        {
+            burstOnHit = radius > 0f && damageMultiplier > 0f;
+            burstRadius = radius;
+            burstDamageMultiplier = damageMultiplier;
+            burstMask = mask;
+        }
+
+        public void ConfigureFirePatch(float radius, float dps, float seconds, LayerMask mask)
+        {
+            leaveFireOnHit = radius > 0f && dps > 0f && seconds > 0f;
+            fireRadius = radius;
+            fireDps = dps;
+            fireDuration = seconds;
+            fireMask = mask;
+        }
+
+        public void ConfigureImpairedBonus(float multiplier)
+        {
+            bonusVsImpaired = multiplier > 1f;
+            impairedDamageMultiplier = Mathf.Max(1f, multiplier);
         }
 
         private float currentSpeed;
@@ -82,17 +148,79 @@ namespace ZombieOverdrive.Combat
                 return;
             }
 
-            enemy.TakeDamage(Damage);
+            float finalDamage = Damage;
+            EnemyController enemyController = other.GetComponent<EnemyController>();
+            if (bonusVsImpaired && enemyController != null && enemyController.IsImpaired)
+            {
+                finalDamage *= impairedDamageMultiplier;
+                CombatVisuals.SpawnRing(enemy.transform.position, new Color(0.6f, 0.95f, 1f, 0.55f), 0.34f, 0.09f);
+            }
+
+            enemy.TakeDamage(finalDamage);
             if (knockback > 0f)
             {
-                EnemyController controller = other.GetComponent<EnemyController>();
-                if (controller != null)
+                if (enemyController != null)
                 {
-                    controller.ApplyKnockback(direction * knockback);
+                    enemyController.ApplyKnockback(direction * knockback);
                 }
             }
 
+            if (splitOnFirstEnemyHit && !hasSplit)
+            {
+                hasSplit = true;
+                SpawnSplitBullets();
+            }
+
+            if (burstOnHit)
+            {
+                Burst(other.transform.position);
+            }
+
+            if (leaveFireOnHit)
+            {
+                DamageZone.SpawnEnemyZone(other.transform.position, fireRadius, fireDps, fireDuration, fireMask, new Color(1f, 0.35f, 0.08f, 0.45f));
+            }
+
             ConsumePierce();
+        }
+
+        private void SpawnSplitBullets()
+        {
+            if (sourcePool == null || splitCount <= 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < splitCount; i++)
+            {
+                float centered = splitCount == 1 ? 0f : i - (splitCount - 1) * 0.5f;
+                float angle = centered * splitAngle;
+                Bullet split = sourcePool.Get<Bullet>(transform.position, Quaternion.identity);
+                if (split != null)
+                {
+                    split.Launch(Rotate(direction, angle), Damage * splitDamageMultiplier, 0, knockback * 0.45f, Mathf.Max(0.8f, currentSpeed / speed), false);
+                }
+            }
+        }
+
+        private void Burst(Vector3 center)
+        {
+            CombatVisuals.SpawnExplosion(center, new Color(1f, 0.72f, 0.22f, 0.65f), burstRadius, 0.14f);
+            Collider2D[] burstHits = Physics2D.OverlapCircleAll(center, burstRadius, burstMask);
+            for (int i = 0; i < burstHits.Length; i++)
+            {
+                EnemyHealth enemy = burstHits[i].GetComponent<EnemyHealth>();
+                if (enemy != null && enemy.IsAlive)
+                {
+                    enemy.TakeDamage(Damage * burstDamageMultiplier);
+                }
+
+                DestructibleCrate crate = burstHits[i].GetComponent<DestructibleCrate>();
+                if (crate != null)
+                {
+                    crate.TakeDamage(Damage * burstDamageMultiplier);
+                }
+            }
         }
 
         private void ConsumePierce()
@@ -119,6 +247,14 @@ namespace ZombieOverdrive.Combat
             {
                 gameObject.SetActive(false);
             }
+        }
+
+        private static Vector2 Rotate(Vector2 vector, float degrees)
+        {
+            float radians = degrees * Mathf.Deg2Rad;
+            float sin = Mathf.Sin(radians);
+            float cos = Mathf.Cos(radians);
+            return new Vector2(vector.x * cos - vector.y * sin, vector.x * sin + vector.y * cos).normalized;
         }
     }
 }

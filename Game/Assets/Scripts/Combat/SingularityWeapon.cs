@@ -43,7 +43,10 @@ namespace ZombieOverdrive.Combat
                 {
                     float radius = baseRadius * AreaMultiplier * (Level >= 2 ? 1.25f : 1f) * (IsEvolved ? 1.65f : 1f);
                     float lifetime = (Level >= 4 ? 4.4f : 3.35f) * (Stats != null ? Stats.durationMultiplier : 1f) * (IsEvolved ? 1.35f : 1f);
-                    orb.Launch(direction, RollDamage(baseDamage * (1f + (Level - 1) * 0.16f) * (IsEvolved ? 1.75f : 1f)), radius, IsEvolved ? 0.95f : 0.42f, lifetime, enemyMask, IsEvolved);
+                    float percentDamage = Level >= 3 ? 0.012f + Level * 0.002f : 0f;
+                    bool absorbProjectiles = Level >= 4;
+                    bool collapse = IsEvolved;
+                    orb.Launch(direction, RollDamage(baseDamage * (1f + (Level - 1) * 0.16f) * (IsEvolved ? 1.75f : 1f)), radius, IsEvolved ? 0.95f : 0.42f, lifetime, enemyMask, IsEvolved, percentDamage, absorbProjectiles, collapse);
                 }
             }
         }

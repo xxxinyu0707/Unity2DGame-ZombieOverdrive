@@ -474,7 +474,7 @@ namespace ZombieOverdrive.Core
                 Type = UpgradeType.Weapon,
                 WeaponId = weapon.Id,
                 Title = verb + "：" + GetWeaponName(weapon.Id),
-                Description = "等级 " + nextLevel + "。" + GetWeaponDescription(weapon.Id),
+                Description = GetWeaponDescription(weapon.Id, nextLevel),
                 Highlight = HasMatchingEvolutionPassive(weapon.Id),
                 Hint = GetEvolutionHint(weapon.Id),
                 IconId = GetWeaponIconId(weapon.Id)
@@ -742,22 +742,64 @@ namespace ZombieOverdrive.Core
             }
         }
 
-        private static string GetWeaponDescription(WeaponId id)
+        private static string GetWeaponDescription(WeaponId id, int level)
         {
             switch (id)
             {
                 case WeaponId.Shotgun:
-                    return "近距离扇形爆发，附带击退。";
+                    switch (level)
+                    {
+                        case 1: return "等级 1：5 发扇形弹丸，近距离击退。";
+                        case 2: return "等级 2：弹丸增至 7 发，散布更集中。";
+                        case 3: return "等级 3：弹丸命中后留下短暂燃烧区域。";
+                        case 4: return "等级 4：装填更快，击退更强。";
+                        default: return "等级 5：弹丸获得穿透，能打穿前排。";
+                    }
                 case WeaponId.Tesla:
-                    return "沿瞄准方向锁定敌人，电弧会连锁传导。";
+                    switch (level)
+                    {
+                        case 1: return "等级 1：链式电弧最多命中 3 个目标。";
+                        case 2: return "等级 2：链上限提升，首个目标承受更高伤害。";
+                        case 3: return "等级 3：电弧有概率短暂眩晕敌人。";
+                        case 4: return "等级 4：传导距离提升，并可能分叉。";
+                        default: return "等级 5：击杀目标会产生电磁爆链。";
+                    }
                 case WeaponId.Singularity:
-                    return "发射缓慢黑洞球，牵引并伤害尸群。";
+                    switch (level)
+                    {
+                        case 1: return "等级 1：发射牵引黑洞球。";
+                        case 2: return "等级 2：牵引半径扩大。";
+                        case 3: return "等级 3：黑洞附加最大生命百分比撕裂。";
+                        case 4: return "等级 4：黑洞会吞噬敌方酸弹。";
+                        default: return "等级 5：同时发射双重黑洞。";
+                    }
                 case WeaponId.Lightblade:
-                    return "向鼠标方向挥出前方扇形近战斩击。";
+                    switch (level)
+                    {
+                        case 1: return "等级 1：前方 120 度光刃斩击。";
+                        case 2: return "等级 2：斩击半径提升，并射出剑气。";
+                        case 3: return "等级 3：挥刀更快，挥刀瞬间有短暂无敌。";
+                        case 4: return "等级 4：对残血敌人造成斩杀伤害，斩 Boss 可回血。";
+                        default: return "等级 5：斩击角度扩大到大半圈。";
+                    }
                 case WeaponId.Laser:
-                    return "朝瞄准方向持续发射穿透激光。";
+                    switch (level)
+                    {
+                        case 1: return "等级 1：持续穿透激光。";
+                        case 2: return "等级 2：激光更粗，伤害提升。";
+                        case 3: return "等级 3：命中敌人后会折射到附近目标。";
+                        case 4: return "等级 4：持续照射同一目标会热能过载。";
+                        default: return "等级 5：折射次数提升，形成乱射光网。";
+                    }
                 default:
-                    return "稳定可靠的瞄准射击武器。";
+                    switch (level)
+                    {
+                        case 1: return "等级 1：稳定单发瞄准射击。";
+                        case 2: return "等级 2：射速和伤害提升。";
+                        case 3: return "等级 3：命中首个目标后分裂出两发小弹。";
+                        case 4: return "等级 4：变为双枪齐射。";
+                        default: return "等级 5：穿透提升，并对异常状态敌人造成双倍伤害。";
+                    }
             }
         }
 
