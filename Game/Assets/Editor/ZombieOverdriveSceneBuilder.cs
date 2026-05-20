@@ -1820,7 +1820,7 @@ public static class ZombieOverdriveSceneBuilder
         Text subtitle = CreateText(panel.transform, "Subtitle", "避难所永久强化 / 下一轮出击准备", 18, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(74f, -94f), new Vector2(760f, 30f));
         subtitle.color = Hex("#8ea0b6");
         subtitle.verticalOverflow = VerticalWrapMode.Truncate;
-        Text gold = CreateText(panel.transform, "Gold", "局外金币 0", 26, TextAnchor.MiddleRight, new Vector2(1f, 1f), new Vector2(-76f, -70f), new Vector2(430f, 52f));
+        Text gold = CreateText(panel.transform, "Gold", "金币 0", 26, TextAnchor.MiddleRight, new Vector2(1f, 1f), new Vector2(-76f, -70f), new Vector2(300f, 52f));
         gold.color = Hex("#ffd66b");
 
         CreateText(panel.transform, "Talent Title", "永久强化", 30, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(300f, -170f), new Vector2(360f, 44f));
@@ -1908,12 +1908,12 @@ public static class ZombieOverdriveSceneBuilder
         rect.offsetMin = Vector2.zero;
         rect.offsetMax = Vector2.zero;
 
-        Image frame = CreateImage(panel.transform, "Frame", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1040f, 560f));
+        Image frame = CreateImage(panel.transform, "Frame", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1280f, 680f));
         frame.color = Hex("#0e1420");
-        Image topRule = CreateImage(panel.transform, "Top Rule", new Vector2(0.5f, 0.5f), new Vector2(0f, 247f), new Vector2(1040f, 6f));
+        Image topRule = CreateImage(panel.transform, "Top Rule", new Vector2(0.5f, 0.5f), new Vector2(0f, 306f), new Vector2(1280f, 6f));
         topRule.color = Hex("#2eb8d8");
 
-        CreateText(panel.transform, "Title", "选择升级", 40, TextAnchor.UpperCenter, new Vector2(0.5f, 0.5f), new Vector2(0f, 226f), new Vector2(600f, 60f));
+        CreateText(panel.transform, "Title", "选择升级", 40, TextAnchor.UpperCenter, new Vector2(0.5f, 0.5f), new Vector2(0f, 244f), new Vector2(600f, 60f));
 
         UpgradePanel upgradePanel = panel.AddComponent<UpgradePanel>();
         Button[] buttons = new Button[3];
@@ -1922,7 +1922,7 @@ public static class ZombieOverdriveSceneBuilder
         Text[] titles = new Text[3];
         Text[] descriptions = new Text[3];
         Text[] hints = new Text[3];
-        Button reroll = CreateMenuButton(panel.transform, "Reroll", "刷新词条 3/3", new Vector2(0f, -238f));
+        Button reroll = CreateMenuButton(panel.transform, "Reroll", "刷新词条 3/3", new Vector2(0f, -292f));
         RectTransform rerollRect = reroll.GetComponent<RectTransform>();
         rerollRect.sizeDelta = new Vector2(220f, 48f);
         Text rerollLabel = reroll.GetComponentInChildren<Text>();
@@ -1944,10 +1944,10 @@ public static class ZombieOverdriveSceneBuilder
             RectTransform buttonRect = buttonObject.GetComponent<RectTransform>();
             buttonRect.anchorMin = new Vector2(0.5f, 0.5f);
             buttonRect.anchorMax = new Vector2(0.5f, 0.5f);
-            buttonRect.anchoredPosition = new Vector2((i - 1) * 320f, -40f);
-            buttonRect.sizeDelta = new Vector2(292f, 350f);
+            buttonRect.anchoredPosition = new Vector2((i - 1) * 390f, -24f);
+            buttonRect.sizeDelta = new Vector2(340f, 350f);
 
-            Image accent = CreateImage(buttonObject.transform, "Accent", new Vector2(0.5f, 1f), new Vector2(0f, -4f), new Vector2(286f, 8f));
+            Image accent = CreateImage(buttonObject.transform, "Accent", new Vector2(0.5f, 1f), new Vector2(0f, -4f), new Vector2(330f, 8f));
             accent.color = new Color(0.28f, 0.56f, 0.78f, 1f);
             accents[i] = accent;
 

@@ -125,19 +125,19 @@ namespace ZombieOverdrive.UI
             RectTransform frame = FindDirectRect(transform, "Frame");
             if (frame != null)
             {
-                SetRect(frame, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1280f, 640f), new Vector2(0.5f, 0.5f));
+                SetRect(frame, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1280f, 680f), new Vector2(0.5f, 0.5f));
             }
 
             RectTransform topRule = FindDirectRect(transform, "Top Rule");
             if (topRule != null)
             {
-                SetRect(topRule, new Vector2(0.5f, 0.5f), new Vector2(0f, 286f), new Vector2(1280f, 6f), new Vector2(0.5f, 0.5f));
+                SetRect(topRule, new Vector2(0.5f, 0.5f), new Vector2(0f, 306f), new Vector2(1280f, 6f), new Vector2(0.5f, 0.5f));
             }
 
             RectTransform title = FindDirectRect(transform, "Title");
             if (title != null)
             {
-                SetRect(title, new Vector2(0.5f, 0.5f), new Vector2(0f, 236f), new Vector2(560f, 58f), new Vector2(0.5f, 0.5f));
+                SetRect(title, new Vector2(0.5f, 0.5f), new Vector2(0f, 244f), new Vector2(560f, 58f), new Vector2(0.5f, 0.5f));
                 Text titleText = title.GetComponent<Text>();
                 if (titleText != null)
                 {
@@ -153,7 +153,7 @@ namespace ZombieOverdrive.UI
                 }
 
                 RectTransform buttonRect = optionButtons[i].GetComponent<RectTransform>();
-                SetRect(buttonRect, new Vector2(0.5f, 0.5f), new Vector2((i - 1) * 390f, -48f), new Vector2(340f, 390f), new Vector2(0.5f, 0.5f));
+                SetRect(buttonRect, new Vector2(0.5f, 0.5f), new Vector2((i - 1) * 390f, -24f), new Vector2(340f, 350f), new Vector2(0.5f, 0.5f));
 
                 Transform accent = buttonRect.Find("Accent");
                 if (accent != null)
@@ -163,33 +163,33 @@ namespace ZombieOverdrive.UI
 
                 if (titleTexts != null && i < titleTexts.Length && titleTexts[i] != null)
                 {
-                    SetRect(titleTexts[i].GetComponent<RectTransform>(), new Vector2(0.5f, 1f), new Vector2(0f, -26f), new Vector2(294f, 72f), new Vector2(0.5f, 1f));
+                    SetRect(titleTexts[i].GetComponent<RectTransform>(), new Vector2(0.5f, 1f), new Vector2(0f, -24f), new Vector2(294f, 64f), new Vector2(0.5f, 1f));
                     ConfigureText(titleTexts[i], 24, 16, 24, TextAnchor.MiddleCenter);
                 }
 
                 RectTransform iconBackdrop = FindDirectRect(buttonRect, "Icon Backdrop");
                 if (iconBackdrop != null)
                 {
-                    SetRect(iconBackdrop, new Vector2(0.5f, 1f), new Vector2(0f, -116f), new Vector2(82f, 82f), new Vector2(0.5f, 1f));
+                    SetRect(iconBackdrop, new Vector2(0.5f, 1f), new Vector2(0f, -106f), new Vector2(80f, 80f), new Vector2(0.5f, 1f));
                 }
 
                 if (iconImages != null && i < iconImages.Length && iconImages[i] != null)
                 {
-                    SetRect(iconImages[i].GetComponent<RectTransform>(), new Vector2(0.5f, 1f), new Vector2(0f, -122f), new Vector2(70f, 70f), new Vector2(0.5f, 1f));
+                    SetRect(iconImages[i].GetComponent<RectTransform>(), new Vector2(0.5f, 1f), new Vector2(0f, -112f), new Vector2(68f, 68f), new Vector2(0.5f, 1f));
                     iconImages[i].preserveAspect = true;
                 }
 
                 if (descriptionTexts != null && i < descriptionTexts.Length && descriptionTexts[i] != null)
                 {
-                    SetRect(descriptionTexts[i].GetComponent<RectTransform>(), new Vector2(0.5f, 1f), new Vector2(0f, -214f), new Vector2(292f, 96f), new Vector2(0.5f, 1f));
-                    ConfigureText(descriptionTexts[i], 19, 13, 19, TextAnchor.UpperCenter);
+                    SetRect(descriptionTexts[i].GetComponent<RectTransform>(), new Vector2(0.5f, 1f), new Vector2(0f, -192f), new Vector2(292f, 86f), new Vector2(0.5f, 1f));
+                    ConfigureText(descriptionTexts[i], 18, 13, 18, TextAnchor.UpperCenter);
                     descriptionTexts[i].lineSpacing = 0.9f;
                 }
 
                 if (hintTexts != null && i < hintTexts.Length && hintTexts[i] != null)
                 {
-                    SetRect(hintTexts[i].GetComponent<RectTransform>(), new Vector2(0.5f, 0f), new Vector2(0f, 22f), new Vector2(294f, 62f), new Vector2(0.5f, 0f));
-                    ConfigureText(hintTexts[i], 18, 13, 18, TextAnchor.MiddleCenter);
+                    SetRect(hintTexts[i].GetComponent<RectTransform>(), new Vector2(0.5f, 0f), new Vector2(0f, 20f), new Vector2(294f, 54f), new Vector2(0.5f, 0f));
+                    ConfigureText(hintTexts[i], 17, 13, 17, TextAnchor.MiddleCenter);
                     hintTexts[i].lineSpacing = 0.9f;
                 }
             }
@@ -197,7 +197,7 @@ namespace ZombieOverdrive.UI
             if (rerollButton != null)
             {
                 RectTransform rerollRect = rerollButton.GetComponent<RectTransform>();
-                SetRect(rerollRect, new Vector2(0.5f, 0.5f), new Vector2(0f, -284f), new Vector2(252f, 52f), new Vector2(0.5f, 0.5f));
+                SetRect(rerollRect, new Vector2(0.5f, 0.5f), new Vector2(0f, -292f), new Vector2(252f, 52f), new Vector2(0.5f, 0.5f));
             }
 
             if (rerollText != null)

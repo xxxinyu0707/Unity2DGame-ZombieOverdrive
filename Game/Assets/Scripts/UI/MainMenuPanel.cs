@@ -15,6 +15,7 @@ namespace ZombieOverdrive.UI
 
         private Action onStart;
         private Action onQuit;
+        private bool layoutFixed;
 
         private static readonly Color[] TalentColors = {
             new Color(0.83f, 0.18f, 0.23f, 1f), // Vitality - Red
@@ -28,6 +29,7 @@ namespace ZombieOverdrive.UI
         public void Initialize(Action start, Action quit)
         {
             UIFontProvider.ApplyToChildren(gameObject);
+            EnsureLayout();
             onStart = start;
             onQuit = quit;
 
@@ -61,6 +63,7 @@ namespace ZombieOverdrive.UI
 
         public void Show()
         {
+            EnsureLayout();
             Refresh();
             gameObject.SetActive(true);
         }
@@ -74,7 +77,7 @@ namespace ZombieOverdrive.UI
         {
             if (goldText != null)
             {
-                goldText.text = "局外金币: <color=#ffd66b><b>" + MetaProgression.Gold + "</b></color>";
+                goldText.text = "金币: <color=#ffd66b><b>" + MetaProgression.Gold + "</b></color>";
             }
 
             MetaTalent[] talents = GetTalents();
@@ -135,6 +138,93 @@ namespace ZombieOverdrive.UI
                 MetaTalent.Greed,
                 MetaTalent.SecondChance
             };
+        }
+
+        private void EnsureLayout()
+        {
+            if (layoutFixed)
+            {
+                return;
+            }
+
+            RectTransform title = FindDirectRect(transform, "Title");
+            if (title != null)
+            {
+                SetRect(title, new Vector2(0f, 1f), new Vector2(56f, -24f), new Vector2(560f, 64f), new Vector2(0f, 1f));
+                Text titleText = title.GetComponent<Text>();
+                if (titleText != null)
+                {
+                    titleText.text = "基因重组舱";
+                    ConfigureText(titleText, 44, 34, 44, TextAnchor.UpperLeft);
+                    titleText.color = Color.white;
+                    titleText.gameObject.SetActive(true);
+                }
+            }
+
+            RectTransform subtitle = FindDirectRect(transform, "Subtitle");
+            if (subtitle != null)
+            {
+                SetRect(subtitle, new Vector2(0f, 1f), new Vector2(58f, -92f), new Vector2(760f, 34f), new Vector2(0f, 1f));
+                Text subtitleText = subtitle.GetComponent<Text>();
+                if (subtitleText != null)
+                {
+                    ConfigureText(subtitleText, 18, 14, 18, TextAnchor.UpperLeft);
+                    subtitleText.color = new Color(0.56f, 0.63f, 0.71f, 1f);
+                }
+            }
+
+            if (goldText != null)
+            {
+                RectTransform goldRect = goldText.GetComponent<RectTransform>();
+                SetRect(goldRect, new Vector2(1f, 1f), new Vector2(-76f, -70f), new Vector2(300f, 52f), new Vector2(1f, 1f));
+                ConfigureText(goldText, 26, 20, 26, TextAnchor.MiddleRight);
+                goldText.color = new Color(1f, 0.84f, 0.42f, 1f);
+            }
+
+            layoutFixed = true;
+        }
+
+        private static RectTransform FindDirectRect(Transform parent, string name)
+        {
+            if (parent == null)
+            {
+                return null;
+            }
+
+            Transform child = parent.Find(name);
+            return child != null ? child.GetComponent<RectTransform>() : null;
+        }
+
+        private static void SetRect(RectTransform rect, Vector2 anchor, Vector2 position, Vector2 size, Vector2 pivot)
+        {
+            if (rect == null)
+            {
+                return;
+            }
+
+            rect.anchorMin = anchor;
+            rect.anchorMax = anchor;
+            rect.pivot = pivot;
+            rect.anchoredPosition = position;
+            rect.sizeDelta = size;
+        }
+
+        private static void ConfigureText(Text text, int fontSize, int minSize, int maxSize, TextAnchor alignment)
+        {
+            if (text == null)
+            {
+                return;
+            }
+
+            UIFontProvider.ApplyTo(text);
+            text.fontSize = fontSize;
+            text.alignment = alignment;
+            text.supportRichText = true;
+            text.horizontalOverflow = HorizontalWrapMode.Wrap;
+            text.verticalOverflow = VerticalWrapMode.Truncate;
+            text.resizeTextForBestFit = true;
+            text.resizeTextMinSize = minSize;
+            text.resizeTextMaxSize = maxSize;
         }
     }
 }
