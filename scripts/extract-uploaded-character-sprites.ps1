@@ -323,7 +323,7 @@ public static class UploadedCharacterSpriteExtractor
 
     private static void CleanGreenFringe(Bitmap bitmap)
     {
-        for (int pass = 0; pass < 2; pass++)
+        for (int pass = 0; pass < 3; pass++)
         {
             var clear = new bool[bitmap.Width, bitmap.Height];
             for (int y = 0; y < bitmap.Height; y++)
@@ -336,7 +336,7 @@ public static class UploadedCharacterSpriteExtractor
                         continue;
                     }
 
-                    if (IsBrightGreenSpill(color) && TouchesTransparent(bitmap, x, y, 2))
+                    if (TouchesTransparent(bitmap, x, y, 3) && IsEdgeGreenSpill(color))
                     {
                         clear[x, y] = true;
                     }
@@ -360,27 +360,29 @@ public static class UploadedCharacterSpriteExtractor
             for (int x = 0; x < bitmap.Width; x++)
             {
                 var color = bitmap.GetPixel(x, y);
-                if (color.A == 0 || !TouchesTransparent(bitmap, x, y, 1) || !IsMildGreenSpill(color))
+                if (color.A == 0 || !IsMildGreenSpill(color))
                 {
                     continue;
                 }
 
                 int r = Clamp((int)Math.Round(color.R * 1.10));
-                int g = Clamp((int)Math.Round((color.R + color.B) * 0.52));
+                int g = TouchesTransparent(bitmap, x, y, 4)
+                    ? Clamp((int)Math.Round(Math.Min(color.R, color.B) * 0.82))
+                    : Clamp((int)Math.Round((color.R + color.B) * 0.54));
                 int b = Clamp((int)Math.Round(color.B * 1.04));
                 bitmap.SetPixel(x, y, Color.FromArgb(color.A, r, g, b));
             }
         }
     }
 
-    private static bool IsBrightGreenSpill(Color color)
+    private static bool IsEdgeGreenSpill(Color color)
     {
-        return color.G >= 90 && color.G - color.R >= 34 && color.G - color.B >= 34;
+        return color.G >= 50 && color.G - color.R >= 14 && color.G - color.B >= 14;
     }
 
     private static bool IsMildGreenSpill(Color color)
     {
-        return color.G >= 78 && color.G - color.R >= 22 && color.G - color.B >= 22;
+        return color.G >= 55 && color.G - color.R >= 12 && color.G - color.B >= 12;
     }
 
     private static bool TouchesTransparent(Bitmap bitmap, int x, int y, int radius)
