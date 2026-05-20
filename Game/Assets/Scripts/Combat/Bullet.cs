@@ -217,7 +217,7 @@ namespace ZombieOverdrive.Combat
 
             if (leaveFireOnHit)
             {
-                DamageZone.SpawnEnemyZone(other.transform.position, fireRadius, fireDps, fireDuration, fireMask, new Color(1f, 0.35f, 0.08f, 0.45f));
+                DamageZone.SpawnEnemyZone(other.transform.position, fireRadius, fireDps, fireDuration, fireMask, new Color(1f, 0.35f, 0.08f, 0.45f), 0f, true);
             }
 
             ConsumePierce();

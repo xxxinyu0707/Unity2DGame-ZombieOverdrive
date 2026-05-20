@@ -75,11 +75,11 @@ namespace ZombieOverdrive.Core
             }
             if (pauseMenu != null)
             {
-                pauseMenu.Initialize(ResumeFromPauseMenu, RestartRun, QuitGame);
+                pauseMenu.Initialize(ResumeFromPauseMenu, RestartRun, ReturnToMainMenu);
             }
             if (resultPanel != null)
             {
-                resultPanel.Initialize(RestartRun, QuitGame);
+                resultPanel.Initialize(RestartRun, ReturnToMainMenu);
             }
             if (mainMenu != null)
             {
@@ -217,6 +217,17 @@ namespace ZombieOverdrive.Core
 #else
             Application.Quit();
 #endif
+        }
+
+        public void ReturnToMainMenu()
+        {
+            if (State == GameState.Playing || State == GameState.Paused || State == GameState.LevelUp)
+            {
+                SettleRun(false);
+            }
+
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
 
         public void ResumeFromUpgrade(UpgradeOption option)

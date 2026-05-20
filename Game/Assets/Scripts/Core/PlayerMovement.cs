@@ -5,12 +5,13 @@ namespace ZombieOverdrive.Core
     [RequireComponent(typeof(Rigidbody2D))]
     public class PlayerMovement : MonoBehaviour
     {
-        [SerializeField] private float smoothTime = 0.05f;
+        [SerializeField] private float acceleration = 42f;
+        [SerializeField] private float deceleration = 54f;
 
         private Rigidbody2D body;
         private PlayerStats stats;
+        private Vector2 rawInput;
         private Vector2 currentVelocity;
-        private Vector2 smoothVelocity;
 
         public Vector2 AimDirection { get; private set; } = Vector2.right;
 
@@ -22,23 +23,27 @@ namespace ZombieOverdrive.Core
         private void Awake()
         {
             body = GetComponent<Rigidbody2D>();
+            body.interpolation = RigidbodyInterpolation2D.Interpolate;
+            body.freezeRotation = true;
         }
 
         private void Update()
         {
-            Vector2 rawInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+            rawInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
             if (rawInput.sqrMagnitude > 1f)
             {
                 rawInput.Normalize();
             }
 
-            float speed = stats != null ? stats.MoveSpeed : 4f;
-            currentVelocity = Vector2.SmoothDamp(currentVelocity, rawInput * speed, ref smoothVelocity, smoothTime);
             UpdateAimDirection();
         }
 
         private void FixedUpdate()
         {
+            float speed = stats != null ? stats.MoveSpeed : 4f;
+            Vector2 targetVelocity = rawInput * speed;
+            float rate = rawInput.sqrMagnitude > 0.001f ? acceleration : deceleration;
+            currentVelocity = Vector2.MoveTowards(currentVelocity, targetVelocity, rate * Time.fixedDeltaTime);
             body.MovePosition(body.position + currentVelocity * Time.fixedDeltaTime);
         }
 
