@@ -74,7 +74,8 @@ namespace ZombieOverdrive.Combat
             if (IsEvolved)
             {
                 CombatVisuals.SpawnRing(transform.position, new Color(1f, 0.35f, 0.48f, 0.42f), radius * 0.65f, 0.14f);
-                DrawSlash(radius * 0.72f, 360f, 0.05f, new Color(1f, 0.75f, 0.82f, 0.7f));
+                DrawSlash(radius * 0.72f, 360f, 0.11f, new Color(1f, 0.75f, 0.82f, 0.7f));
+                DrawSlash(radius * 1.05f, 360f, 0.09f, new Color(1f, 0.28f, 0.46f, 0.62f));
                 FireSwordWave(radius * 1.2f);
             }
 
@@ -172,7 +173,7 @@ namespace ZombieOverdrive.Combat
             Vector2 direction = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad));
             swordRenderer.transform.position = transform.position + (Vector3)(direction * (slashRadius * 0.55f));
             swordRenderer.transform.rotation = Quaternion.Euler(0f, 0f, angle - 35f);
-            swordRenderer.transform.localScale = Vector3.one * ((IsEvolved ? 1.2f : 0.85f) + slashRadius * 0.18f);
+            swordRenderer.transform.localScale = Vector3.one * ((IsEvolved ? 1.55f : 1.08f) + slashRadius * 0.22f);
             Color color = IsEvolved ? new Color(1f, 0.45f, 0.55f, 1f) : new Color(0.9f, 1f, 1f, 1f);
             color.a = Mathf.Lerp(0.15f, 0.95f, slashVisualTimer / slashVisualDuration);
             swordRenderer.color = color;
@@ -180,18 +181,18 @@ namespace ZombieOverdrive.Combat
 
         private void DrawSlash(float radius, float arc)
         {
-            DrawSlash(radius, arc, IsEvolved ? 0.12f : 0.08f, IsEvolved ? new Color(1f, 0.38f, 0.52f, 0.95f) : new Color(0.75f, 1f, 1f, 0.9f));
+            DrawSlash(radius, arc, IsEvolved ? 0.19f : 0.13f, IsEvolved ? new Color(1f, 0.38f, 0.52f, 0.95f) : new Color(0.75f, 1f, 1f, 0.9f));
         }
 
         private void DrawSlash(float radius, float arc, float width, Color color)
         {
-            int segments = 16;
+            int segments = IsEvolved ? 28 : 20;
             GameObject lineObject = new GameObject("Lightblade Slash");
             LineRenderer line = lineObject.AddComponent<LineRenderer>();
             line.material = new Material(Shader.Find("Sprites/Default"));
             line.positionCount = segments + 1;
             line.startColor = color;
-            line.endColor = new Color(color.r, color.g, color.b, Mathf.Min(color.a, 0.25f));
+            line.endColor = new Color(color.r, color.g, color.b, Mathf.Min(color.a, 0.36f));
             line.startWidth = width;
             line.endWidth = width;
             line.sortingOrder = 9;

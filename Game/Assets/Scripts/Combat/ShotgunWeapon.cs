@@ -63,7 +63,7 @@ namespace ZombieOverdrive.Combat
                     bullet.Launch(direction, damage, pierces, knockback, Stats.projectileSpeedMultiplier * (IsEvolved ? 0.95f : 0.8f), false);
                     bullet.ConfigureVisual(
                         IsEvolved ? new Color(1f, 0.28f, 0.12f, 1f) : new Color(1f, 0.58f, 0.18f, 1f),
-                        IsEvolved ? new Vector2(0.34f, 0.26f) : new Vector2(0.24f, 0.2f),
+                        IsEvolved ? new Vector2(0.48f, 0.34f) : new Vector2(0.34f, 0.26f),
                         Random.Range(-16f, 16f));
                     if (Level >= 3)
                     {

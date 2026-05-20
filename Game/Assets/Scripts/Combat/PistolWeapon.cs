@@ -62,10 +62,10 @@ namespace ZombieOverdrive.Combat
                 bullet.Launch(direction, damage, pierces, IsEvolved ? 0.35f : 0.15f, Stats != null ? Stats.projectileSpeedMultiplier * (IsEvolved ? 1.25f : 1f) : 1f, infinitePierce);
                 bullet.ConfigureVisual(
                     IsEvolved ? new Color(0.5f, 0.95f, 1f, 1f) : new Color(1f, 0.88f, 0.28f, 1f),
-                    IsEvolved ? new Vector2(0.46f, 0.14f) : new Vector2(0.34f, 0.13f));
+                    IsEvolved ? new Vector2(0.58f, 0.2f) : new Vector2(0.46f, 0.18f));
                 if (Level >= 3 && !IsEvolved)
                 {
-                    bullet.ConfigureSplit(bulletPool, 2, 45f, 0.5f, new Color(0.35f, 0.9f, 1f, 1f), new Vector2(0.18f, 0.12f));
+                    bullet.ConfigureSplit(bulletPool, 2, 45f, 0.5f, new Color(0.35f, 0.9f, 1f, 1f), new Vector2(0.3f, 0.15f));
                 }
 
                 if (Level >= 5)
@@ -75,7 +75,7 @@ namespace ZombieOverdrive.Combat
 
                 if (IsEvolved)
                 {
-                    bullet.ConfigureSplit(bulletPool, 2, 28f, 0.45f, new Color(0.95f, 1f, 1f, 1f), new Vector2(0.22f, 0.1f));
+                    bullet.ConfigureSplit(bulletPool, 2, 28f, 0.45f, new Color(0.95f, 1f, 1f, 1f), new Vector2(0.34f, 0.14f));
                     bullet.ConfigureBurst(0.42f, 0.38f, enemyMask);
                     bullet.ConfigureImpairedBonus(2.2f);
                 }

@@ -13,14 +13,17 @@ namespace ZombieOverdrive.Enemies
 
         private SpriteRenderer spriteRenderer;
         private EnemyHealth health;
+        private Color normalColor = Color.white;
         private Color baseColor;
         private float flashTimer;
+        private float lastHealth = -1f;
 
         private void Awake()
         {
             spriteRenderer = GetComponent<SpriteRenderer>();
             health = GetComponent<EnemyHealth>();
-            baseColor = spriteRenderer.color;
+            normalColor = spriteRenderer != null ? spriteRenderer.color : Color.white;
+            baseColor = normalColor;
         }
 
         private void OnEnable()
@@ -82,7 +85,9 @@ namespace ZombieOverdrive.Enemies
                 spriteRenderer.sprite = healthySprite;
             }
 
-            flashTimer = 0.08f;
+            bool tookDamage = lastHealth >= 0f && current < lastHealth - 0.01f;
+            lastHealth = current;
+            flashTimer = tookDamage ? 0.08f : 0f;
         }
 
         private void ResetVisual()
@@ -92,7 +97,7 @@ namespace ZombieOverdrive.Enemies
                 return;
             }
 
-            baseColor = spriteRenderer.color;
+            baseColor = normalColor;
             if (healthySprite != null)
             {
                 spriteRenderer.sprite = healthySprite;
@@ -100,6 +105,7 @@ namespace ZombieOverdrive.Enemies
 
             spriteRenderer.color = baseColor;
             flashTimer = 0f;
+            lastHealth = -1f;
         }
     }
 }

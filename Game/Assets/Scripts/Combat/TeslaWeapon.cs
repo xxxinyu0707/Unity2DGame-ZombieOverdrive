@@ -147,8 +147,8 @@ namespace ZombieOverdrive.Combat
                 points,
                 evolved ? new Color(0.95f, 1f, 1f, 1f) : new Color(0.55f, 1f, 1f, 1f),
                 evolved ? new Color(0.2f, 0.65f, 1f, 0.62f) : new Color(0.1f, 0.55f, 1f, 0.35f),
-                evolved ? 0.12f : 0.07f,
-                evolved ? 0.14f : 0.09f);
+                evolved ? 0.2f : 0.12f,
+                evolved ? 0.18f : 0.13f);
 
             Vector3 delta = end - start;
             Vector3 normal = new Vector3(-delta.y, delta.x, 0f).normalized;
