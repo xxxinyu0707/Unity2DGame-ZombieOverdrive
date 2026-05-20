@@ -323,7 +323,7 @@ public static class UploadedCharacterSpriteExtractor
 
     private static void CleanGreenFringe(Bitmap bitmap)
     {
-        for (int pass = 0; pass < 4; pass++)
+        for (int pass = 0; pass < 2; pass++)
         {
             var clear = new bool[bitmap.Width, bitmap.Height];
             for (int y = 0; y < bitmap.Height; y++)
@@ -336,7 +336,7 @@ public static class UploadedCharacterSpriteExtractor
                         continue;
                     }
 
-                    if (TouchesTransparent(bitmap, x, y, 4) && IsAnyGreenTint(color))
+                    if (TouchesTransparent(bitmap, x, y, 2) && IsChromaGreenResidue(color))
                     {
                         clear[x, y] = true;
                     }
@@ -366,12 +366,17 @@ public static class UploadedCharacterSpriteExtractor
                 }
 
                 int gray = Clamp((int)Math.Round(color.R * 0.35 + color.G * 0.45 + color.B * 0.20));
-                int r = Clamp((int)Math.Round(gray * 0.76));
-                int g = Clamp((int)Math.Round(gray * 0.72));
-                int b = Clamp((int)Math.Round(gray * 0.84));
+                int r = Clamp((int)Math.Round(gray * 0.82));
+                int g = Clamp((int)Math.Round(gray * 0.78));
+                int b = Clamp((int)Math.Round(gray * 0.86));
                 bitmap.SetPixel(x, y, Color.FromArgb(color.A, r, g, b));
             }
         }
+    }
+
+    private static bool IsChromaGreenResidue(Color color)
+    {
+        return color.G >= 90 && color.G >= color.R + 28 && color.G >= color.B + 28;
     }
 
     private static bool IsAnyGreenTint(Color color)
