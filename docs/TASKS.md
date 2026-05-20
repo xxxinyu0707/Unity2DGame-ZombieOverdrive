@@ -44,7 +44,8 @@
 
 ## Phase 3: Submission
 
-- [ ] Create Windows build
-- [ ] Smoke test exported build
+- [x] Create Windows build
+- [x] Smoke test exported build
 - [ ] Record short demo video
-- [ ] Prepare assignment report or README
+- [x] Prepare assignment report or README
+- [x] Prepare demo recording checklist
