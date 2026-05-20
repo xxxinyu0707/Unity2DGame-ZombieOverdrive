@@ -25,24 +25,25 @@ namespace ZombieOverdrive.Combat
             if (cooldownTimer <= 0f)
             {
                 FireOrb();
-                cooldownTimer = baseCooldown / FireRateMultiplier;
+                cooldownTimer = baseCooldown / FireRateMultiplier * (IsEvolved ? 0.72f : 1f);
             }
         }
 
         private void FireOrb()
         {
-            int count = IsEvolved ? 2 : Level >= 5 ? 2 : 1;
+            int count = IsEvolved ? 3 : Level >= 5 ? 2 : 1;
             for (int i = 0; i < count; i++)
             {
-                Vector2 direction = Rotate(AimDirection, Random.Range(-8f, 8f));
-                CombatVisuals.SpawnRing(transform.position + (Vector3)(direction * 0.45f), new Color(0.55f, 0.35f, 1f, 0.8f), 0.35f, 0.18f);
+                float angle = IsEvolved ? (i - (count - 1) * 0.5f) * 18f : Random.Range(-8f, 8f);
+                Vector2 direction = Rotate(AimDirection, angle);
+                CombatVisuals.SpawnRing(transform.position + (Vector3)(direction * 0.45f), IsEvolved ? new Color(0.85f, 0.45f, 1f, 0.9f) : new Color(0.55f, 0.35f, 1f, 0.8f), IsEvolved ? 0.62f : 0.35f, 0.2f);
                 GameObject orbObject = Instantiate(orbPrefab, transform.position, Quaternion.identity);
                 SingularityOrb orb = orbObject.GetComponent<SingularityOrb>();
                 if (orb != null)
                 {
-                    float radius = baseRadius * AreaMultiplier * (Level >= 2 ? 1.25f : 1f) * (IsEvolved ? 1.38f : 1f);
-                    float lifetime = (Level >= 4 ? 4.4f : 3.35f) * (Stats != null ? Stats.durationMultiplier : 1f) * (IsEvolved ? 1.2f : 1f);
-                    orb.Launch(direction, RollDamage(baseDamage * (1f + (Level - 1) * 0.16f) * (IsEvolved ? 1.45f : 1f)), radius, IsEvolved ? 0.7f : 0.42f, lifetime, enemyMask);
+                    float radius = baseRadius * AreaMultiplier * (Level >= 2 ? 1.25f : 1f) * (IsEvolved ? 1.65f : 1f);
+                    float lifetime = (Level >= 4 ? 4.4f : 3.35f) * (Stats != null ? Stats.durationMultiplier : 1f) * (IsEvolved ? 1.35f : 1f);
+                    orb.Launch(direction, RollDamage(baseDamage * (1f + (Level - 1) * 0.16f) * (IsEvolved ? 1.75f : 1f)), radius, IsEvolved ? 0.95f : 0.42f, lifetime, enemyMask, IsEvolved);
                 }
             }
         }

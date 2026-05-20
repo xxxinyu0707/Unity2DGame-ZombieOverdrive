@@ -219,51 +219,41 @@ namespace ZombieOverdrive.Core
         public string BuildStatusText(int level, int kills, float elapsedSeconds)
         {
             StringBuilder builder = new StringBuilder(512);
-            builder.AppendLine("作战状态");
             builder.AppendLine("时间 " + FormatTime(elapsedSeconds) + "   等级 " + level + "   击杀 " + kills);
             builder.AppendLine();
-            builder.AppendLine("主动武器 " + activeSlots.Count + "/" + maxActiveWeapons);
-            for (int i = 0; i < maxActiveWeapons; i++)
-            {
-                if (i < activeSlots.Count && weapons.TryGetValue(activeSlots[i], out WeaponBase weapon))
-                {
-                    string evolved = evolvedWeapons.Contains(activeSlots[i]) ? "  已超进化" : "";
-                    builder.AppendLine("- " + GetWeaponName(activeSlots[i]) + " 等级 " + weapon.Level + evolved);
-                    UpgradeType passive = GetEvolutionPassive(activeSlots[i]);
-                    string fused = fusedPassives.Contains(passive) ? "（已融合并释放槽位）" : "";
-                    builder.AppendLine("  搭配：" + GetPassiveName(passive) + fused + "  " + GetEvolutionReadyText(activeSlots[i]));
-                }
-                else
-                {
-                    builder.AppendLine("- [空槽]");
-                }
-            }
-
-            builder.AppendLine();
-            builder.AppendLine("被动技能 " + passiveSlots.Count + "/" + maxPassiveSkills);
-            for (int i = 0; i < maxPassiveSkills; i++)
-            {
-                if (i < passiveSlots.Count)
-                {
-                    UpgradeType passive = passiveSlots[i];
-                    builder.AppendLine("- " + GetPassiveName(passive) + " 等级 " + GetPassiveLevel(passive));
-                }
-                else
-                {
-                    builder.AppendLine("- [空槽]");
-                }
-            }
-
-            builder.AppendLine();
-            builder.AppendLine("超进化图鉴");
+            builder.AppendLine("超进化搭配");
             foreach (WeaponId id in GetAllWeaponIds())
             {
-                builder.AppendLine("- " + GetWeaponName(id) + " + " + GetPassiveName(GetEvolutionPassive(id)) + " => " + GetEvolutionName(id));
+                builder.AppendLine(FormatEvolutionLine(id));
             }
 
             builder.AppendLine();
-            builder.AppendLine("按 ESC 或继续按钮返回游戏。重新开始会开启新一局。");
+            builder.AppendLine("ESC 或继续：返回游戏");
+            builder.AppendLine("重开：结算当前金币并开启新一局");
             return builder.ToString();
+        }
+
+        private string FormatEvolutionLine(WeaponId id)
+        {
+            string state;
+            if (evolvedWeapons.Contains(id))
+            {
+                state = "已完成";
+            }
+            else if (IsWeaponUnlocked(id) && GetWeaponLevel(id) >= 5 && GetPassiveLevel(GetEvolutionPassive(id)) > 0)
+            {
+                state = "可进化";
+            }
+            else if (IsWeaponUnlocked(id) || GetPassiveLevel(GetEvolutionPassive(id)) > 0)
+            {
+                state = "准备中";
+            }
+            else
+            {
+                state = "未获得";
+            }
+
+            return "- " + GetWeaponName(id) + " + " + GetPassiveName(GetEvolutionPassive(id)) + "：" + state;
         }
 
         private void UnlockInitialWeapon(WeaponId id)

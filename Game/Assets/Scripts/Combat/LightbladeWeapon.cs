@@ -37,7 +37,7 @@ namespace ZombieOverdrive.Combat
             if (cooldownTimer <= 0f)
             {
                 Slash();
-                cooldownTimer = baseCooldown / FireRateMultiplier * (Level >= 3 ? 0.86f : 1f);
+                cooldownTimer = baseCooldown / FireRateMultiplier * (IsEvolved ? 0.58f : Level >= 3 ? 0.86f : 1f);
             }
         }
 
@@ -53,11 +53,16 @@ namespace ZombieOverdrive.Combat
 
         private void Slash()
         {
-            float radius = baseRadius * AreaMultiplier * (Level >= 2 ? 1.2f : 1f);
+            float radius = baseRadius * AreaMultiplier * (Level >= 2 ? 1.2f : 1f) * (IsEvolved ? 1.18f : 1f);
             float arc = IsEvolved ? 360f : Level >= 5 ? 220f : arcDegrees;
             int count = Physics2D.OverlapCircleNonAlloc(transform.position, radius, hits, enemyMask);
             DrawSlash(radius, arc);
             ShowSwordSlash(radius, arc);
+            if (IsEvolved)
+            {
+                CombatVisuals.SpawnRing(transform.position, new Color(1f, 0.35f, 0.48f, 0.42f), radius * 0.65f, 0.14f);
+                DrawSlash(radius * 0.72f, 360f, 0.05f, new Color(1f, 0.75f, 0.82f, 0.7f));
+            }
 
             for (int i = 0; i < count; i++)
             {
@@ -79,11 +84,11 @@ namespace ZombieOverdrive.Combat
                     continue;
                 }
 
-                enemy.TakeDamage(RollDamage(baseDamage * (1f + (Level - 1) * 0.13f) * (IsEvolved ? 1.32f : 1f)));
+                enemy.TakeDamage(RollDamage(baseDamage * (1f + (Level - 1) * 0.13f) * (IsEvolved ? 1.6f : 1f)));
                 EnemyController controller = enemy.GetComponent<EnemyController>();
                 if (controller != null)
                 {
-                    controller.ApplyKnockback(toEnemy.normalized * 0.75f);
+                    controller.ApplyKnockback(toEnemy.normalized * (IsEvolved ? 1.15f : 0.75f));
                 }
             }
         }
@@ -132,15 +137,20 @@ namespace ZombieOverdrive.Combat
 
         private void DrawSlash(float radius, float arc)
         {
+            DrawSlash(radius, arc, IsEvolved ? 0.12f : 0.08f, IsEvolved ? new Color(1f, 0.38f, 0.52f, 0.95f) : new Color(0.75f, 1f, 1f, 0.9f));
+        }
+
+        private void DrawSlash(float radius, float arc, float width, Color color)
+        {
             int segments = 16;
             GameObject lineObject = new GameObject("Lightblade Slash");
             LineRenderer line = lineObject.AddComponent<LineRenderer>();
             line.material = new Material(Shader.Find("Sprites/Default"));
             line.positionCount = segments + 1;
-            line.startColor = new Color(0.75f, 1f, 1f, 0.9f);
-            line.endColor = new Color(0.75f, 1f, 1f, 0.25f);
-            line.startWidth = 0.08f;
-            line.endWidth = 0.08f;
+            line.startColor = color;
+            line.endColor = new Color(color.r, color.g, color.b, Mathf.Min(color.a, 0.25f));
+            line.startWidth = width;
+            line.endWidth = width;
             line.sortingOrder = 9;
 
             float baseAngle = Mathf.Atan2(AimDirection.y, AimDirection.x) * Mathf.Rad2Deg - arc * 0.5f;
@@ -151,7 +161,7 @@ namespace ZombieOverdrive.Combat
                 line.SetPosition(i, point);
             }
 
-            Destroy(lineObject, 0.12f);
+            Destroy(lineObject, IsEvolved ? 0.18f : 0.12f);
         }
     }
 }

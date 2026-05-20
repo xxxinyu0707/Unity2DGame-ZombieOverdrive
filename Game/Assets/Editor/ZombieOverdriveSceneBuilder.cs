@@ -1967,16 +1967,25 @@ public static class ZombieOverdriveSceneBuilder
         rect.offsetMin = Vector2.zero;
         rect.offsetMax = Vector2.zero;
 
-        Image frame = CreateImage(panel.transform, "Frame", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1040f, 660f));
+        Image frame = CreateImage(panel.transform, "Frame", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1180f, 720f));
         frame.color = Hex("#0e1420");
-        Image topRule = CreateImage(panel.transform, "Top Rule", new Vector2(0.5f, 0.5f), new Vector2(0f, 302f), new Vector2(1040f, 6f));
+        Image topRule = CreateImage(frame.transform, "Top Rule", new Vector2(0.5f, 1f), new Vector2(0f, -4f), new Vector2(1180f, 6f));
         topRule.color = Hex("#f3b43c");
 
-        CreateText(panel.transform, "Title", "暂停", 42, TextAnchor.UpperCenter, new Vector2(0.5f, 0.5f), new Vector2(0f, 278f), new Vector2(500f, 64f));
-        CreateText(panel.transform, "Active Slots Title", "主动武器", 23, TextAnchor.UpperLeft, new Vector2(0.5f, 0.5f), new Vector2(-455f, 214f), new Vector2(330f, 36f));
-        CreateText(panel.transform, "Passive Slots Title", "被动技能", 23, TextAnchor.UpperLeft, new Vector2(0.5f, 0.5f), new Vector2(-455f, 0f), new Vector2(330f, 36f));
-        Text status = CreateText(panel.transform, "Status", "", 16, TextAnchor.UpperLeft, new Vector2(0.5f, 0.5f), new Vector2(70f, 214f), new Vector2(500f, 430f));
+        Text title = CreateText(frame.transform, "Title", "暂停", 38, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -24f), new Vector2(420f, 54f));
+        title.verticalOverflow = VerticalWrapMode.Truncate;
+
+        Image leftPanel = CreateImage(frame.transform, "Slot Panel", new Vector2(0f, 1f), new Vector2(34f, -86f), new Vector2(390f, 510f));
+        leftPanel.color = new Color(0.07f, 0.085f, 0.12f, 0.94f);
+        Image rightPanel = CreateImage(frame.transform, "Status Panel", new Vector2(0f, 1f), new Vector2(456f, -86f), new Vector2(690f, 510f));
+        rightPanel.color = new Color(0.07f, 0.085f, 0.12f, 0.94f);
+
+        CreateText(leftPanel.transform, "Active Slots Title", "主动武器", 22, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(22f, -18f), new Vector2(330f, 34f));
+        CreateText(leftPanel.transform, "Passive Slots Title", "被动技能", 22, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(22f, -266f), new Vector2(330f, 34f));
+        CreateText(rightPanel.transform, "Status Title", "作战信息", 22, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(24f, -18f), new Vector2(330f, 34f));
+        Text status = CreateText(rightPanel.transform, "Status", "", 17, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(24f, -62f), new Vector2(642f, 416f));
         status.color = new Color(0.86f, 0.9f, 0.96f, 1f);
+        status.verticalOverflow = VerticalWrapMode.Truncate;
 
         Image[] activeIcons = new Image[3];
         Text[] activeTexts = new Text[3];
@@ -1984,13 +1993,13 @@ public static class ZombieOverdriveSceneBuilder
         Text[] passiveTexts = new Text[3];
         for (int i = 0; i < 3; i++)
         {
-            CreateSlotItem(panel.transform, "Active Slot " + (i + 1), new Vector2(-350f, 174f - i * 62f), out activeIcons[i], out activeTexts[i]);
-            CreateSlotItem(panel.transform, "Passive Slot " + (i + 1), new Vector2(-350f, -40f - i * 62f), out passiveIcons[i], out passiveTexts[i]);
+            CreateSlotItem(leftPanel.transform, "Active Slot " + (i + 1), new Vector2(22f, -62f - i * 64f), out activeIcons[i], out activeTexts[i]);
+            CreateSlotItem(leftPanel.transform, "Passive Slot " + (i + 1), new Vector2(22f, -310f - i * 64f), out passiveIcons[i], out passiveTexts[i]);
         }
 
-        Button resume = CreateMenuButton(panel.transform, "Resume Button", "继续", new Vector2(-220f, -285f));
-        Button restart = CreateMenuButton(panel.transform, "Restart Button", "重开", new Vector2(0f, -285f));
-        Button quit = CreateMenuButton(panel.transform, "Quit Button", "退出", new Vector2(220f, -285f));
+        Button resume = CreateMenuButton(frame.transform, "Resume Button", "继续", new Vector2(-240f, -304f));
+        Button restart = CreateMenuButton(frame.transform, "Restart Button", "重开", new Vector2(0f, -304f));
+        Button quit = CreateMenuButton(frame.transform, "Quit Button", "退出", new Vector2(240f, -304f));
 
         PauseMenu pauseMenu = panel.AddComponent<PauseMenu>();
         SetObjectField(pauseMenu, "statusText", status);
@@ -2017,17 +2026,21 @@ public static class ZombieOverdriveSceneBuilder
         rect.offsetMin = Vector2.zero;
         rect.offsetMax = Vector2.zero;
 
-        Image frame = CreateImage(panel.transform, "Frame", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(620f, 520f));
+        Image frame = CreateImage(panel.transform, "Frame", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(680f, 520f));
         frame.color = Hex("#0e1420");
-        Image topRule = CreateImage(panel.transform, "Top Rule", new Vector2(0.5f, 0.5f), new Vector2(0f, 232f), new Vector2(620f, 6f));
+        Image topRule = CreateImage(frame.transform, "Top Rule", new Vector2(0.5f, 1f), new Vector2(0f, -4f), new Vector2(680f, 6f));
         topRule.color = Hex("#55e08a");
 
-        Text title = CreateText(panel.transform, "Title", "行动终止", 46, TextAnchor.UpperCenter, new Vector2(0.5f, 0.5f), new Vector2(0f, 194f), new Vector2(520f, 72f));
-        Text summary = CreateText(panel.transform, "Summary", "", 27, TextAnchor.UpperLeft, new Vector2(0.5f, 0.5f), new Vector2(-210f, 102f), new Vector2(420f, 250f));
+        Text title = CreateText(frame.transform, "Title", "行动终止", 42, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -40f), new Vector2(520f, 60f));
+        title.verticalOverflow = VerticalWrapMode.Truncate;
+        Image summaryBox = CreateImage(frame.transform, "Summary Box", new Vector2(0.5f, 1f), new Vector2(0f, -126f), new Vector2(500f, 190f));
+        summaryBox.color = new Color(0.07f, 0.085f, 0.12f, 0.95f);
+        Text summary = CreateText(summaryBox.transform, "Summary", "", 24, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(24f, -18f), new Vector2(452f, 154f));
         summary.color = new Color(0.9f, 0.93f, 0.98f, 1f);
+        summary.verticalOverflow = VerticalWrapMode.Truncate;
 
-        Button restart = CreateMenuButton(panel.transform, "Restart Button", "再来一局", new Vector2(-120f, -188f));
-        Button quit = CreateMenuButton(panel.transform, "Quit Button", "退出游戏", new Vector2(120f, -188f));
+        Button restart = CreateMenuButton(frame.transform, "Restart Button", "再来一局", new Vector2(-120f, -198f));
+        Button quit = CreateMenuButton(frame.transform, "Quit Button", "退出游戏", new Vector2(120f, -198f));
 
         RunResultPanel resultPanel = panel.AddComponent<RunResultPanel>();
         SetObjectField(resultPanel, "titleText", title);
@@ -2045,18 +2058,19 @@ public static class ZombieOverdriveSceneBuilder
         Image background = slotObject.AddComponent<Image>();
         background.color = new Color(0.075f, 0.09f, 0.12f, 0.9f);
         RectTransform rect = slotObject.GetComponent<RectTransform>();
-        rect.anchorMin = new Vector2(0.5f, 1f);
-        rect.anchorMax = new Vector2(0.5f, 1f);
-        rect.pivot = new Vector2(0.5f, 1f);
+        rect.anchorMin = new Vector2(0f, 1f);
+        rect.anchorMax = new Vector2(0f, 1f);
+        rect.pivot = new Vector2(0f, 1f);
         rect.anchoredPosition = position;
-        rect.sizeDelta = new Vector2(330f, 52f);
+        rect.sizeDelta = new Vector2(346f, 56f);
 
-        Image iconBackdrop = CreateImage(slotObject.transform, "Icon Backdrop", new Vector2(0f, 0.5f), new Vector2(12f, 0f), new Vector2(40f, 40f));
+        Image iconBackdrop = CreateImage(slotObject.transform, "Icon Backdrop", new Vector2(0f, 0.5f), new Vector2(12f, 0f), new Vector2(42f, 42f));
         iconBackdrop.color = new Color(0.03f, 0.035f, 0.05f, 1f);
-        icon = CreateImage(slotObject.transform, "Icon", new Vector2(0f, 0.5f), new Vector2(14f, 0f), new Vector2(36f, 36f));
+        icon = CreateImage(slotObject.transform, "Icon", new Vector2(0f, 0.5f), new Vector2(15f, 0f), new Vector2(36f, 36f));
         icon.preserveAspect = true;
-        label = CreateText(slotObject.transform, "Label", "空槽", 18, TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(62f, 0f), new Vector2(250f, 42f));
+        label = CreateText(slotObject.transform, "Label", "空槽", 17, TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(66f, 0f), new Vector2(264f, 46f));
         label.color = new Color(0.9f, 0.93f, 0.98f, 1f);
+        label.verticalOverflow = VerticalWrapMode.Truncate;
     }
 
     private static Button CreateMenuButton(Transform parent, string name, string label, Vector2 position)

@@ -33,27 +33,31 @@ namespace ZombieOverdrive.Combat
         private void Fire()
         {
             Vector2 direction = AimDirection;
-            int shots = IsEvolved ? 4 : Level >= 5 ? 2 : 1;
-            int pierces = Stats.bulletPierceBonus + (Level >= 4 ? 1 : 0) + (Level >= 5 ? 1 : 0) + (IsEvolved ? 2 : 0);
-            float damage = RollDamage(baseDamage * (1f + (Level - 1) * 0.14f) * (IsEvolved ? 1.28f : 1f));
+            int shots = IsEvolved ? 6 : Level >= 5 ? 2 : 1;
+            int pierces = Stats.bulletPierceBonus + (Level >= 4 ? 1 : 0) + (Level >= 5 ? 1 : 0) + (IsEvolved ? 4 : 0);
+            float damage = RollDamage(baseDamage * (1f + (Level - 1) * 0.14f) * (IsEvolved ? 1.45f : 1f));
             Vector3 origin = transform.position + (Vector3)(direction * 0.6f);
             Vector2 side = new Vector2(-direction.y, direction.x);
-            CombatVisuals.SpawnMuzzleFlash(origin, direction, new Color(1f, 0.86f, 0.35f, 0.95f), 0.26f);
+            CombatVisuals.SpawnMuzzleFlash(origin, direction, IsEvolved ? new Color(0.55f, 0.9f, 1f, 1f) : new Color(1f, 0.86f, 0.35f, 0.95f), IsEvolved ? 0.42f : 0.26f);
+            if (IsEvolved)
+            {
+                CombatVisuals.SpawnRing(origin, new Color(0.45f, 0.9f, 1f, 0.5f), 0.55f, 0.12f);
+            }
 
             for (int i = 0; i < shots; i++)
             {
                 float offset = shots == 1 ? 0f : (i - (shots - 1) * 0.5f) * parallelShotOffset;
-                float angle = IsEvolved ? (i - (shots - 1) * 0.5f) * 4f : 0f;
-                SpawnBullet(origin + (Vector3)(side * offset), Rotate(direction, angle), damage, pierces);
+                float angle = IsEvolved ? (i - (shots - 1) * 0.5f) * 7f : 0f;
+                SpawnBullet(origin + (Vector3)(side * offset), Rotate(direction, angle), damage, pierces, IsEvolved);
             }
         }
 
-        private void SpawnBullet(Vector3 position, Vector2 direction, float damage, int pierces)
+        private void SpawnBullet(Vector3 position, Vector2 direction, float damage, int pierces, bool infinitePierce)
         {
             Bullet bullet = bulletPool.Get<Bullet>(position, Quaternion.identity);
             if (bullet != null)
             {
-                bullet.Launch(direction, damage, pierces, 0.15f, Stats != null ? Stats.projectileSpeedMultiplier : 1f, false);
+                bullet.Launch(direction, damage, pierces, IsEvolved ? 0.35f : 0.15f, Stats != null ? Stats.projectileSpeedMultiplier * (IsEvolved ? 1.25f : 1f) : 1f, infinitePierce);
             }
         }
 
@@ -61,7 +65,7 @@ namespace ZombieOverdrive.Combat
         {
             if (IsEvolved)
             {
-                return 0.62f;
+                return 0.52f;
             }
 
             if (Level >= 5)

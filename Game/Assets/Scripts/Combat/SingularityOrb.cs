@@ -19,8 +19,14 @@ namespace ZombieOverdrive.Combat
         private float tickTimer;
         private LayerMask enemyMask;
         private LineRenderer ring;
+        private bool evolved;
 
         public void Launch(Vector2 launchDirection, float orbDamage, float pullRadius, float pullForce, float lifetime, LayerMask mask)
+        {
+            Launch(launchDirection, orbDamage, pullRadius, pullForce, lifetime, mask, false);
+        }
+
+        public void Launch(Vector2 launchDirection, float orbDamage, float pullRadius, float pullForce, float lifetime, LayerMask mask, bool evolvedOrb)
         {
             direction = launchDirection.sqrMagnitude > 0.001f ? launchDirection.normalized : Vector2.right;
             damage = orbDamage;
@@ -29,20 +35,22 @@ namespace ZombieOverdrive.Combat
             timer = lifetime;
             tickTimer = 0f;
             enemyMask = mask;
+            evolved = evolvedOrb;
             gameObject.SetActive(true);
             EnsureRing();
+            UpdateRingShape();
         }
 
         private void Update()
         {
             transform.position += (Vector3)(direction * speed * Time.deltaTime);
-            transform.Rotate(0f, 0f, 130f * Time.deltaTime);
+            transform.Rotate(0f, 0f, (evolved ? 220f : 130f) * Time.deltaTime);
             timer -= Time.deltaTime;
             tickTimer -= Time.deltaTime;
 
             if (tickTimer <= 0f)
             {
-                tickTimer = tickInterval;
+                tickTimer = evolved ? tickInterval * 0.72f : tickInterval;
                 PullAndDamage();
             }
 
@@ -66,12 +74,22 @@ namespace ZombieOverdrive.Combat
             ring.loop = true;
             ring.useWorldSpace = false;
             ring.positionCount = 36;
-            ring.startColor = new Color(0.42f, 0.2f, 1f, 0.22f);
-            ring.endColor = new Color(0.42f, 0.2f, 1f, 0.22f);
             ring.startWidth = 0.035f;
             ring.endWidth = 0.035f;
             ring.sortingOrder = 6;
+        }
 
+        private void UpdateRingShape()
+        {
+            if (ring == null)
+            {
+                return;
+            }
+
+            ring.startColor = evolved ? new Color(0.8f, 0.35f, 1f, 0.42f) : new Color(0.42f, 0.2f, 1f, 0.22f);
+            ring.endColor = ring.startColor;
+            ring.startWidth = evolved ? 0.06f : 0.035f;
+            ring.endWidth = evolved ? 0.06f : 0.035f;
             for (int i = 0; i < ring.positionCount; i++)
             {
                 float angle = Mathf.PI * 2f * i / ring.positionCount;
@@ -102,7 +120,16 @@ namespace ZombieOverdrive.Combat
                 {
                     Vector2 pull = ((Vector2)transform.position - (Vector2)Hits[i].transform.position).normalized * pullStrength;
                     controller.ApplyKnockback(pull);
+                    if (evolved)
+                    {
+                        controller.ApplySlow(0.35f, 0.45f);
+                    }
                 }
+            }
+
+            if (evolved)
+            {
+                CombatVisuals.SpawnRing(transform.position, new Color(0.8f, 0.35f, 1f, 0.28f), radius * 0.42f, 0.08f);
             }
         }
     }
