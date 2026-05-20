@@ -17,6 +17,9 @@ namespace ZombieOverdrive.Audio
         private AudioClip menuClip;
         private AudioClip battleClip;
         private AudioClip bossClip;
+        private AudioClip gameOverClip;
+        private AudioClip victoryClip;
+        private AudioSource stingerSource;
         private MusicMode currentMode = MusicMode.None;
         private float activeTargetVolume;
 
@@ -44,9 +47,13 @@ namespace ZombieOverdrive.Audio
 
             activeSource = CreateSource("Music A");
             fadingSource = CreateSource("Music B");
+            stingerSource = CreateSource("Music Stinger");
+            stingerSource.loop = false;
             menuClip = CreateMenuLoop();
             battleClip = CreateBattleLoop();
             bossClip = CreateBossLoop();
+            gameOverClip = CreateGameOverStinger();
+            victoryClip = CreateVictoryStinger();
         }
 
         public float NormalizedVolume => Mathf.Clamp01(masterVolume);
@@ -56,6 +63,21 @@ namespace ZombieOverdrive.Audio
             masterVolume = Mathf.Clamp01(value);
             PlayerPrefs.SetFloat(VolumePrefKey, masterVolume);
             PlayerPrefs.Save();
+        }
+
+        public void PlayResultStinger(bool victory)
+        {
+            if (stingerSource == null)
+            {
+                return;
+            }
+
+            FadeTo(MusicMode.None);
+            stingerSource.Stop();
+            stingerSource.clip = victory ? victoryClip : gameOverClip;
+            stingerSource.volume = GetStingerVolume();
+            stingerSource.loop = false;
+            stingerSource.Play();
         }
 
         private void Update()
@@ -83,6 +105,11 @@ namespace ZombieOverdrive.Audio
                     fadingSource.Stop();
                 }
             }
+
+            if (stingerSource != null && stingerSource.isPlaying)
+            {
+                stingerSource.volume = GetStingerVolume();
+            }
         }
 
         private MusicMode GetDesiredMode()
@@ -93,9 +120,14 @@ namespace ZombieOverdrive.Audio
                 return MusicMode.None;
             }
 
-            if (manager.State == GameState.MainMenu || manager.State == GameState.GameOver || manager.State == GameState.Victory)
+            if (manager.State == GameState.MainMenu)
             {
                 return MusicMode.Menu;
+            }
+
+            if (manager.State == GameState.GameOver || manager.State == GameState.Victory)
+            {
+                return MusicMode.None;
             }
 
             if (manager.State == GameState.Playing || manager.State == GameState.Paused || manager.State == GameState.LevelUp)
@@ -164,6 +196,11 @@ namespace ZombieOverdrive.Audio
             }
         }
 
+        private float GetStingerVolume()
+        {
+            return Mathf.Clamp01(masterVolume) * MaxOutputVolume;
+        }
+
         private AudioSource CreateSource(string sourceName)
         {
             AudioSource source = gameObject.AddComponent<AudioSource>();
@@ -215,6 +252,24 @@ namespace ZombieOverdrive.Audio
                 0.16f);
         }
 
+        private static AudioClip CreateGameOverStinger()
+        {
+            return CreateStinger(
+                "game_over_8bit_stinger",
+                new[] { 52, 48, 45, 41, 40, -1, 35, -1 },
+                new[] { 0.22f, 0.22f, 0.24f, 0.3f, 0.42f, 0.08f, 0.52f, 0.18f },
+                0.32f);
+        }
+
+        private static AudioClip CreateVictoryStinger()
+        {
+            return CreateStinger(
+                "victory_8bit_stinger",
+                new[] { 52, 55, 59, 64, 67, 71, 76, -1, 72 },
+                new[] { 0.16f, 0.16f, 0.16f, 0.22f, 0.16f, 0.18f, 0.32f, 0.08f, 0.54f },
+                0.3f);
+        }
+
         private static AudioClip CreateLoop(string name, float bpm, int steps, int[] melody, int[] bass, float melodyVolume, float bassVolume, float drumVolume)
         {
             const int sampleRate = 22050;
@@ -249,6 +304,44 @@ namespace ZombieOverdrive.Audio
                 }
 
                 data[i] = Mathf.Clamp(sample, -0.85f, 0.85f);
+            }
+
+            AudioClip clip = AudioClip.Create(name, sampleCount, 1, sampleRate, false);
+            clip.SetData(data, 0);
+            return clip;
+        }
+
+        private static AudioClip CreateStinger(string name, int[] notes, float[] durations, float noteVolume)
+        {
+            const int sampleRate = 22050;
+            float duration = 0f;
+            for (int i = 0; i < durations.Length; i++)
+            {
+                duration += Mathf.Max(0.04f, durations[i]);
+            }
+
+            int sampleCount = Mathf.CeilToInt(duration * sampleRate);
+            float[] data = new float[sampleCount];
+            int writeIndex = 0;
+
+            for (int noteIndex = 0; noteIndex < notes.Length && noteIndex < durations.Length; noteIndex++)
+            {
+                int note = notes[noteIndex];
+                int noteSamples = Mathf.Max(1, Mathf.RoundToInt(durations[noteIndex] * sampleRate));
+                for (int i = 0; i < noteSamples && writeIndex < data.Length; i++, writeIndex++)
+                {
+                    if (note < 0)
+                    {
+                        data[writeIndex] = 0f;
+                        continue;
+                    }
+
+                    float time = writeIndex / (float)sampleRate;
+                    float t = i / (float)noteSamples;
+                    float lead = Square(MidiToFrequency(note), time, 0.5f) * NoteEnvelope(t) * noteVolume;
+                    float sub = Square(MidiToFrequency(note - 12), time, 0.42f) * NoteEnvelope(t) * noteVolume * 0.42f;
+                    data[writeIndex] = Mathf.Clamp(lead + sub, -0.85f, 0.85f);
+                }
             }
 
             AudioClip clip = AudioClip.Create(name, sampleCount, 1, sampleRate, false);

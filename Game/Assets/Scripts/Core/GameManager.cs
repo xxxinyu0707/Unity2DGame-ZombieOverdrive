@@ -333,7 +333,7 @@ namespace ZombieOverdrive.Core
                 resultPanel.Show(false, levelSystem.Level, KillCount, RunGold, banked, elapsedSeconds);
             }
 
-            GameAudio.Play(GameSound.GameOver, 0.8f);
+            MusicManager.Instance?.PlayResultStinger(false);
         }
 
         private void WinRun()
@@ -347,7 +347,7 @@ namespace ZombieOverdrive.Core
                 resultPanel.Show(true, levelSystem.Level, KillCount, RunGold, banked, elapsedSeconds);
             }
 
-            GameAudio.Play(GameSound.Victory, 0.9f);
+            MusicManager.Instance?.PlayResultStinger(true);
         }
 
         private int SettleRun(bool victory)
