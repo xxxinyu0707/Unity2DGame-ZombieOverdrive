@@ -96,40 +96,70 @@ namespace ZombieOverdrive.Enemies
             }
             else if (elapsed < 240f)
             {
-                maxEnemies = 56;
-                spawnInterval = 0.34f;
+                maxEnemies = 60;
+                spawnInterval = 0.33f;
             }
             else if (elapsed < 360f)
             {
-                maxEnemies = 110;
-                spawnInterval = 0.24f;
+                maxEnemies = 130;
+                spawnInterval = 0.22f;
             }
             else if (elapsed < 480f)
             {
-                maxEnemies = 170;
-                spawnInterval = 0.17f;
+                maxEnemies = 215;
+                spawnInterval = 0.145f;
             }
             else
             {
-                maxEnemies = 250;
-                spawnInterval = 0.105f;
+                maxEnemies = 285;
+                spawnInterval = 0.1f;
             }
         }
 
         private EnemyType ChooseEnemyType(float elapsed)
         {
             float roll = Random.value;
-            if (elapsed >= 360f && roll < 0.16f)
+            if (elapsed >= 420f && roll < 0.21f)
             {
                 return EnemyType.Tanker;
             }
 
-            if (elapsed >= 240f && roll < 0.28f)
+            if (elapsed >= 420f && roll < 0.38f)
             {
                 return EnemyType.Spitter;
             }
 
-            if (elapsed >= 120f && roll < 0.45f)
+            if (elapsed >= 420f && roll < 0.58f)
+            {
+                return EnemyType.Runner;
+            }
+
+            if (elapsed >= 300f && roll < 0.12f)
+            {
+                return EnemyType.Tanker;
+            }
+
+            if (elapsed >= 300f && roll < 0.3f)
+            {
+                return EnemyType.Spitter;
+            }
+
+            if (elapsed >= 300f && roll < 0.52f)
+            {
+                return EnemyType.Runner;
+            }
+
+            if (elapsed >= 240f && roll < 0.24f)
+            {
+                return EnemyType.Spitter;
+            }
+
+            if (elapsed >= 240f && roll < 0.44f)
+            {
+                return EnemyType.Runner;
+            }
+
+            if (elapsed >= 120f && roll < 0.42f)
             {
                 return EnemyType.Runner;
             }
@@ -157,10 +187,10 @@ namespace ZombieOverdrive.Enemies
             }
 
             float elapsedMinutes = manager.ElapsedSeconds / 60f;
-            float hpScale = Mathf.Pow(1f + 0.24f * elapsedMinutes, 1.5f);
+            float hpScale = Mathf.Pow(1f + 0.255f * elapsedMinutes, 1.52f);
             if (manager.ElapsedSeconds >= 300f)
             {
-                hpScale *= 1f + (manager.ElapsedSeconds - 300f) / 300f * 0.32f;
+                hpScale *= 1f + (manager.ElapsedSeconds - 300f) / 300f * 0.42f;
             }
 
             float speedScale = Mathf.Pow(1f + 0.085f * elapsedMinutes, 0.55f);

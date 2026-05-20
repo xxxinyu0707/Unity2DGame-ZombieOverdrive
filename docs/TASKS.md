@@ -41,6 +41,7 @@
 - [x] Add destructible crates and temporary recovery items
 - [x] Add restart and pause flow
 - [x] Add animated weapon visuals and weapon icons
+- [x] Add closed-loop difficulty model and fitted late-run wave curve
 
 ## Phase 3: Submission
 
