@@ -1749,24 +1749,24 @@ public static class ZombieOverdriveSceneBuilder
         hudRect.offsetMax = Vector2.zero;
         GameHud hud = hudObject.AddComponent<GameHud>();
 
-        Image statusPanel = CreateImage(hudObject.transform, "Status Panel", new Vector2(0f, 1f), new Vector2(18f, -18f), new Vector2(318f, 122f));
-        statusPanel.color = new Color(0.025f, 0.03f, 0.042f, 0.78f);
-        Image timerPanel = CreateImage(hudObject.transform, "Timer Panel", new Vector2(0.5f, 1f), new Vector2(0f, -14f), new Vector2(250f, 70f));
-        timerPanel.color = new Color(0.025f, 0.03f, 0.042f, 0.82f);
-        Image killPanel = CreateImage(hudObject.transform, "Kill Panel", new Vector2(1f, 1f), new Vector2(-18f, -18f), new Vector2(226f, 58f));
-        killPanel.color = new Color(0.025f, 0.03f, 0.042f, 0.78f);
-        Image xpPanel = CreateImage(hudObject.transform, "XP Panel", new Vector2(0.5f, 0f), new Vector2(0f, 16f), new Vector2(840f, 38f));
-        xpPanel.color = new Color(0.025f, 0.03f, 0.042f, 0.72f);
+        Image statusPanel = CreateImage(hudObject.transform, "Status Panel", new Vector2(0f, 1f), new Vector2(18f, -18f), new Vector2(344f, 118f));
+        statusPanel.color = new Color(0.026f, 0.033f, 0.047f, 0.88f);
+        Image timerPanel = CreateImage(hudObject.transform, "Timer Panel", new Vector2(0.5f, 1f), new Vector2(0f, -16f), new Vector2(238f, 64f));
+        timerPanel.color = new Color(0.026f, 0.033f, 0.047f, 0.9f);
+        Image killPanel = CreateImage(hudObject.transform, "Kill Panel", new Vector2(1f, 1f), new Vector2(-18f, -18f), new Vector2(270f, 64f));
+        killPanel.color = new Color(0.026f, 0.033f, 0.047f, 0.88f);
+        Image xpPanel = CreateImage(hudObject.transform, "XP Panel", new Vector2(0.5f, 0f), new Vector2(0f, 18f), new Vector2(880f, 34f));
+        xpPanel.color = new Color(0.026f, 0.033f, 0.047f, 0.78f);
 
-        Text timer = CreateText(hudObject.transform, "Timer", "10:00", 42, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -20f), new Vector2(220f, 60f));
-        Text health = CreateText(hudObject.transform, "Health Text", "生命", 23, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(34f, -24f), new Vector2(280f, 38f));
-        Text level = CreateText(hudObject.transform, "Level Text", "等级 1", 23, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(34f, -92f), new Vector2(160f, 36f));
-        Text gold = CreateText(hudObject.transform, "Gold Text", "金币 0", 23, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(160f, -92f), new Vector2(145f, 36f));
-        Text kills = CreateText(hudObject.transform, "Kills Text", "击杀 0", 23, TextAnchor.UpperRight, new Vector2(1f, 1f), new Vector2(-32f, -28f), new Vector2(190f, 40f));
-        Text message = CreateText(hudObject.transform, "Message", "", 48, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(900f, 120f));
+        Text timer = CreateText(hudObject.transform, "Timer", "10:00", 38, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -22f), new Vector2(220f, 54f));
+        Text health = CreateText(hudObject.transform, "Health Text", "生命", 21, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(34f, -24f), new Vector2(300f, 34f));
+        Text level = CreateText(hudObject.transform, "Level Text", "等级 1", 21, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(34f, -88f), new Vector2(142f, 32f));
+        Text gold = CreateText(hudObject.transform, "Gold Text", "金币 0", 21, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(178f, -88f), new Vector2(156f, 32f));
+        Text kills = CreateText(hudObject.transform, "Kills Text", "击杀 0", 22, TextAnchor.UpperRight, new Vector2(1f, 1f), new Vector2(-34f, -30f), new Vector2(232f, 38f));
+        Text message = CreateText(hudObject.transform, "Message", "", 44, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(900f, 110f));
 
-        Slider hpSlider = CreateSlider(hudObject.transform, "Health Bar", new Vector2(0f, 1f), new Vector2(34f, -62f), new Vector2(270f, 20f), new Color(0.85f, 0.1f, 0.12f, 1f));
-        Slider xpSlider = CreateSlider(hudObject.transform, "XP Bar", new Vector2(0.5f, 0f), new Vector2(0f, 22f), new Vector2(800f, 24f), new Color(0.2f, 0.55f, 1f, 1f));
+        Slider hpSlider = CreateSlider(hudObject.transform, "Health Bar", new Vector2(0f, 1f), new Vector2(34f, -58f), new Vector2(292f, 18f), new Color(0.86f, 0.14f, 0.18f, 1f));
+        Slider xpSlider = CreateSlider(hudObject.transform, "XP Bar", new Vector2(0.5f, 0f), new Vector2(0f, 23f), new Vector2(834f, 18f), new Color(0.16f, 0.54f, 1f, 1f));
 
         SetObjectField(hud, "timerText", timer);
         SetObjectField(hud, "healthText", health);
@@ -1784,21 +1784,31 @@ public static class ZombieOverdriveSceneBuilder
         GameObject panel = new GameObject("Main Menu Panel");
         panel.transform.SetParent(parent, false);
         Image background = panel.AddComponent<Image>();
-        background.color = new Color(0.018f, 0.022f, 0.032f, 0.97f);
+        background.color = Hex("#080b12");
         RectTransform rect = panel.GetComponent<RectTransform>();
         rect.anchorMin = Vector2.zero;
         rect.anchorMax = Vector2.one;
         rect.offsetMin = Vector2.zero;
         rect.offsetMax = Vector2.zero;
 
-        Image topBand = CreateImage(panel.transform, "Top Band", new Vector2(0.5f, 1f), new Vector2(0f, 0f), new Vector2(1920f, 150f));
-        topBand.color = new Color(0.06f, 0.075f, 0.105f, 0.95f);
-        CreateText(panel.transform, "Title", "基因重组舱", 58, TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(86f, -72f), new Vector2(520f, 80f));
-        Text gold = CreateText(panel.transform, "Gold", "局外金币 0", 30, TextAnchor.MiddleRight, new Vector2(1f, 1f), new Vector2(-86f, -72f), new Vector2(420f, 60f));
-        gold.color = new Color(1f, 0.86f, 0.44f, 1f);
+        Image topBand = CreateImage(panel.transform, "Top Band", new Vector2(0.5f, 1f), new Vector2(0f, 0f), new Vector2(1920f, 146f));
+        topBand.color = Hex("#111923");
+        Image lowerBand = CreateImage(panel.transform, "Lower Band", new Vector2(0.5f, 0f), new Vector2(0f, 0f), new Vector2(1920f, 118f));
+        lowerBand.color = Hex("#0d121b");
+        Image leftAccent = CreateImage(panel.transform, "Left Accent", new Vector2(0f, 1f), new Vector2(0f, -146f), new Vector2(12f, 815f));
+        leftAccent.color = Hex("#23b7d7");
+        Image rightAccent = CreateImage(panel.transform, "Right Accent", new Vector2(1f, 1f), new Vector2(0f, -146f), new Vector2(12f, 815f));
+        rightAccent.color = Hex("#f3b43c");
 
-        CreateText(panel.transform, "Talent Title", "永久强化", 34, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-565f, -178f), new Vector2(360f, 58f));
-        CreateText(panel.transform, "Talent Hint", "战斗中获得的金币会留在局外，用来强化下一局开局属性。", 22, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-565f, -226f), new Vector2(720f, 48f));
+        CreateText(panel.transform, "Title", "基因重组舱", 56, TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(72f, -70f), new Vector2(560f, 78f));
+        Text subtitle = CreateText(panel.transform, "Subtitle", "避难所永久强化 / 下一轮出击准备", 22, TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(78f, -116f), new Vector2(680f, 42f));
+        subtitle.color = Hex("#8ea0b6");
+        Text gold = CreateText(panel.transform, "Gold", "局外金币 0", 30, TextAnchor.MiddleRight, new Vector2(1f, 1f), new Vector2(-76f, -72f), new Vector2(430f, 60f));
+        gold.color = Hex("#ffd66b");
+
+        CreateText(panel.transform, "Talent Title", "永久强化", 34, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-640f, -190f), new Vector2(360f, 58f));
+        Text hint = CreateText(panel.transform, "Talent Hint", "金币会留在局外，用来强化下一局开局属性。", 21, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-640f, -238f), new Vector2(760f, 42f));
+        hint.color = Hex("#9ba9ba");
 
         Button[] talentButtons = new Button[6];
         Text[] talentTexts = new Text[6];
@@ -1832,20 +1842,20 @@ public static class ZombieOverdriveSceneBuilder
             buttonRect.anchorMin = new Vector2(0.5f, 1f);
             buttonRect.anchorMax = new Vector2(0.5f, 1f);
             buttonRect.pivot = new Vector2(0.5f, 1f);
-            buttonRect.anchoredPosition = new Vector2(-300f + column * 600f, -300f - row * 142f);
-            buttonRect.sizeDelta = new Vector2(540f, 112f);
+            buttonRect.anchoredPosition = new Vector2(-360f + column * 720f, -310f - row * 138f);
+            buttonRect.sizeDelta = new Vector2(620f, 104f);
 
-            Image accent = CreateImage(buttonObject.transform, "Accent", new Vector2(0f, 0.5f), new Vector2(0f, 0f), new Vector2(10f, 112f));
+            Image accent = CreateImage(buttonObject.transform, "Accent", new Vector2(0f, 0.5f), new Vector2(0f, 0f), new Vector2(10f, 104f));
             accent.color = accents[i];
-            Image icon = CreateImage(buttonObject.transform, "Icon", new Vector2(0f, 0.5f), new Vector2(36f, 0f), new Vector2(52f, 52f));
+            Image icon = CreateImage(buttonObject.transform, "Icon", new Vector2(0f, 0.5f), new Vector2(34f, 0f), new Vector2(54f, 54f));
             icon.color = accents[i];
-            talentTexts[i] = CreateText(buttonObject.transform, "Text", labels[i], 20, TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(106f, 0f), new Vector2(400f, 92f));
+            talentTexts[i] = CreateText(buttonObject.transform, "Text", labels[i], 20, TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(112f, 0f), new Vector2(468f, 84f));
             talentTexts[i].color = new Color(0.93f, 0.96f, 1f, 1f);
             talentButtons[i] = button;
         }
 
-        Button start = CreateMenuButton(panel.transform, "Start Button", "开始战斗", new Vector2(-120f, -422f));
-        Button quit = CreateMenuButton(panel.transform, "Quit Button", "退出游戏", new Vector2(120f, -422f));
+        Button start = CreateMenuButton(panel.transform, "Start Button", "开始战斗", new Vector2(-128f, -464f));
+        Button quit = CreateMenuButton(panel.transform, "Quit Button", "退出游戏", new Vector2(128f, -464f));
 
         MainMenuPanel mainMenu = panel.AddComponent<MainMenuPanel>();
         SetObjectField(mainMenu, "goldText", gold);
@@ -1861,14 +1871,19 @@ public static class ZombieOverdriveSceneBuilder
         GameObject panel = new GameObject("Upgrade Panel");
         panel.transform.SetParent(parent, false);
         Image background = panel.AddComponent<Image>();
-        background.color = new Color(0.025f, 0.03f, 0.042f, 0.96f);
+        background.color = new Color(0.006f, 0.008f, 0.014f, 0.92f);
         RectTransform rect = panel.GetComponent<RectTransform>();
-        rect.anchorMin = new Vector2(0.5f, 0.5f);
-        rect.anchorMax = new Vector2(0.5f, 0.5f);
-        rect.anchoredPosition = Vector2.zero;
-        rect.sizeDelta = new Vector2(1040f, 560f);
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
 
-        CreateText(panel.transform, "Title", "选择升级", 42, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -24f), new Vector2(600f, 70f));
+        Image frame = CreateImage(panel.transform, "Frame", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1040f, 560f));
+        frame.color = Hex("#0e1420");
+        Image topRule = CreateImage(panel.transform, "Top Rule", new Vector2(0.5f, 0.5f), new Vector2(0f, 247f), new Vector2(1040f, 6f));
+        topRule.color = Hex("#2eb8d8");
+
+        CreateText(panel.transform, "Title", "选择升级", 40, TextAnchor.UpperCenter, new Vector2(0.5f, 0.5f), new Vector2(0f, 226f), new Vector2(600f, 60f));
 
         UpgradePanel upgradePanel = panel.AddComponent<UpgradePanel>();
         Button[] buttons = new Button[3];
@@ -1895,8 +1910,8 @@ public static class ZombieOverdriveSceneBuilder
             RectTransform buttonRect = buttonObject.GetComponent<RectTransform>();
             buttonRect.anchorMin = new Vector2(0.5f, 0.5f);
             buttonRect.anchorMax = new Vector2(0.5f, 0.5f);
-            buttonRect.anchoredPosition = new Vector2((i - 1) * 320f, -42f);
-            buttonRect.sizeDelta = new Vector2(286f, 354f);
+            buttonRect.anchoredPosition = new Vector2((i - 1) * 320f, -40f);
+            buttonRect.sizeDelta = new Vector2(292f, 350f);
 
             Image accent = CreateImage(buttonObject.transform, "Accent", new Vector2(0.5f, 1f), new Vector2(0f, -4f), new Vector2(286f, 8f));
             accent.color = new Color(0.28f, 0.56f, 0.78f, 1f);
@@ -1907,8 +1922,8 @@ public static class ZombieOverdriveSceneBuilder
             icons[i] = CreateImage(buttonObject.transform, "Icon", new Vector2(0.5f, 1f), new Vector2(0f, -92f), new Vector2(84f, 84f));
             icons[i].preserveAspect = true;
 
-            titles[i] = CreateText(buttonObject.transform, "Title", "升级", 23, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -22f), new Vector2(250f, 56f));
-            descriptions[i] = CreateText(buttonObject.transform, "Description", "说明", 19, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -176f), new Vector2(242f, 98f));
+            titles[i] = CreateText(buttonObject.transform, "Title", "升级", 22, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -22f), new Vector2(250f, 54f));
+            descriptions[i] = CreateText(buttonObject.transform, "Description", "说明", 18, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -176f), new Vector2(246f, 98f));
             hints[i] = CreateText(buttonObject.transform, "Hint", "", 17, TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0f, 12f), new Vector2(242f, 44f));
             hints[i].color = new Color(1f, 0.86f, 0.48f, 1f);
             buttons[i] = button;
@@ -1930,17 +1945,22 @@ public static class ZombieOverdriveSceneBuilder
         GameObject panel = new GameObject("Pause Menu");
         panel.transform.SetParent(parent, false);
         Image background = panel.AddComponent<Image>();
-        background.color = new Color(0.025f, 0.03f, 0.042f, 0.96f);
+        background.color = new Color(0.006f, 0.008f, 0.014f, 0.92f);
         RectTransform rect = panel.GetComponent<RectTransform>();
-        rect.anchorMin = new Vector2(0.5f, 0.5f);
-        rect.anchorMax = new Vector2(0.5f, 0.5f);
-        rect.anchoredPosition = Vector2.zero;
-        rect.sizeDelta = new Vector2(1040f, 660f);
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
 
-        CreateText(panel.transform, "Title", "暂停", 44, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -24f), new Vector2(500f, 70f));
-        CreateText(panel.transform, "Active Slots Title", "主动武器", 24, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-455f, -92f), new Vector2(330f, 38f));
-        CreateText(panel.transform, "Passive Slots Title", "被动技能", 24, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-455f, -306f), new Vector2(330f, 38f));
-        Text status = CreateText(panel.transform, "Status", "", 17, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(70f, -92f), new Vector2(500f, 430f));
+        Image frame = CreateImage(panel.transform, "Frame", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1040f, 660f));
+        frame.color = Hex("#0e1420");
+        Image topRule = CreateImage(panel.transform, "Top Rule", new Vector2(0.5f, 0.5f), new Vector2(0f, 302f), new Vector2(1040f, 6f));
+        topRule.color = Hex("#f3b43c");
+
+        CreateText(panel.transform, "Title", "暂停", 42, TextAnchor.UpperCenter, new Vector2(0.5f, 0.5f), new Vector2(0f, 278f), new Vector2(500f, 64f));
+        CreateText(panel.transform, "Active Slots Title", "主动武器", 23, TextAnchor.UpperLeft, new Vector2(0.5f, 0.5f), new Vector2(-455f, 214f), new Vector2(330f, 36f));
+        CreateText(panel.transform, "Passive Slots Title", "被动技能", 23, TextAnchor.UpperLeft, new Vector2(0.5f, 0.5f), new Vector2(-455f, 0f), new Vector2(330f, 36f));
+        Text status = CreateText(panel.transform, "Status", "", 16, TextAnchor.UpperLeft, new Vector2(0.5f, 0.5f), new Vector2(70f, 214f), new Vector2(500f, 430f));
         status.color = new Color(0.86f, 0.9f, 0.96f, 1f);
 
         Image[] activeIcons = new Image[3];
@@ -1949,8 +1969,8 @@ public static class ZombieOverdriveSceneBuilder
         Text[] passiveTexts = new Text[3];
         for (int i = 0; i < 3; i++)
         {
-            CreateSlotItem(panel.transform, "Active Slot " + (i + 1), new Vector2(-350f, -132f - i * 62f), out activeIcons[i], out activeTexts[i]);
-            CreateSlotItem(panel.transform, "Passive Slot " + (i + 1), new Vector2(-350f, -346f - i * 62f), out passiveIcons[i], out passiveTexts[i]);
+            CreateSlotItem(panel.transform, "Active Slot " + (i + 1), new Vector2(-350f, 174f - i * 62f), out activeIcons[i], out activeTexts[i]);
+            CreateSlotItem(panel.transform, "Passive Slot " + (i + 1), new Vector2(-350f, -40f - i * 62f), out passiveIcons[i], out passiveTexts[i]);
         }
 
         Button resume = CreateMenuButton(panel.transform, "Resume Button", "继续", new Vector2(-220f, -285f));
@@ -1975,19 +1995,24 @@ public static class ZombieOverdriveSceneBuilder
         GameObject panel = new GameObject("Run Result Panel");
         panel.transform.SetParent(parent, false);
         Image background = panel.AddComponent<Image>();
-        background.color = new Color(0.018f, 0.022f, 0.032f, 0.96f);
+        background.color = new Color(0.006f, 0.008f, 0.014f, 0.92f);
         RectTransform rect = panel.GetComponent<RectTransform>();
-        rect.anchorMin = new Vector2(0.5f, 0.5f);
-        rect.anchorMax = new Vector2(0.5f, 0.5f);
-        rect.anchoredPosition = Vector2.zero;
-        rect.sizeDelta = new Vector2(620f, 520f);
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
 
-        Text title = CreateText(panel.transform, "Title", "行动终止", 48, TextAnchor.UpperCenter, new Vector2(0.5f, 1f), new Vector2(0f, -34f), new Vector2(520f, 72f));
-        Text summary = CreateText(panel.transform, "Summary", "", 28, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-210f, -126f), new Vector2(420f, 250f));
+        Image frame = CreateImage(panel.transform, "Frame", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(620f, 520f));
+        frame.color = Hex("#0e1420");
+        Image topRule = CreateImage(panel.transform, "Top Rule", new Vector2(0.5f, 0.5f), new Vector2(0f, 232f), new Vector2(620f, 6f));
+        topRule.color = Hex("#55e08a");
+
+        Text title = CreateText(panel.transform, "Title", "行动终止", 46, TextAnchor.UpperCenter, new Vector2(0.5f, 0.5f), new Vector2(0f, 194f), new Vector2(520f, 72f));
+        Text summary = CreateText(panel.transform, "Summary", "", 27, TextAnchor.UpperLeft, new Vector2(0.5f, 0.5f), new Vector2(-210f, 102f), new Vector2(420f, 250f));
         summary.color = new Color(0.9f, 0.93f, 0.98f, 1f);
 
-        Button restart = CreateMenuButton(panel.transform, "Restart Button", "再来一局", new Vector2(-120f, -190f));
-        Button quit = CreateMenuButton(panel.transform, "Quit Button", "退出游戏", new Vector2(120f, -190f));
+        Button restart = CreateMenuButton(panel.transform, "Restart Button", "再来一局", new Vector2(-120f, -188f));
+        Button quit = CreateMenuButton(panel.transform, "Quit Button", "退出游戏", new Vector2(120f, -188f));
 
         RunResultPanel resultPanel = panel.AddComponent<RunResultPanel>();
         SetObjectField(resultPanel, "titleText", title);
@@ -2024,19 +2049,22 @@ public static class ZombieOverdriveSceneBuilder
         GameObject buttonObject = new GameObject(name);
         buttonObject.transform.SetParent(parent, false);
         Image image = buttonObject.AddComponent<Image>();
-        image.color = new Color(0.12f, 0.14f, 0.18f, 1f);
+        image.color = Hex("#1a2230");
         Button button = buttonObject.AddComponent<Button>();
         ColorBlock colors = button.colors;
-        colors.highlightedColor = new Color(0.2f, 0.25f, 0.35f, 1f);
-        colors.pressedColor = new Color(0.08f, 0.1f, 0.14f, 1f);
+        colors.normalColor = Color.white;
+        colors.highlightedColor = new Color(0.22f, 0.31f, 0.44f, 1f);
+        colors.pressedColor = new Color(0.1f, 0.14f, 0.2f, 1f);
+        colors.selectedColor = new Color(0.22f, 0.31f, 0.44f, 1f);
         button.colors = colors;
 
         RectTransform rect = buttonObject.GetComponent<RectTransform>();
         rect.anchorMin = new Vector2(0.5f, 0.5f);
         rect.anchorMax = new Vector2(0.5f, 0.5f);
         rect.anchoredPosition = position;
-        rect.sizeDelta = new Vector2(180f, 70f);
-        CreateText(buttonObject.transform, "Label", label, 26, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(160f, 50f));
+        rect.sizeDelta = new Vector2(188f, 64f);
+        Text text = CreateText(buttonObject.transform, "Label", label, 25, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(168f, 48f));
+        text.color = Hex("#eef4ff");
         return button;
     }
 

@@ -100,7 +100,8 @@ namespace ZombieOverdrive.Core
             hud.SetExperience(0, LevelSystem.CalculateRequiredXp(levelSystem.Level));
             hud.SetTimer(elapsedSeconds, runDurationSeconds);
             hud.SetGold(RunGold);
-            hud.SetMessage("点击开始进入战斗");
+            hud.SetMessage("");
+            hud.SetVisible(false);
             Time.timeScale = 0f;
         }
 
@@ -239,6 +240,7 @@ namespace ZombieOverdrive.Core
             Time.timeScale = 1f;
             runSettled = false;
             GameAudio.Play(GameSound.Menu, 0.7f);
+            hud.SetVisible(true);
             if (mainMenu != null)
             {
                 mainMenu.Hide();

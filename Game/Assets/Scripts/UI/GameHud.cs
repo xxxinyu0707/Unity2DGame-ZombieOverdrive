@@ -14,6 +14,11 @@ namespace ZombieOverdrive.UI
         [SerializeField] private Slider healthSlider;
         [SerializeField] private Slider xpSlider;
 
+        public void SetVisible(bool visible)
+        {
+            gameObject.SetActive(visible);
+        }
+
         public void SetTimer(float elapsed, float duration)
         {
             float remaining = Mathf.Max(0f, duration - elapsed);
