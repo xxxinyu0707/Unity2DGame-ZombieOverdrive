@@ -2006,7 +2006,7 @@ public static class ZombieOverdriveSceneBuilder
         CreateText(leftPanel.transform, "Active Slots Title", "主动武器", 22, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(22f, -18f), new Vector2(330f, 34f));
         CreateText(leftPanel.transform, "Passive Slots Title", "被动技能", 22, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(22f, -266f), new Vector2(330f, 34f));
         CreateText(rightPanel.transform, "Status Title", "作战信息", 22, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(24f, -18f), new Vector2(330f, 34f));
-        Text status = CreateText(rightPanel.transform, "Status", "", 17, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(24f, -62f), new Vector2(642f, 416f));
+        Text status = CreateText(rightPanel.transform, "Status", "", 17, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(24f, -62f), new Vector2(382f, 416f));
         status.color = new Color(0.86f, 0.9f, 0.96f, 1f);
         status.verticalOverflow = VerticalWrapMode.Truncate;
 

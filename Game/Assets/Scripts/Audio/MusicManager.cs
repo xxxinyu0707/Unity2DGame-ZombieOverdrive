@@ -6,8 +6,11 @@ namespace ZombieOverdrive.Audio
     public class MusicManager : MonoBehaviour
     {
         [SerializeField] private bool musicEnabled = true;
-        [SerializeField, Range(0f, 1f)] private float masterVolume = 0.18f;
+        [SerializeField, Range(0f, 1f)] private float masterVolume = 0.75f;
         [SerializeField] private float fadeSpeed = 1.8f;
+
+        private const string VolumePrefKey = "ZombieOverdrive.MusicVolume";
+        private const float MaxOutputVolume = 0.24f;
 
         private AudioSource activeSource;
         private AudioSource fadingSource;
@@ -30,11 +33,29 @@ namespace ZombieOverdrive.Audio
         private void Awake()
         {
             Instance = this;
+            if (PlayerPrefs.HasKey(VolumePrefKey))
+            {
+                masterVolume = Mathf.Clamp01(PlayerPrefs.GetFloat(VolumePrefKey));
+            }
+            else if (masterVolume > 0f && masterVolume <= MaxOutputVolume)
+            {
+                masterVolume = Mathf.Clamp01(masterVolume / MaxOutputVolume);
+            }
+
             activeSource = CreateSource("Music A");
             fadingSource = CreateSource("Music B");
             menuClip = CreateMenuLoop();
             battleClip = CreateBattleLoop();
             bossClip = CreateBossLoop();
+        }
+
+        public float NormalizedVolume => Mathf.Clamp01(masterVolume);
+
+        public void SetNormalizedVolume(float value)
+        {
+            masterVolume = Mathf.Clamp01(value);
+            PlayerPrefs.SetFloat(VolumePrefKey, masterVolume);
+            PlayerPrefs.Save();
         }
 
         private void Update()
@@ -129,14 +150,15 @@ namespace ZombieOverdrive.Audio
 
         private float GetModeVolume(MusicMode mode)
         {
+            float outputVolume = Mathf.Clamp01(masterVolume) * MaxOutputVolume;
             switch (mode)
             {
                 case MusicMode.Menu:
-                    return masterVolume * 0.58f;
+                    return outputVolume * 0.58f;
                 case MusicMode.Battle:
-                    return masterVolume * 0.78f;
+                    return outputVolume * 0.78f;
                 case MusicMode.Boss:
-                    return masterVolume;
+                    return outputVolume;
                 default:
                     return 0f;
             }
