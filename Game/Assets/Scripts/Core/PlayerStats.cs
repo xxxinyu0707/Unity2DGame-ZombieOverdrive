@@ -19,7 +19,7 @@ namespace ZombieOverdrive.Core
         public float goldMultiplier = 1f;
         public float criticalChance;
         public float criticalDamageMultiplier = 1.75f;
-        public float levelUpHealPercent = 0.18f;
+        public float levelUpHealPercent = 0.14f;
         public float reviveHealthPercent = 0.45f;
         public float pickupLuck = 1f;
         public int bulletPierceBonus;

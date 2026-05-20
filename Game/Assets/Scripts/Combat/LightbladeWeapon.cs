@@ -6,9 +6,9 @@ namespace ZombieOverdrive.Combat
 {
     public class LightbladeWeapon : WeaponBase
     {
-        [SerializeField] private float baseDamage = 52f;
-        [SerializeField] private float baseCooldown = 0.9f;
-        [SerializeField] private float baseRadius = 2.1f;
+        [SerializeField] private float baseDamage = 44f;
+        [SerializeField] private float baseCooldown = 1.02f;
+        [SerializeField] private float baseRadius = 1.95f;
         [SerializeField] private float arcDegrees = 120f;
         [SerializeField] private LayerMask enemyMask;
         [SerializeField] private Sprite swordSprite;
@@ -37,7 +37,7 @@ namespace ZombieOverdrive.Combat
             if (cooldownTimer <= 0f)
             {
                 Slash();
-                cooldownTimer = baseCooldown / FireRateMultiplier * (Level >= 3 ? 0.78f : 1f);
+                cooldownTimer = baseCooldown / FireRateMultiplier * (Level >= 3 ? 0.86f : 1f);
             }
         }
 
@@ -53,8 +53,8 @@ namespace ZombieOverdrive.Combat
 
         private void Slash()
         {
-            float radius = baseRadius * AreaMultiplier * (Level >= 2 ? 1.25f : 1f);
-            float arc = IsEvolved ? 360f : Level >= 5 ? 240f : arcDegrees;
+            float radius = baseRadius * AreaMultiplier * (Level >= 2 ? 1.2f : 1f);
+            float arc = IsEvolved ? 360f : Level >= 5 ? 220f : arcDegrees;
             int count = Physics2D.OverlapCircleNonAlloc(transform.position, radius, hits, enemyMask);
             DrawSlash(radius, arc);
             ShowSwordSlash(radius, arc);
@@ -65,7 +65,7 @@ namespace ZombieOverdrive.Combat
                 DestructibleCrate crate = hits[i].GetComponent<DestructibleCrate>();
                 if (crate != null)
                 {
-                    crate.TakeDamage(baseDamage * 1.2f);
+                    crate.TakeDamage(baseDamage);
                 }
 
                 if (enemy == null || !enemy.IsAlive)
@@ -79,7 +79,7 @@ namespace ZombieOverdrive.Combat
                     continue;
                 }
 
-                enemy.TakeDamage(RollDamage(baseDamage * (1f + (Level - 1) * 0.16f) * (IsEvolved ? 1.45f : 1f)));
+                enemy.TakeDamage(RollDamage(baseDamage * (1f + (Level - 1) * 0.13f) * (IsEvolved ? 1.32f : 1f)));
                 EnemyController controller = enemy.GetComponent<EnemyController>();
                 if (controller != null)
                 {

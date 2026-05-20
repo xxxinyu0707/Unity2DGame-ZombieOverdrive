@@ -21,7 +21,7 @@ namespace ZombieOverdrive.Enemies
         [SerializeField] private float spawnDistance = 9.5f;
         [SerializeField] private float spawnInterval = 0.45f;
         [SerializeField] private int maxEnemies = 120;
-        [SerializeField] private int openingBurstCount = 6;
+        [SerializeField] private int openingBurstCount = 5;
         [SerializeField] private float openingBurstDistance = 7.2f;
 
         private GameManager manager;
@@ -91,28 +91,28 @@ namespace ZombieOverdrive.Enemies
         {
             if (elapsed < 120f)
             {
-                maxEnemies = 30;
-                spawnInterval = 0.42f;
+                maxEnemies = 24;
+                spawnInterval = 0.5f;
             }
             else if (elapsed < 240f)
             {
-                maxEnemies = 60;
-                spawnInterval = 0.32f;
+                maxEnemies = 56;
+                spawnInterval = 0.34f;
             }
             else if (elapsed < 360f)
             {
-                maxEnemies = 100;
+                maxEnemies = 110;
                 spawnInterval = 0.24f;
             }
             else if (elapsed < 480f)
             {
-                maxEnemies = 150;
-                spawnInterval = 0.18f;
+                maxEnemies = 170;
+                spawnInterval = 0.17f;
             }
             else
             {
-                maxEnemies = 220;
-                spawnInterval = 0.12f;
+                maxEnemies = 250;
+                spawnInterval = 0.105f;
             }
         }
 
@@ -157,11 +157,12 @@ namespace ZombieOverdrive.Enemies
             }
 
             float elapsedMinutes = manager.ElapsedSeconds / 60f;
-            float hpScale = Mathf.Pow(1f + 0.25f * elapsedMinutes, 1.5f);
-            float speedScale = Mathf.Pow(1f + 0.08f * elapsedMinutes, 0.5f);
+            float hpScale = Mathf.Pow(1f + 0.28f * elapsedMinutes, 1.55f);
+            float speedScale = Mathf.Pow(1f + 0.085f * elapsedMinutes, 0.55f);
+            float damageScale = 1f + elapsedMinutes * 0.08f;
             GetBaseStats(type, out float hp, out float speed, out float damage, out int xp);
 
-            enemy.Initialize(manager.Player, type, speed * speedScale, damage);
+            enemy.Initialize(manager.Player, type, speed * speedScale, damage * damageScale);
             bool boss = type == EnemyType.MutantBoss || type == EnemyType.FinalBoss;
             enemy.GetComponent<EnemyHealth>().Initialize(hp * hpScale, xp, experiencePool, boss, resourcePickupPool, enemyMask);
             aliveEnemies++;
@@ -245,39 +246,39 @@ namespace ZombieOverdrive.Enemies
             switch (type)
             {
                 case EnemyType.Runner:
-                    hp = 36f;
+                    hp = 40f;
                     speed = 3.05f;
-                    damage = 8f;
-                    xp = 5;
+                    damage = 10f;
+                    xp = 4;
                     break;
                 case EnemyType.Spitter:
-                    hp = 72f;
+                    hp = 82f;
                     speed = 1.35f;
-                    damage = 10f;
+                    damage = 12f;
                     xp = 5;
                     break;
                 case EnemyType.Tanker:
-                    hp = 420f;
+                    hp = 500f;
                     speed = 0.95f;
-                    damage = 20f;
-                    xp = 20;
+                    damage = 24f;
+                    xp = 18;
                     break;
                 case EnemyType.MutantBoss:
-                    hp = 2600f;
+                    hp = 3200f;
                     speed = 1.35f;
-                    damage = 26f;
-                    xp = 120;
+                    damage = 30f;
+                    xp = 110;
                     break;
                 case EnemyType.FinalBoss:
-                    hp = 10000f;
+                    hp = 12500f;
                     speed = 1.05f;
-                    damage = 34f;
-                    xp = 400;
+                    damage = 40f;
+                    xp = 360;
                     break;
                 default:
-                    hp = 44f;
+                    hp = 46f;
                     speed = 1.35f;
-                    damage = 7f;
+                    damage = 9f;
                     xp = 1;
                     break;
             }

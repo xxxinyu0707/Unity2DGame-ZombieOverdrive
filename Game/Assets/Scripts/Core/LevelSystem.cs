@@ -53,20 +53,20 @@ namespace ZombieOverdrive.Core
         {
             if (level <= 1)
             {
-                return 4;
+                return 5;
             }
 
             if (level <= 5)
             {
-                return 4 + (level - 1) * 3;
+                return 5 + (level - 1) * 4;
             }
 
             if (level <= 12)
             {
-                return Mathf.RoundToInt(18f + (level - 5) * 4.5f);
+                return Mathf.RoundToInt(24f + (level - 5) * 6f);
             }
 
-            return Mathf.RoundToInt(50f + (level - 12) * 8f + Mathf.Pow(level - 12, 1.35f) * 2.5f);
+            return Mathf.RoundToInt(70f + (level - 12) * 11f + Mathf.Pow(level - 12, 1.35f) * 3.4f);
         }
     }
 }

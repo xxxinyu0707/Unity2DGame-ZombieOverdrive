@@ -5,8 +5,8 @@ namespace ZombieOverdrive.Combat
     public class SingularityWeapon : WeaponBase
     {
         [SerializeField] private GameObject orbPrefab;
-        [SerializeField] private float baseDamage = 12f;
-        [SerializeField] private float baseCooldown = 4.2f;
+        [SerializeField] private float baseDamage = 10.5f;
+        [SerializeField] private float baseCooldown = 4.6f;
         [SerializeField] private float baseRadius = 2.6f;
         [SerializeField] private LayerMask enemyMask;
 
@@ -40,9 +40,9 @@ namespace ZombieOverdrive.Combat
                 SingularityOrb orb = orbObject.GetComponent<SingularityOrb>();
                 if (orb != null)
                 {
-                    float radius = baseRadius * AreaMultiplier * (Level >= 2 ? 1.3f : 1f) * (IsEvolved ? 1.45f : 1f);
-                    float lifetime = (Level >= 4 ? 4.8f : 3.5f) * (Stats != null ? Stats.durationMultiplier : 1f) * (IsEvolved ? 1.25f : 1f);
-                    orb.Launch(direction, RollDamage(baseDamage * (1f + (Level - 1) * 0.2f) * (IsEvolved ? 1.6f : 1f)), radius, IsEvolved ? 0.78f : 0.45f, lifetime, enemyMask);
+                    float radius = baseRadius * AreaMultiplier * (Level >= 2 ? 1.25f : 1f) * (IsEvolved ? 1.38f : 1f);
+                    float lifetime = (Level >= 4 ? 4.4f : 3.35f) * (Stats != null ? Stats.durationMultiplier : 1f) * (IsEvolved ? 1.2f : 1f);
+                    orb.Launch(direction, RollDamage(baseDamage * (1f + (Level - 1) * 0.16f) * (IsEvolved ? 1.45f : 1f)), radius, IsEvolved ? 0.7f : 0.42f, lifetime, enemyMask);
                 }
             }
         }

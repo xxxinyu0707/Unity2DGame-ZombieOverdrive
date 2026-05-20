@@ -7,8 +7,8 @@ namespace ZombieOverdrive.Combat
 {
     public class TeslaWeapon : WeaponBase
     {
-        [SerializeField] private float baseDamage = 28f;
-        [SerializeField] private float baseCooldown = 1f;
+        [SerializeField] private float baseDamage = 24f;
+        [SerializeField] private float baseCooldown = 1.12f;
         [SerializeField] private float chainRadius = 3.5f;
         [SerializeField] private LayerMask enemyMask;
 
@@ -39,15 +39,15 @@ namespace ZombieOverdrive.Combat
             struck.Clear();
             Vector2 origin = transform.position;
             EnemyHealth current = FindNearestEnemy(origin, 7f * AreaMultiplier, null, true);
-            int maxTargets = IsEvolved ? 10 : Level >= 2 ? 5 : 3;
+            int maxTargets = IsEvolved ? 9 : Level >= 2 ? 4 : 3;
             if (Level >= 4)
             {
-                maxTargets += 2;
+                maxTargets += 1;
             }
 
             for (int i = 0; i < maxTargets && current != null; i++)
             {
-                float damage = RollDamage(baseDamage * (i == 0 && Level >= 2 ? 1.35f : 1f) * (IsEvolved ? 1.18f : 1f));
+                float damage = RollDamage(baseDamage * (1f + (Level - 1) * 0.1f) * (i == 0 && Level >= 2 ? 1.18f : 1f) * (IsEvolved ? 1.15f : 1f));
                 current.TakeDamage(damage);
                 EnemyController controller = current.GetComponent<EnemyController>();
                 if (controller != null)

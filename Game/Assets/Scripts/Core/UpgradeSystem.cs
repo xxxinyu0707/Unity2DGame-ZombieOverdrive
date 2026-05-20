@@ -147,48 +147,52 @@ namespace ZombieOverdrive.Core
                     break;
                 case UpgradeType.AmmoBox:
                     AddPassiveLevel(option.Type);
-                    stats.AddDamage(0.08f);
-                    stats.AddArea(0.05f);
+                    stats.AddDamage(0.07f);
+                    stats.AddArea(0.04f);
                     break;
                 case UpgradeType.Overclock:
                     AddPassiveLevel(option.Type);
-                    stats.AddFireRate(0.09f);
+                    stats.AddFireRate(0.08f);
                     break;
                 case UpgradeType.Adrenaline:
                     AddPassiveLevel(option.Type);
-                    stats.AddMoveSpeed(0.07f);
+                    stats.AddMoveSpeed(0.06f);
                     break;
                 case UpgradeType.NanoArmor:
                     AddPassiveLevel(option.Type);
-                    stats.AddDamageReduction(0.06f);
+                    stats.AddDamageReduction(0.05f);
                     break;
                 case UpgradeType.Propellent:
                     AddPassiveLevel(option.Type);
-                    stats.AddProjectileSpeed(0.12f);
-                    stats.bulletPierceBonus++;
+                    stats.AddProjectileSpeed(0.1f);
+                    int propellentLevel = GetPassiveLevel(option.Type);
+                    if (propellentLevel == 1 || propellentLevel == 3 || propellentLevel == 5)
+                    {
+                        stats.bulletPierceBonus++;
+                    }
                     break;
                 case UpgradeType.GravityCore:
                     AddPassiveLevel(option.Type);
-                    stats.AddDuration(0.12f);
+                    stats.AddDuration(0.1f);
                     break;
                 case UpgradeType.Magnet:
                     AddPassiveLevel(option.Type);
-                    stats.AddMagnetRange(1.25f);
+                    stats.AddMagnetRange(0.95f);
                     break;
                 case UpgradeType.HazmatSuit:
                     AddPassiveLevel(option.Type);
-                    stats.AddMaxHealth(18f);
-                    stats.AddHealthRegen(0.35f);
-                    if (health != null) health.Heal(health.MaxHealth * 0.18f);
+                    stats.AddMaxHealth(16f);
+                    stats.AddHealthRegen(0.28f);
+                    if (health != null) health.Heal(health.MaxHealth * 0.15f);
                     break;
                 case UpgradeType.GreedChip:
                     AddPassiveLevel(option.Type);
-                    stats.AddXpGain(0.08f);
-                    stats.AddGoldGain(0.15f);
+                    stats.AddXpGain(0.06f);
+                    stats.AddGoldGain(0.12f);
                     break;
                 case UpgradeType.Radar:
                     AddPassiveLevel(option.Type);
-                    stats.AddCritical(0.04f, 0.1f);
+                    stats.AddCritical(0.035f, 0.08f);
                     break;
                 case UpgradeType.Defibrillator:
                     AddPassiveLevel(option.Type);
@@ -197,17 +201,17 @@ namespace ZombieOverdrive.Core
                         stats.reviveCharges++;
                     }
 
-                    stats.levelUpHealPercent += 0.015f;
+                    stats.levelUpHealPercent += 0.012f;
                     break;
                 case UpgradeType.Radio:
                     AddPassiveLevel(option.Type);
-                    stats.AddPickupLuck(0.1f);
+                    stats.AddPickupLuck(0.08f);
                     break;
                 case UpgradeType.Repair:
-                    if (health != null) health.Heal(health.MaxHealth * 0.35f);
+                    if (health != null) health.Heal(health.MaxHealth * 0.3f);
                     break;
                 case UpgradeType.GoldBag:
-                    if (GameManager.Instance != null) GameManager.Instance.AddRunGold(100);
+                    if (GameManager.Instance != null) GameManager.Instance.AddRunGold(85);
                     break;
             }
         }
@@ -347,7 +351,7 @@ namespace ZombieOverdrive.Core
                 {
                     Type = UpgradeType.GoldBag,
                     Title = "补给钱包",
-                    Description = "立即获得 100 局内金币，结算时会转化为局外金币。",
+                    Description = "立即获得 85 局内金币，结算时会转化为局外金币。",
                     Hint = "保底收益",
                     IconId = "passive_goldbag"
                 });
@@ -772,33 +776,33 @@ namespace ZombieOverdrive.Core
             switch (type)
             {
                 case UpgradeType.AmmoBox:
-                    return "武器伤害 +8%，范围 +5%。";
+                    return "武器伤害 +7%，范围 +4%。";
                 case UpgradeType.Overclock:
-                    return "攻击速度 +9%。";
+                    return "攻击速度 +8%。";
                 case UpgradeType.Adrenaline:
-                    return "移动速度 +7%。";
+                    return "移动速度 +6%。";
                 case UpgradeType.NanoArmor:
-                    return "受到伤害 -6%。";
+                    return "受到伤害 -5%。";
                 case UpgradeType.Propellent:
-                    return "弹体速度 +12%，子弹穿透 +1。";
+                    return "弹体速度 +10%，等级 1/3/5 增加子弹穿透。";
                 case UpgradeType.GravityCore:
-                    return "持续性效果时长 +12%。";
+                    return "持续性效果时长 +10%。";
                 case UpgradeType.Magnet:
-                    return "拾取范围 +1.25。";
+                    return "拾取范围 +0.95。";
                 case UpgradeType.HazmatSuit:
-                    return "生命上限 +18，每秒回复 +0.35。";
+                    return "生命上限 +16，每秒回复 +0.28。";
                 case UpgradeType.GreedChip:
-                    return "经验获取 +8%，金币收益 +15%。";
+                    return "经验获取 +6%，金币收益 +12%。";
                 case UpgradeType.Radar:
-                    return "暴击率 +4%，暴击伤害 +10%。";
+                    return "暴击率 +3.5%，暴击伤害 +8%。";
                 case UpgradeType.Defibrillator:
                     return "首次选择获得 1 次复活；之后提升升级回血。";
                 case UpgradeType.Radio:
-                    return "补给掉落幸运 +10%。";
+                    return "补给掉落幸运 +8%。";
                 case UpgradeType.GoldBag:
-                    return "立即获得 100 金币。";
+                    return "立即获得 85 金币。";
                 default:
-                    return "恢复 35% 生命。";
+                    return "恢复 30% 生命。";
             }
         }
     }

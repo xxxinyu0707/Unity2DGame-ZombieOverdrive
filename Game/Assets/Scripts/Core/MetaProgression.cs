@@ -74,9 +74,9 @@ namespace ZombieOverdrive.Core
                 return;
             }
 
-            stats.AddMaxHealth(GetTalentLevel(MetaTalent.Vitality) * 10f);
-            stats.AddMoveSpeed(GetTalentLevel(MetaTalent.Mobility) * 0.05f);
-            stats.AddDamage(GetTalentLevel(MetaTalent.Power) * 0.05f);
+            stats.AddMaxHealth(GetTalentLevel(MetaTalent.Vitality) * 12f);
+            stats.AddMoveSpeed(GetTalentLevel(MetaTalent.Mobility) * 0.055f);
+            stats.AddDamage(GetTalentLevel(MetaTalent.Power) * 0.06f);
             stats.AddMagnetRange(GetTalentLevel(MetaTalent.Magnet) * 0.55f);
             stats.AddGoldGain(GetTalentLevel(MetaTalent.Greed) * 0.1f);
 
@@ -115,11 +115,11 @@ namespace ZombieOverdrive.Core
             switch (talent)
             {
                 case MetaTalent.Vitality:
-                    return "生命上限每级 +10。";
+                    return "生命上限每级 +12。";
                 case MetaTalent.Mobility:
-                    return "移动速度每级 +5%。";
+                    return "移动速度每级 +5.5%。";
                 case MetaTalent.Power:
-                    return "全武器伤害每级 +5%。";
+                    return "全武器伤害每级 +6%。";
                 case MetaTalent.Magnet:
                     return "初始拾取范围每级提升。";
                 case MetaTalent.Greed:

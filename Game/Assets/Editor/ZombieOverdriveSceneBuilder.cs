@@ -1791,24 +1791,27 @@ public static class ZombieOverdriveSceneBuilder
         rect.offsetMin = Vector2.zero;
         rect.offsetMax = Vector2.zero;
 
-        Image topBand = CreateImage(panel.transform, "Top Band", new Vector2(0.5f, 1f), new Vector2(0f, 0f), new Vector2(1920f, 146f));
+        Image topBand = CreateImage(panel.transform, "Top Band", new Vector2(0.5f, 1f), new Vector2(0f, 0f), new Vector2(1920f, 150f));
         topBand.color = Hex("#111923");
-        Image lowerBand = CreateImage(panel.transform, "Lower Band", new Vector2(0.5f, 0f), new Vector2(0f, 0f), new Vector2(1920f, 118f));
+        Image lowerBand = CreateImage(panel.transform, "Lower Band", new Vector2(0.5f, 0f), new Vector2(0f, 0f), new Vector2(1920f, 128f));
         lowerBand.color = Hex("#0d121b");
-        Image leftAccent = CreateImage(panel.transform, "Left Accent", new Vector2(0f, 1f), new Vector2(0f, -146f), new Vector2(12f, 815f));
+        Image leftAccent = CreateImage(panel.transform, "Left Accent", new Vector2(0f, 1f), new Vector2(0f, -150f), new Vector2(12f, 802f));
         leftAccent.color = Hex("#23b7d7");
-        Image rightAccent = CreateImage(panel.transform, "Right Accent", new Vector2(1f, 1f), new Vector2(0f, -146f), new Vector2(12f, 815f));
+        Image rightAccent = CreateImage(panel.transform, "Right Accent", new Vector2(1f, 1f), new Vector2(0f, -150f), new Vector2(12f, 802f));
         rightAccent.color = Hex("#f3b43c");
 
-        CreateText(panel.transform, "Title", "基因重组舱", 56, TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(72f, -70f), new Vector2(560f, 78f));
-        Text subtitle = CreateText(panel.transform, "Subtitle", "避难所永久强化 / 下一轮出击准备", 22, TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(78f, -116f), new Vector2(680f, 42f));
+        Text title = CreateText(panel.transform, "Title", "基因重组舱", 44, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(70f, -22f), new Vector2(560f, 58f));
+        title.verticalOverflow = VerticalWrapMode.Truncate;
+        Text subtitle = CreateText(panel.transform, "Subtitle", "避难所永久强化 / 下一轮出击准备", 18, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(74f, -94f), new Vector2(760f, 30f));
         subtitle.color = Hex("#8ea0b6");
-        Text gold = CreateText(panel.transform, "Gold", "局外金币 0", 30, TextAnchor.MiddleRight, new Vector2(1f, 1f), new Vector2(-76f, -72f), new Vector2(430f, 60f));
+        subtitle.verticalOverflow = VerticalWrapMode.Truncate;
+        Text gold = CreateText(panel.transform, "Gold", "局外金币 0", 26, TextAnchor.MiddleRight, new Vector2(1f, 1f), new Vector2(-76f, -70f), new Vector2(430f, 52f));
         gold.color = Hex("#ffd66b");
 
-        CreateText(panel.transform, "Talent Title", "永久强化", 34, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-640f, -190f), new Vector2(360f, 58f));
-        Text hint = CreateText(panel.transform, "Talent Hint", "金币会留在局外，用来强化下一局开局属性。", 21, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-640f, -238f), new Vector2(760f, 42f));
+        CreateText(panel.transform, "Talent Title", "永久强化", 30, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(300f, -170f), new Vector2(360f, 44f));
+        Text hint = CreateText(panel.transform, "Talent Hint", "金币会留在局外，用来强化下一局开局属性。", 18, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(304f, -214f), new Vector2(860f, 32f));
         hint.color = Hex("#9ba9ba");
+        hint.verticalOverflow = VerticalWrapMode.Truncate;
 
         Button[] talentButtons = new Button[6];
         Text[] talentTexts = new Text[6];
@@ -1842,20 +1845,23 @@ public static class ZombieOverdriveSceneBuilder
             buttonRect.anchorMin = new Vector2(0.5f, 1f);
             buttonRect.anchorMax = new Vector2(0.5f, 1f);
             buttonRect.pivot = new Vector2(0.5f, 1f);
-            buttonRect.anchoredPosition = new Vector2(-360f + column * 720f, -310f - row * 138f);
-            buttonRect.sizeDelta = new Vector2(620f, 104f);
+            buttonRect.anchoredPosition = new Vector2(-360f + column * 720f, -282f - row * 126f);
+            buttonRect.sizeDelta = new Vector2(620f, 96f);
 
-            Image accent = CreateImage(buttonObject.transform, "Accent", new Vector2(0f, 0.5f), new Vector2(0f, 0f), new Vector2(10f, 104f));
+            Image accent = CreateImage(buttonObject.transform, "Accent", new Vector2(0f, 0.5f), new Vector2(0f, 0f), new Vector2(10f, 96f));
             accent.color = accents[i];
             Image icon = CreateImage(buttonObject.transform, "Icon", new Vector2(0f, 0.5f), new Vector2(34f, 0f), new Vector2(54f, 54f));
             icon.color = accents[i];
-            talentTexts[i] = CreateText(buttonObject.transform, "Text", labels[i], 20, TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(112f, 0f), new Vector2(468f, 84f));
+            talentTexts[i] = CreateText(buttonObject.transform, "Text", labels[i], 18, TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(112f, 0f), new Vector2(468f, 82f));
             talentTexts[i].color = new Color(0.93f, 0.96f, 1f, 1f);
+            talentTexts[i].verticalOverflow = VerticalWrapMode.Truncate;
             talentButtons[i] = button;
         }
 
-        Button start = CreateMenuButton(panel.transform, "Start Button", "开始战斗", new Vector2(-128f, -464f));
-        Button quit = CreateMenuButton(panel.transform, "Quit Button", "退出游戏", new Vector2(128f, -464f));
+        Button start = CreateMenuButton(panel.transform, "Start Button", "开始战斗", new Vector2(-128f, 70f));
+        Button quit = CreateMenuButton(panel.transform, "Quit Button", "退出游戏", new Vector2(128f, 70f));
+        AnchorButtonToBottom(start, new Vector2(-128f, 70f));
+        AnchorButtonToBottom(quit, new Vector2(128f, 70f));
 
         MainMenuPanel mainMenu = panel.AddComponent<MainMenuPanel>();
         SetObjectField(mainMenu, "goldText", gold);
@@ -1864,6 +1870,15 @@ public static class ZombieOverdriveSceneBuilder
         SetArrayField(mainMenu, "talentButtons", talentButtons);
         SetArrayField(mainMenu, "talentTexts", talentTexts);
         return mainMenu;
+    }
+
+    private static void AnchorButtonToBottom(Button button, Vector2 anchoredPosition)
+    {
+        RectTransform rect = button.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0.5f, 0f);
+        rect.anchorMax = new Vector2(0.5f, 0f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = anchoredPosition;
     }
 
     private static UpgradePanel CreateUpgradePanel(Transform parent, UpgradeIconLibrary iconLibrary)

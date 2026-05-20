@@ -7,8 +7,8 @@ namespace ZombieOverdrive.Combat
     {
         [SerializeField] private GameObjectPool bulletPool;
         [SerializeField] private Transform muzzle;
-        [SerializeField] private float baseDamage = 42f;
-        [SerializeField] private float baseCooldown = 0.36f;
+        [SerializeField] private float baseDamage = 38f;
+        [SerializeField] private float baseCooldown = 0.42f;
         [SerializeField] private float parallelShotOffset = 0.18f;
 
         private float cooldownTimer;
@@ -33,9 +33,9 @@ namespace ZombieOverdrive.Combat
         private void Fire()
         {
             Vector2 direction = AimDirection;
-            int shots = IsEvolved ? 4 : Level >= 4 ? 2 : 1;
-            int pierces = Stats.bulletPierceBonus + (Level >= 5 ? 2 : 0) + (IsEvolved ? 2 : 0);
-            float damage = RollDamage(baseDamage * (1f + (Level - 1) * 0.16f) * (IsEvolved ? 1.35f : 1f));
+            int shots = IsEvolved ? 4 : Level >= 5 ? 2 : 1;
+            int pierces = Stats.bulletPierceBonus + (Level >= 4 ? 1 : 0) + (Level >= 5 ? 1 : 0) + (IsEvolved ? 2 : 0);
+            float damage = RollDamage(baseDamage * (1f + (Level - 1) * 0.14f) * (IsEvolved ? 1.28f : 1f));
             Vector3 origin = transform.position + (Vector3)(direction * 0.6f);
             Vector2 side = new Vector2(-direction.y, direction.x);
             CombatVisuals.SpawnMuzzleFlash(origin, direction, new Color(1f, 0.86f, 0.35f, 0.95f), 0.26f);
@@ -61,17 +61,17 @@ namespace ZombieOverdrive.Combat
         {
             if (IsEvolved)
             {
-                return 0.58f;
+                return 0.62f;
             }
 
-            if (Level >= 4)
+            if (Level >= 5)
             {
-                return 0.8f;
+                return 0.82f;
             }
 
             if (Level >= 2)
             {
-                return 0.85f;
+                return 0.9f;
             }
 
             return 1f;

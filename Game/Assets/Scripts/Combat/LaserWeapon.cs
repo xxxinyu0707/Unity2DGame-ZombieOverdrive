@@ -6,7 +6,7 @@ namespace ZombieOverdrive.Combat
 {
     public class LaserWeapon : WeaponBase
     {
-        [SerializeField] private float baseDamagePerSecond = 32f;
+        [SerializeField] private float baseDamagePerSecond = 27f;
         [SerializeField] private float range = 10f;
         [SerializeField] private float beamWidth = 0.45f;
         [SerializeField] private LayerMask enemyMask;
@@ -70,7 +70,7 @@ namespace ZombieOverdrive.Combat
         {
             float width = beamWidth * AreaMultiplier * (Level >= 2 ? 1.35f : 1f);
             int count = Physics2D.CircleCastNonAlloc(transform.position, width, AimDirection, hits, range, enemyMask);
-            float damage = RollDamage(baseDamagePerSecond * (1f + (Level - 1) * 0.18f)) * Time.deltaTime;
+            float damage = RollDamage(baseDamagePerSecond * (1f + (Level - 1) * 0.14f) * (IsEvolved ? 1.25f : 1f)) * Time.deltaTime;
             if (beam != null)
             {
                 beam.enabled = true;

@@ -7,9 +7,9 @@ namespace ZombieOverdrive.Combat
     {
         [SerializeField] private GameObjectPool bulletPool;
         [SerializeField] private Transform muzzle;
-        [SerializeField] private float baseDamage = 11f;
-        [SerializeField] private float baseCooldown = 1.55f;
-        [SerializeField] private float spreadAngle = 52f;
+        [SerializeField] private float baseDamage = 8.5f;
+        [SerializeField] private float baseCooldown = 1.85f;
+        [SerializeField] private float spreadAngle = 58f;
 
         private float cooldownTimer;
 
@@ -26,13 +26,13 @@ namespace ZombieOverdrive.Combat
             if (cooldownTimer <= 0f)
             {
                 Fire();
-                cooldownTimer = baseCooldown / FireRateMultiplier * (Level >= 4 ? 0.68f : 1f);
+                cooldownTimer = baseCooldown / FireRateMultiplier * (Level >= 4 ? 0.82f : 1f);
             }
         }
 
         private void Fire()
         {
-            int pelletCount = IsEvolved ? 10 : Level >= 2 ? 6 : 5;
+            int pelletCount = IsEvolved ? 9 : Level >= 2 ? 6 : 5;
             if (Level >= 5)
             {
                 pelletCount += 1;
@@ -49,13 +49,13 @@ namespace ZombieOverdrive.Combat
 
             for (int i = 0; i < pelletCount; i++)
             {
-                float spread = IsEvolved ? spreadAngle * 0.78f : spreadAngle;
+                float spread = IsEvolved ? spreadAngle * 0.82f : spreadAngle;
                 float randomAngle = Random.Range(-spread * 0.5f, spread * 0.5f);
                 Vector2 direction = Rotate(AimDirection, randomAngle);
                 Bullet bullet = bulletPool.Get<Bullet>(origin, Quaternion.identity);
                 if (bullet != null)
                 {
-                    float damage = RollDamage(baseDamage * (1f + (Level - 1) * 0.1f) * (IsEvolved ? 1.2f : 1f));
+                    float damage = RollDamage(baseDamage * (1f + (Level - 1) * 0.09f) * (IsEvolved ? 1.16f : 1f));
                     bullet.Launch(direction, damage, pierces, IsEvolved ? 0.7f : 0.45f, Stats.projectileSpeedMultiplier * 0.8f, false);
                 }
             }
