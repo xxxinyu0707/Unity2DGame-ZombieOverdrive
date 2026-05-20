@@ -33,6 +33,12 @@ namespace ZombieOverdrive.UI
             resumeButton.onClick.AddListener(() => onResume?.Invoke());
             restartButton.onClick.AddListener(() => onRestart?.Invoke());
             quitButton.onClick.AddListener(() => onQuit?.Invoke());
+
+            // Add dynamic outline scaling and hover effects to the pause menu buttons
+            UIInteractiveEffect.AddTo(resumeButton, new Color(0f, 0.89f, 1f, 1f), new Color(1f, 1f, 1f, 0.08f));
+            UIInteractiveEffect.AddTo(restartButton, new Color(1f, 0.78f, 0.22f, 1f), new Color(1f, 1f, 1f, 0.08f));
+            UIInteractiveEffect.AddTo(quitButton, new Color(1f, 0.09f, 0.27f, 1f), new Color(1f, 1f, 1f, 0.08f));
+
             Hide();
         }
 
@@ -41,7 +47,7 @@ namespace ZombieOverdrive.UI
             EnsureLayout();
             if (statusText != null)
             {
-                statusText.text = status;
+                statusText.text = FormatStatusText(status);
             }
 
             gameObject.SetActive(true);
@@ -66,7 +72,18 @@ namespace ZombieOverdrive.UI
                 bool hasText = texts != null && i < texts.Length && !string.IsNullOrWhiteSpace(texts[i]);
                 if (labels[i] != null)
                 {
-                    labels[i].text = hasText ? texts[i] : "空槽";
+                    if (hasText)
+                    {
+                        // Color levels in blue and super evolutions in gold
+                        string formatted = texts[i];
+                        formatted = formatted.Replace(" 超进化", " <color=#ffd66b><b>★超进化★</b></color>");
+                        formatted = System.Text.RegularExpressions.Regex.Replace(formatted, @"等级 \d+", "<color=#29b6f6><b>$&</b></color>");
+                        labels[i].text = formatted;
+                    }
+                    else
+                    {
+                        labels[i].text = "<color=#78909c>空槽</color>";
+                    }
                     labels[i].fontSize = 17;
                     labels[i].verticalOverflow = VerticalWrapMode.Truncate;
                 }
@@ -79,6 +96,43 @@ namespace ZombieOverdrive.UI
                     icons[i].color = sprite != null ? Color.white : new Color(1f, 1f, 1f, 0.12f);
                 }
             }
+        }
+
+        private string FormatStatusText(string status)
+        {
+            if (string.IsNullOrEmpty(status)) return status;
+
+            string[] lines = status.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string line = lines[i];
+                if (line.StartsWith("时间 "))
+                {
+                    line = System.Text.RegularExpressions.Regex.Replace(line, @"时间 (\d+:\d+)", "时间 <color=#00e5ff><b>$1</b></color>");
+                    line = System.Text.RegularExpressions.Regex.Replace(line, @"等级 (\d+)", "等级 <color=#29b6f6><b>$1</b></color>");
+                    line = System.Text.RegularExpressions.Regex.Replace(line, @"击杀 (\d+)", "击杀 <color=#ff7043><b>$1</b></color>");
+                    lines[i] = line;
+                }
+                else if (line.Contains("超进化搭配"))
+                {
+                    lines[i] = "<b><color=#ffd66b>⚔️ 超进化搭配 ⚔️</color></b>";
+                }
+                else if (line.Trim().StartsWith("- "))
+                {
+                    line = line.Replace("已完成", "<color=#81c784>已完成</color>");
+                    line = line.Replace("可进化", "<color=#ffd66b><b>可进化</b></color>");
+                    line = line.Replace("准备中", "<color=#b0bec5>准备中</color>");
+                    line = line.Replace("未获得", "<color=#78909c>未获得</color>");
+                    line = line.Replace(" + ", " <color=#b0bec5>+</color> ");
+                    lines[i] = line;
+                }
+                else if (line.Contains("ESC") || line.Contains("重开"))
+                {
+                    lines[i] = "<color=#90a4ae><i>" + line + "</i></color>";
+                }
+            }
+
+            return string.Join("\n", lines);
         }
 
         private void EnsureLayout()

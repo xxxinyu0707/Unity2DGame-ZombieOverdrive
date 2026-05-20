@@ -24,6 +24,11 @@ namespace ZombieOverdrive.UI
             quitButton.onClick.RemoveAllListeners();
             restartButton.onClick.AddListener(() => onRestart?.Invoke());
             quitButton.onClick.AddListener(() => onQuit?.Invoke());
+
+            // Add dynamic outline scaling and hover effects to the result buttons
+            UIInteractiveEffect.AddTo(restartButton, new Color(0.12f, 0.75f, 0.42f, 1f), new Color(1f, 1f, 1f, 0.08f));
+            UIInteractiveEffect.AddTo(quitButton, new Color(1f, 0.09f, 0.27f, 1f), new Color(1f, 1f, 1f, 0.08f));
+
             Hide();
         }
 
@@ -32,17 +37,17 @@ namespace ZombieOverdrive.UI
             EnsureLayout();
             if (titleText != null)
             {
-                titleText.text = victory ? "任务完成" : "行动终止";
-                titleText.color = victory ? new Color(0.55f, 1f, 0.72f, 1f) : new Color(1f, 0.68f, 0.52f, 1f);
+                titleText.text = victory ? "★ 任务完成 ★" : "☠ 行动终止 ☠";
+                titleText.color = victory ? new Color(0.23f, 0.85f, 0.45f, 1f) : new Color(0.93f, 0.26f, 0.31f, 1f);
             }
 
             if (summaryText != null)
             {
-                summaryText.text = "生存时间  " + FormatTime(elapsedSeconds)
-                    + "\n等级  " + level
-                    + "\n击杀  " + kills
-                    + "\n局内金币  " + runGold
-                    + "\n结算金币  " + reward;
+                summaryText.text = $"生存时间:  <color=#00e5ff><b>{FormatTime(elapsedSeconds)}</b></color>\n"
+                    + $"最终等级:  <color=#29b6f6><b>{level}</b></color>\n"
+                    + $"击杀数量:  <color=#ff7043><b>{kills}</b></color>\n"
+                    + $"局内金币:  <color=#ffd54f><b>{runGold}</b></color> <color=#b0bec5>(汇率 x1)</color>\n"
+                    + $"总结算金币:  <color=#ffd54f><b>{reward}</b></color> 💰";
             }
 
             gameObject.SetActive(true);
