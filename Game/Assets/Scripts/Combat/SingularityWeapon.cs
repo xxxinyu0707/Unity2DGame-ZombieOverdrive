@@ -36,7 +36,7 @@ namespace ZombieOverdrive.Combat
             {
                 float angle = IsEvolved ? (i - (count - 1) * 0.5f) * 18f : Random.Range(-8f, 8f);
                 Vector2 direction = Rotate(AimDirection, angle);
-                CombatVisuals.SpawnRing(transform.position + (Vector3)(direction * 0.45f), IsEvolved ? new Color(0.85f, 0.45f, 1f, 0.9f) : new Color(0.55f, 0.35f, 1f, 0.8f), IsEvolved ? 0.62f : 0.35f, 0.2f);
+                CombatVisuals.SpawnSoftBurst(transform.position + (Vector3)(direction * 0.45f), IsEvolved ? new Color(0.85f, 0.45f, 1f, 0.72f) : new Color(0.55f, 0.35f, 1f, 0.58f), IsEvolved ? 0.62f : 0.35f, 0.16f, IsEvolved ? 8 : 5, false);
                 GameObject orbObject = Instantiate(orbPrefab, transform.position, Quaternion.identity);
                 SingularityOrb orb = orbObject.GetComponent<SingularityOrb>();
                 if (orb != null)

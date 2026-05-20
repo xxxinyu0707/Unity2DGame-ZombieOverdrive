@@ -108,6 +108,27 @@ namespace ZombieOverdrive.Combat
             SpawnSoftBurst(position, new Color(1f, 0.25f, 0.08f, 0.52f), radius * 0.58f, 0.24f, 14, false);
         }
 
+        public static void SpawnSingularityCollapse(Vector3 position, float radius, bool evolved)
+        {
+            SpawnSoftBurst(position, evolved ? new Color(0.92f, 0.32f, 1f, 0.82f) : new Color(0.56f, 0.28f, 1f, 0.62f), radius * (evolved ? 0.95f : 0.7f), evolved ? 0.32f : 0.22f, evolved ? 24 : 14, false);
+            GameObject root = new GameObject("Singularity Collapse");
+            root.transform.position = position;
+            Object.Destroy(root, evolved ? 0.42f : 0.28f);
+
+            int streakCount = evolved ? 18 : 10;
+            for (int i = 0; i < streakCount; i++)
+            {
+                float angle = i * Mathf.PI * 2f / streakCount + Random.Range(-0.12f, 0.12f);
+                float start = radius * Random.Range(0.45f, 0.95f);
+                Vector3 from = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0f) * start;
+                LineRenderer line = CreateTransientPolyline("Collapse Streak", 2, new Color(0.92f, 0.55f, 1f, 0.68f), new Color(0.18f, 0f, 0.28f, 0.05f), evolved ? 0.07f : 0.045f, evolved ? 0.32f : 0.22f);
+                line.transform.SetParent(root.transform, false);
+                line.useWorldSpace = false;
+                line.SetPosition(0, from);
+                line.SetPosition(1, from * Random.Range(0.12f, 0.26f));
+            }
+        }
+
         public static void SpawnSoftBurst(Vector3 position, Color color, float radius, float seconds, int particleCount, bool shards)
         {
             GameObject root = new GameObject("Soft Burst");
