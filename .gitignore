@@ -40,6 +40,9 @@ unity-*.log
 *.unitypackage
 *.app
 *.exe
+FinalSubmission/
+FinalSubmission.zip
+徐昕宇2023302111338-Unity大作业/
 
 # Visual Studio / Rider / VS Code
 .vs/
